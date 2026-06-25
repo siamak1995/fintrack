@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.ui.theme
+package ir.siamak.fintrack.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
