@@ -16,6 +16,7 @@ import ir.siamak.fintrack.presentation.components.FTButton
 import ir.siamak.fintrack.presentation.components.FTTextField
 import ir.siamak.fintrack.presentation.components.FTTopBar
 import kotlinx.coroutines.flow.collectLatest
+import androidx.compose.runtime.remember
 
 /**
  * صفحه ثبت یا ویرایش تراکنش.

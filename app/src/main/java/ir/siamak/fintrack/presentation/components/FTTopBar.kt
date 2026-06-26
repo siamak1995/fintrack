@@ -32,8 +32,10 @@ fun FTTopBar(
     title: String,
     subtitle: String? = null,
     actionIcon: ImageVector? = null,
+    navigationIcon: ImageVector? = null,
     actionContentDescription: String? = null,
-    onActionClick: (() -> Unit)? = null
+    onActionClick: (() -> Unit)? = null,
+    onNavigationClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = modifier
