@@ -6,4 +6,6 @@ sealed class AddEditMemberEvent {
     data class EnteredColor(val value: String) : AddEditMemberEvent()
     object SaveMember : AddEditMemberEvent()
     data class LoadMember(val memberId: Long) : AddEditMemberEvent()
+
+    data class EnteredIcon(val value: String) : AddEditMemberEvent()
 }

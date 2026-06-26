@@ -39,6 +39,10 @@ class AddEditMemberViewModel @Inject constructor(
                 loadMember(event.memberId)
             }
 
+            is AddEditMemberEvent.EnteredIcon -> {
+                _state.update { it.copy(icon = event.value) }
+            }
+
             AddEditMemberEvent.SaveMember -> {
                 saveMember()
             }
