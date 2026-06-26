@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import ir.siamak.fintrack.data.local.converter.Converters
 import ir.siamak.fintrack.data.local.dao.FinTrackDao
+import ir.siamak.fintrack.data.local.dao.InstallmentDao
 import ir.siamak.fintrack.data.local.dao.MemberDao
 import ir.siamak.fintrack.data.local.entity.InstallmentEntity
 import ir.siamak.fintrack.data.local.entity.MemberEntity
@@ -25,4 +26,6 @@ import ir.siamak.fintrack.data.local.entity.WalletEntity
 abstract class AppDatabase : RoomDatabase() {
     abstract fun finTrackDao(): FinTrackDao
     abstract fun memberDao(): MemberDao
+
+    abstract fun installmentDao(): InstallmentDao
 }

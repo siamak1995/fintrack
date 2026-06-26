@@ -68,8 +68,19 @@ sealed class Screen {
      *
      * برای ثبت پرداخت‌های دوره‌ای، اقساط، بدهی‌ها و پیگیری مانده تعهدات.
      */
+    /**
+     * صفحه لیست اقاط
+     */
     @Serializable
     object Installments : Screen()
+
+    /**
+     * صفحه افزودن یا ویرایش قسط
+     */
+    @Serializable
+    data class AddEditInstallments(
+        val installmentId: Long? = null
+    ) : Screen()
 
     /**
      * صفحه گزارشات.
