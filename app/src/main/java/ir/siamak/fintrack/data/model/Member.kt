@@ -10,5 +10,7 @@ package ir.siamak.fintrack.data.model
 data class Member(
     val id: Long = 0L,
     val name: String,
-    val avatarRes: String = "ic_default_user"
+    val relation: String,
+    val color: String,
+    val icon: String = "ic_default_user"
 )

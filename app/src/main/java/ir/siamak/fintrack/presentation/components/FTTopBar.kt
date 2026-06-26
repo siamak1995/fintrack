@@ -28,6 +28,7 @@ import ir.siamak.fintrack.presentation.theme.AppTheme
  */
 @Composable
 fun FTTopBar(
+    modifier: Modifier = Modifier,
     title: String,
     subtitle: String? = null,
     actionIcon: ImageVector? = null,
@@ -35,7 +36,7 @@ fun FTTopBar(
     onActionClick: (() -> Unit)? = null
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = AppTheme.spacing.small),
         horizontalArrangement = Arrangement.SpaceBetween,

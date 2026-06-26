@@ -3,14 +3,15 @@ package ir.siamak.fintrack.presentation.wallet.list
 import ir.siamak.fintrack.data.model.Wallet
 
 /**
- * وضعیت رابط کاربری مربوط به Wallet.
+ * وضعیت نمایشی صفحه لیست حساب‌ها.
  *
- * این کلاس تمام داده‌هایی را که صفحه کیف پول برای نمایش نیاز دارد
- * در یک ساختار واحد نگه می‌دارد.
+ * این state تمام اطلاعات موردنیاز UI را برای نمایش صفحه حساب‌ها نگه می‌دارد.
+ * هدف از این کلاس، متمرکز کردن وضعیت صفحه در یک مدل immutable است تا
+ * مدیریت UI در Compose ساده‌تر، قابل پیش‌بینی‌تر و تست‌پذیرتر شود.
  *
- * @property wallets لیست کیف پول‌ها
- * @property isLoading وضعیت در حال بارگذاری بودن داده‌ها
- * @property error پیام خطا در صورت بروز مشکل
+ * @property wallets لیست حساب‌های ثبت‌شده
+ * @property isLoading نشان می‌دهد داده‌ها در حال بارگذاری هستند
+ * @property error پیام خطا در صورت بروز مشکل هنگام دریافت داده‌ها
  */
 data class WalletUiState(
     val wallets: List<Wallet> = emptyList(),

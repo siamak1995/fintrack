@@ -14,19 +14,25 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * ویومدل مربوط به مدیریت داده‌ها و منطق صفحه Wallet.
+ * ویومدل صفحه لیست حساب‌ها.
  *
- * این ViewModel وظیفه دارد:
- * - لیست کیف پول‌ها را از UseCase دریافت کند
- * - وضعیت UI را مدیریت کند
- * - عملیات افزودن و حذف کیف پول را انجام دهد
+ * این ViewModel مسئول دریافت و مدیریت داده‌های موردنیاز صفحه حساب‌ها است.
+ * در لایه data/domain هنوز از مفهوم Wallet استفاده می‌شود، اما در UI این بخش
+ * با عنوان «حساب» یا «حساب بانکی» نمایش داده می‌شود.
+ *
+ * وظایف اصلی این ویومدل:
+ * - دریافت لیست حساب‌ها از domain layer
+ * - مدیریت loading / success / error state
+ * - حذف حساب انتخاب‌شده
  */
 @HiltViewModel
 class WalletViewModel @Inject constructor(
     private val walletUseCases: WalletUseCases
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(WalletUiState(isLoading = true))
+    private val _uiState = MutableStateFlow(
+        WalletUiState(isLoading = true)
+    )
     val uiState: StateFlow<WalletUiState> = _uiState.asStateFlow()
 
     init {
@@ -34,7 +40,14 @@ class WalletViewModel @Inject constructor(
     }
 
     /**
-     * دریافت لیست کیف پول‌ها از دیتابیس و بروزرسانی State صفحه.
+     * لیست حساب‌ها را از منبع داده دریافت می‌کند و state صفحه را به‌روزرسانی می‌کند.
+     *
+     * در صورت موفقیت:
+     * - wallets مقداردهی می‌شود
+     * - loading متوقف می‌شود
+     *
+     * در صورت خطا:
+     * - پیام خطا در state ذخیره می‌شود
      */
     private fun loadWallets() {
         viewModelScope.launch {
@@ -43,7 +56,7 @@ class WalletViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = throwable.message ?: "Unknown error"
+                            error = throwable.message ?: "خطا در دریافت حساب‌ها"
                         )
                     }
                 }
@@ -60,20 +73,9 @@ class WalletViewModel @Inject constructor(
     }
 
     /**
-     * افزودن کیف پول جدید به دیتابیس.
+     * حساب انتخاب‌شده را حذف می‌کند.
      *
-     * @param wallet کیف پولی که باید ذخیره شود
-     */
-    fun insertWallet(wallet: Wallet) {
-        viewModelScope.launch {
-            walletUseCases.insertWallet(wallet)
-        }
-    }
-
-    /**
-     * حذف کیف پول از دیتابیس.
-     *
-     * @param wallet کیف پولی که باید حذف شود
+     * @param wallet حسابی که باید حذف شود
      */
     fun deleteWallet(wallet: Wallet) {
         viewModelScope.launch {
