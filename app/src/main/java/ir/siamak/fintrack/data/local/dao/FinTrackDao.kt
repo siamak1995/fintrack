@@ -1,33 +1,59 @@
 package ir.siamak.fintrack.data.local.dao
 
 import androidx.room.*
-import ir.siamak.fintrack.data.model.Expense
-import ir.siamak.fintrack.data.model.Wallet
+import ir.siamak.fintrack.data.local.entity.ExpenseEntity
+import ir.siamak.fintrack.data.local.entity.InstallmentEntity
+import ir.siamak.fintrack.data.local.entity.WalletEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FinTrackDao {
 
-    // --- Wallets ---
-    @Query("SELECT * FROM wallets")
-    fun getAllWallets(): Flow<List<Wallet>>
-
+    // Wallet
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertWallet(wallet: Wallet)
+    suspend fun insertWallet(wallet: WalletEntity): Long
+
+    @Update
+    suspend fun updateWallet(wallet: WalletEntity)
 
     @Delete
-    suspend fun deleteWallet(wallet: Wallet)
+    suspend fun deleteWallet(wallet: WalletEntity)
 
-    @Query("SELECT * FROM wallets WHERE id = :id LIMIT 1")
-    suspend fun getWalletById(id: Long): Wallet?
+    @Query("SELECT * FROM wallet ORDER BY id DESC")
+    fun getAllWallets(): Flow<List<WalletEntity>>
 
-    // --- Expenses ---
-    @Query("SELECT * FROM expenses ORDER BY date DESC")
-    fun getAllExpenses(): Flow<List<Expense>>
+    @Query("SELECT * FROM wallet WHERE id = :walletId LIMIT 1")
+    suspend fun getWalletById(walletId: Long): WalletEntity?
 
+    // Expense
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertExpense(expense: Expense)
+    suspend fun insertExpense(expense: ExpenseEntity): Long
 
-    @Query("SELECT * FROM expenses WHERE walletId = :walletId")
-    fun getExpensesByWallet(walletId: Long): Flow<List<Expense>>
+    @Update
+    suspend fun updateExpense(expense: ExpenseEntity)
+
+    @Delete
+    suspend fun deleteExpense(expense: ExpenseEntity)
+
+    @Query("SELECT * FROM expense ORDER BY date DESC")
+    fun getAllExpenses(): Flow<List<ExpenseEntity>>
+
+    @Query("SELECT * FROM expense WHERE walletId = :walletId ORDER BY date DESC")
+    fun getExpensesByWallet(walletId: Long): Flow<List<ExpenseEntity>>
+
+    // Installment
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertInstallment(installment: InstallmentEntity): Long
+
+    @Update
+    suspend fun updateInstallment(installment: InstallmentEntity)
+
+    @Delete
+    suspend fun deleteInstallment(installment: InstallmentEntity)
+
+    @Query("SELECT * FROM installment ORDER BY dueDate ASC")
+    fun getAllInstallments(): Flow<List<InstallmentEntity>>
+
+    @Query("SELECT * FROM installment WHERE id = :installmentId LIMIT 1")
+    suspend fun getInstallmentById(installmentId: Long): InstallmentEntity?
 }

@@ -8,11 +8,28 @@ import ir.siamak.fintrack.data.repository.WalletRepositoryImpl
 import ir.siamak.fintrack.domain.repository.WalletRepository
 import javax.inject.Singleton
 
+/**
+ * ماژول مربوط به اتصال Interfaceها به Implementationها در لایه Repository.
+ *
+ * وظیفه این ماژول:
+ * - مشخص کردن این که هر زمان [WalletRepository] درخواست شد،
+ *   Hilt باید نمونه‌ای از [WalletRepositoryImpl] را تزریق کند.
+ *
+ * این الگو باعث می‌شود:
+ * - لایه Domain فقط Interface را بشناسد
+ * - لایه Data پیاده‌سازی واقعی را نگه دارد
+ * - پروژه تست‌پذیرتر و قابل نگهداری‌تر شود
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
 
-    // Hilt بداند که برای WalletRepository باید از WalletRepositoryImpl استفاده کند
+    /**
+     * اتصال پیاده‌سازی [WalletRepositoryImpl] به اینترفیس [WalletRepository].
+     *
+     * @param walletRepositoryImpl پیاده‌سازی واقعی ریپازیتوری کیف پول
+     * @return نمونه‌ای از [WalletRepository]
+     */
     @Binds
     @Singleton
     abstract fun bindWalletRepository(

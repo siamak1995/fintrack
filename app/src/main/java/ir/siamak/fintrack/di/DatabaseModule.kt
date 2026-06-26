@@ -8,17 +8,34 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ir.siamak.fintrack.data.local.dao.FinTrackDao
-import ir.siamak.fintrack.data.local.database.AppDatabase // مسیر جدید بر اساس ساختار شما
+import ir.siamak.fintrack.data.local.database.AppDatabase
 import javax.inject.Singleton
 
+/**
+ * ماژول تزریق وابستگی مربوط به دیتابیس برنامه.
+ *
+ * وظیفه این ماژول:
+ * - ساخت نمونه Singleton از [AppDatabase]
+ * - فراهم کردن نمونه [FinTrackDao] برای استفاده در Repositoryها
+ *
+ * این ماژول در سطح [SingletonComponent] نصب می‌شود، بنابراین
+ * در کل طول عمر برنامه فقط یک نمونه از دیتابیس و DAO ساخته خواهد شد.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    /**
+     * ساخت و ارائه نمونه Singleton از دیتابیس اصلی برنامه با استفاده از Room.
+     *
+     * @param context کانتکست اپلیکیشن که توسط Hilt تزریق می‌شود.
+     * @return نمونه ساخته‌شده از [AppDatabase]
+     */
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        // مسیر جدید: data.local.database
+    fun provideAppDatabase(
+        @ApplicationContext context: Context
+    ): AppDatabase {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
@@ -26,6 +43,12 @@ object DatabaseModule {
         ).build()
     }
 
+    /**
+     * ارائه DAO اصلی برنامه از روی نمونه دیتابیس.
+     *
+     * @param database نمونه دیتابیس برنامه
+     * @return نمونه [FinTrackDao] برای انجام عملیات CRUD
+     */
     @Provides
     @Singleton
     fun provideFinTrackDao(database: AppDatabase): FinTrackDao {
