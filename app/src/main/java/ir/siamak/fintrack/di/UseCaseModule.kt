@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import ir.siamak.fintrack.domain.repository.MemberRepository
 import ir.siamak.fintrack.domain.usecase.wallet.DeleteWalletUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.GetAllWalletsUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.GetWalletByIdUseCase
@@ -17,6 +18,12 @@ import ir.siamak.fintrack.domain.usecase.transaction.GetTransactionsByWalletUseC
 import ir.siamak.fintrack.domain.usecase.transaction.InsertTransactionUseCase
 import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases
 import ir.siamak.fintrack.domain.usecase.transaction.UpdateTransactionUseCase
+import ir.siamak.fintrack.domain.usecase.member.DeleteMemberUseCase
+import ir.siamak.fintrack.domain.usecase.member.GetAllMembersUseCase
+import ir.siamak.fintrack.domain.usecase.member.GetMemberByIdUseCase
+import ir.siamak.fintrack.domain.usecase.member.InsertMemberUseCase
+import ir.siamak.fintrack.domain.usecase.member.MemberUseCases
+import ir.siamak.fintrack.domain.usecase.member.UpdateMemberUseCase
 
 
 /**
@@ -67,6 +74,19 @@ object UseCaseModule {
             insertTransaction = InsertTransactionUseCase(repository),
             updateTransaction = UpdateTransactionUseCase(repository),
             deleteTransaction = DeleteTransactionUseCase(repository)
+        )
+    }
+
+    @Provides
+    fun provideMemberUseCases(
+        repository: MemberRepository
+    ): MemberUseCases {
+        return MemberUseCases(
+            getAllMembers = GetAllMembersUseCase(repository),
+            getMemberById = GetMemberByIdUseCase(repository),
+            insertMember = InsertMemberUseCase(repository),
+            updateMember = UpdateMemberUseCase(repository),
+            deleteMember = DeleteMemberUseCase(repository)
         )
     }
 
