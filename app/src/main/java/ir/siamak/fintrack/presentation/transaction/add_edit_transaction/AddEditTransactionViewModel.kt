@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.add_edit_transaction
+package ir.siamak.fintrack.presentation.transaction.add_edit_transaction
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf

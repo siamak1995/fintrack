@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.add_edit_transaction
+package ir.siamak.fintrack.presentation.transaction.add_edit_transaction
 
 import ir.siamak.fintrack.data.model.TransactionType
 import ir.siamak.fintrack.data.model.Wallet
