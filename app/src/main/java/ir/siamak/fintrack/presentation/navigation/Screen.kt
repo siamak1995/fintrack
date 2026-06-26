@@ -61,7 +61,8 @@ sealed class Screen {
      */
     @Serializable
     object Members : Screen()
-
+    @Serializable
+    data class AddEditMember(val memberId: Long? = null) : Screen()
     /**
      * صفحه اقساط و تعهدات مالی.
      *

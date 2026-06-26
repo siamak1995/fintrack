@@ -24,6 +24,9 @@ import ir.siamak.fintrack.presentation.dashboard.DashboardScreen
 import ir.siamak.fintrack.presentation.transaction.add_edit_transaction.AddEditTransactionScreen
 import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScreen
 import ir.siamak.fintrack.presentation.wallet.list.WalletRoute
+import ir.siamak.fintrack.presentation.member.add_edit_member.AddEditMemberScreen
+import ir.siamak.fintrack.presentation.member.list.MemberRoute
+
 
 /**
  * گراف اصلی ناوبری اپلیکیشن.
@@ -150,6 +153,19 @@ fun AppNavGraph(navController: NavHostController) {
                 composable<Screen.AddEditTransaction> {
                     AddEditTransactionScreen(
                         onBack = { navController.popBackStack() }
+                    )
+                }
+                /**
+                 * صفحه افزودن یا ویرایش اعضا.
+                 */
+                composable<Screen.Members> {
+                    MemberRoute(
+                        onAddMemberClick = {
+                            navController.navigate(Screen.AddEditMember())
+                        },
+                        onEditMemberClick = { memberId ->
+                            navController.navigate(Screen.AddEditMember(memberId))
+                        }
                     )
                 }
             }
