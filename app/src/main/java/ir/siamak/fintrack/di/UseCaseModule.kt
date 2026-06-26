@@ -8,6 +8,7 @@ import ir.siamak.fintrack.domain.usecase.wallet.DeleteWalletUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.GetAllWalletsUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.GetWalletByIdUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.InsertWalletUseCase
+import ir.siamak.fintrack.domain.usecase.wallet.UpdateWalletUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
 
 /**
@@ -31,12 +32,14 @@ object UseCaseModule {
         getAllWalletsUseCase: GetAllWalletsUseCase,
         getWalletByIdUseCase: GetWalletByIdUseCase,
         insertWalletUseCase: InsertWalletUseCase,
+        updateWalletUseCase: UpdateWalletUseCase,
         deleteWalletUseCase: DeleteWalletUseCase
     ): WalletUseCases {
         return WalletUseCases(
             getAllWallets = getAllWalletsUseCase,
             getWalletById = getWalletByIdUseCase,
             insertWallet = insertWalletUseCase,
+            updateWallet = updateWalletUseCase,
             deleteWallet = deleteWalletUseCase
         )
     }

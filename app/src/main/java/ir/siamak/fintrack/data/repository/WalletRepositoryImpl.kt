@@ -33,4 +33,8 @@ class WalletRepositoryImpl @Inject constructor(
     override suspend fun deleteWallet(wallet: Wallet) {
         dao.deleteWallet(wallet.toEntity())
     }
+
+    override suspend fun updateWallet(wallet: Wallet) {
+        dao.updateWallet(wallet.toEntity())
+    }
 }

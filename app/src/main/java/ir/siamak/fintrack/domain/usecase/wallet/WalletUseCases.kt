@@ -10,5 +10,6 @@ data class WalletUseCases(
     val getAllWallets: GetAllWalletsUseCase,
     val getWalletById: GetWalletByIdUseCase,
     val insertWallet: InsertWalletUseCase,
+    val updateWallet: UpdateWalletUseCase,
     val deleteWallet: DeleteWalletUseCase
 )

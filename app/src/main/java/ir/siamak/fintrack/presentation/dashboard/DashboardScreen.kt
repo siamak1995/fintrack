@@ -39,6 +39,7 @@ import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.presentation.components.EmptyState
 import ir.siamak.fintrack.presentation.components.FTCard
 import ir.siamak.fintrack.presentation.components.MoneyText
+import ir.siamak.fintrack.presentation.components.StatCard
 import ir.siamak.fintrack.presentation.components.SummaryCard
 import ir.siamak.fintrack.presentation.theme.AppTheme
 import ir.siamak.fintrack.presentation.theme.ErrorRed
@@ -119,15 +120,16 @@ private fun DashboardContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.medium)
             ) {
-                SummaryCard(
-                    title = "تعداد کیف پول‌ها",
-                    amount = state.wallets.size.toDouble(),
+                // کارت اول: تعداد کیف پول‌ها (از StatCard استفاده می‌کنیم)
+                StatCard(
+                    title = "تعداد کیف پول",
+                    value = state.wallets.size.toString(),
                     icon = Icons.Default.AccountBalanceWallet,
                     iconBackground = PrimaryBlue,
-                    amountColor = PrimaryBlue,
                     modifier = Modifier.weight(1f)
                 )
 
+                // کارت دوم: موجودی کل (از SummaryCard استفاده می‌کنیم)
                 SummaryCard(
                     title = "موجودی کل",
                     amount = state.totalBalance,

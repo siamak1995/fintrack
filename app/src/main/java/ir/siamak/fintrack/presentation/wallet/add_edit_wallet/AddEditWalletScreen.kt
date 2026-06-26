@@ -28,15 +28,24 @@ import androidx.hilt.navigation.compose.hiltViewModel
  * صفحه افزودن یا ویرایش کیف ‌پول.
  *
  * @param viewModel ویومدل مربوط به این صفحه که توسط Hilt تزریق می‌شود.
+ * @param walletId شناسه کیف پول برای ویرایش (null اگر برای افزودن باشد).
  * @param onBack تابعی که هنگام اتمام عملیات یا انصراف برای بازگشت به صفحه قبل صدا زده می‌شود.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditWalletScreen(
     viewModel: AddEditWalletViewModel = hiltViewModel(),
+    walletId: Long?,
     onBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+
+    // بارگذاری اولیه داده‌ها برای ویرایش
+    LaunchedEffect(walletId) {
+        walletId?.let {
+            viewModel.onEvent(AddEditWalletEvent.LoadWallet(it))
+        }
+    }
 
     // مانیتور کردن وضعیت ذخیره‌سازی برای خروج از صفحه
     LaunchedEffect(state.isSaved) {
@@ -47,7 +56,10 @@ fun AddEditWalletScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("افزودن کیف ‌پول جدید") })
+            TopAppBar(
+                title = { Text(if (walletId == null) "افزودن کیف ‌پول جدید" else "ویرایش کیف ‌پول") }, // عنوان پویا
+                navigationIcon = { /* اینجا می‌توانید دکمه بازگشت را اضافه کنید */ } // مثلاً IconButton با Icons.Default.ArrowBack
+            )
         }
     ) { padding ->
         Column(
@@ -80,6 +92,7 @@ fun AddEditWalletScreen(
             Button(
                 onClick = { viewModel.onEvent(AddEditWalletEvent.SaveWallet) },
                 modifier = Modifier.fillMaxWidth(),
+                // اطمینان از اینکه نام خالی نیست و در حالت لودینگ نیست
                 enabled = !state.isLoading && state.name.isNotBlank()
             ) {
                 if (state.isLoading) {
