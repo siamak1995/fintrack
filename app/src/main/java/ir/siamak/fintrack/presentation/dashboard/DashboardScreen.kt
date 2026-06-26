@@ -73,7 +73,7 @@ fun DashboardScreen(
                         icon = Icons.Default.ReceiptLong,
                         color = PrimaryBlue,
                         modifier = Modifier.weight(1f),
-                        onClick = { /* بعدا اضافه می‌کنیم */ }
+                        onClick = onAddTransactionClick
                     )
                     QuickActionItem(
                         title = "افزودن حساب",
