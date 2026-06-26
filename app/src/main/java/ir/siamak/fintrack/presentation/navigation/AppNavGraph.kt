@@ -89,6 +89,9 @@ fun AppNavGraph(navController: NavHostController) {
                         },
                         onAddTransactionClick = {
                             navController.navigate(Screen.AddEditTransaction())
+                        },
+                        onMembersClick = {
+                            navController.navigate(Screen.Members)
                         }
                     )
                 }

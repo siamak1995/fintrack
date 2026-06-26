@@ -50,6 +50,10 @@ class AddEditWalletViewModel @Inject constructor(
                 loadWallet(event.walletId)
             }
 
+            is AddEditWalletEvent.EnteredColor -> {
+                _state.update { it.copy(color = event.value) }
+            }
+
             AddEditWalletEvent.SaveWallet -> {
                 saveWallet()
             }

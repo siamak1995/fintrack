@@ -19,6 +19,14 @@ sealed class AddEditWalletEvent {
      */
     data class EnteredBalance(val value: String): AddEditWalletEvent()
 
+
+    /**
+     * تغییر در رنگ انتخاب شده برای کیف ‌پول.
+     * @param value رنگ جدید در قالب Hex.
+     */
+    data class EnteredColor(val value: String): AddEditWalletEvent()
+
+
     /**
      * درخواست برای ذخیره نهایی اطلاعات در دیتابیس.
      */

@@ -14,7 +14,6 @@ import javax.inject.Inject
 class GetAllWalletsUseCase @Inject constructor(
     private val walletRepository: WalletRepository
 ) {
-
     /**
      * اجرای یوزکیس برای دریافت همه کیف پول‌ها به صورت Flow.
      *
