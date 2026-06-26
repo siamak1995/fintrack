@@ -10,6 +10,14 @@ import ir.siamak.fintrack.domain.usecase.wallet.GetWalletByIdUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.InsertWalletUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.UpdateWalletUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
+import ir.siamak.fintrack.domain.repository.TransactionRepository
+import ir.siamak.fintrack.domain.usecase.transaction.DeleteTransactionUseCase
+import ir.siamak.fintrack.domain.usecase.transaction.GetAllTransactionsUseCase
+import ir.siamak.fintrack.domain.usecase.transaction.GetTransactionsByWalletUseCase
+import ir.siamak.fintrack.domain.usecase.transaction.InsertTransactionUseCase
+import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases
+import ir.siamak.fintrack.domain.usecase.transaction.UpdateTransactionUseCase
+
 
 /**
  * ماژول تزریق وابستگی مربوط به UseCaseهای برنامه.
@@ -43,4 +51,23 @@ object UseCaseModule {
             deleteWallet = deleteWalletUseCase
         )
     }
+
+    /**
+     * فراهم کردن مجموعه UseCaseهای مرتبط با Transaction.
+     *
+     * @return نمونه‌ای از [TransactionUseCases]
+     */
+    @Provides
+    fun provideTransactionUseCases(
+        repository: TransactionRepository
+    ): TransactionUseCases {
+        return TransactionUseCases(
+            getAllTransactions = GetAllTransactionsUseCase(repository),
+            getTransactionsByWallet = GetTransactionsByWalletUseCase(repository),
+            insertTransaction = InsertTransactionUseCase(repository),
+            updateTransaction = UpdateTransactionUseCase(repository),
+            deleteTransaction = DeleteTransactionUseCase(repository)
+        )
+    }
+
 }
