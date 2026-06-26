@@ -36,7 +36,7 @@ fun DashboardScreen(
         topBar = {
             // هدر رو آوردیم اینجا که ثابت بمونه و با اسکرول غیب نشه
                 FTTopBar(
-                    title = "سلام کابر عزیز! 👋",
+                    title = " سلام کابر عزیز! 👋 حسابدارت منتظرت بود.",
                     subtitle = "امروز وضعیت جیبت چطوره؟",
                     actionIcon = Icons.Default.Notifications,
                     onActionClick = { /* نوتیفیکیشن‌ها */ },

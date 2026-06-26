@@ -13,6 +13,12 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ویومدل برای مدیریت وضعیت و منطق صفحه ثبت/ویرایش تراکنش.
+ *
+ * @property transactionUseCases یوزکیس‌های مربوط به تراکنش‌ها
+ * @property walletUseCases یوزکیس‌های مربوط به حساب‌ها برای بارگذاری لیست کیف‌پول‌ها
+ */
 @HiltViewModel
 class AddEditTransactionViewModel @Inject constructor(
     private val transactionUseCases: TransactionUseCases,
@@ -26,10 +32,19 @@ class AddEditTransactionViewModel @Inject constructor(
     val eventFlow = _eventFlow.asSharedFlow()
 
     init {
-        // گرفتن لیست کیف پول‌ها برای نمایش در Dropdown یا انتخابگر
+        // بارگذاری لیست حساب‌های موجود برای انتخاب توسط کاربر
+        loadWallets()
+    }
+
+    private fun loadWallets() {
         viewModelScope.launch {
             walletUseCases.getAllWallets().collect { wallets ->
-                _state.value = _state.value.copy(wallets = wallets)
+                _state.value = _state.value.copy(
+                    wallets = wallets,
+                    // اگر حسابی موجود است، اولین حساب را به صورت پیش‌فرض انتخاب کن
+                    selectedWalletId = if (_state.value.selectedWalletId == -1L && wallets.isNotEmpty())
+                        wallets.first().id else _state.value.selectedWalletId
+                )
             }
         }
     }
@@ -60,26 +75,36 @@ class AddEditTransactionViewModel @Inject constructor(
     private fun saveTransaction() {
         viewModelScope.launch {
             val amount = _state.value.amount.toDoubleOrNull() ?: 0.0
-            if (amount <= 0.0 || _state.value.selectedWalletId == null) {
-                _eventFlow.emit(UiEvent.ShowSnackbar("لطفاً مبلغ و کیف پول را وارد کنید"))
+
+            // چک کردن برای null یا مقدار پیش‌فرض -1
+            if (amount <= 0.0 || _state.value.selectedWalletId == null || _state.value.selectedWalletId == -1L) {
+                _eventFlow.emit(UiEvent.ShowSnackbar("لطفاً مبلغ و حساب بانکی را انتخاب کنید"))
                 return@launch
             }
 
-            transactionUseCases.insertTransaction(
-                Transaction(
-                    amount = amount,
-                    type = _state.value.type,
-                    categoryName = _state.value.selectedCategoryName,
-                    walletId = _state.value.selectedWalletId!!,
-                    memberId = 1L, // فعلاً پیش‌فرض برای تست
-                    date = System.currentTimeMillis(),
-                    note = _state.value.note
+            try {
+                transactionUseCases.insertTransaction(
+                    Transaction(
+                        amount = amount,
+                        type = _state.value.type,
+                        categoryName = _state.value.selectedCategoryName ?: "عمومی",
+                        walletId = _state.value.selectedWalletId!!, // <--- اضافه کردن علامت !! برای رفع خطا
+                        memberId = 1L,
+                        date = System.currentTimeMillis(),
+                        note = _state.value.note
+                    )
                 )
-            )
-            _eventFlow.emit(UiEvent.SaveSuccess)
+                _eventFlow.emit(UiEvent.SaveSuccess)
+            } catch (e: Exception) {
+                _eventFlow.emit(UiEvent.ShowSnackbar("خطا در ذخیره: ${e.message}"))
+            }
         }
     }
 
+
+    /**
+     * رویدادهای یک‌باره UI (مانند نمایش اسنک‌بار یا خروج از صفحه)
+     */
     sealed class UiEvent {
         data class ShowSnackbar(val message: String) : UiEvent()
         object SaveSuccess : UiEvent()
