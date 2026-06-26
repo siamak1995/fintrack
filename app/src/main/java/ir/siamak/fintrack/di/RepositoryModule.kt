@@ -4,10 +4,12 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import ir.siamak.fintrack.data.repository.WalletRepositoryImpl
-import ir.siamak.fintrack.domain.repository.WalletRepository
+import ir.siamak.fintrack.data.repository.MemberRepositoryImpl
 import ir.siamak.fintrack.data.repository.TransactionRepositoryImpl
+import ir.siamak.fintrack.data.repository.WalletRepositoryImpl
+import ir.siamak.fintrack.domain.repository.MemberRepository
 import ir.siamak.fintrack.domain.repository.TransactionRepository
+import ir.siamak.fintrack.domain.repository.WalletRepository
 import javax.inject.Singleton
 
 /**
@@ -39,7 +41,14 @@ abstract class RepositoryModule {
     ): WalletRepository
 
     @Binds
+    @Singleton
     abstract fun bindTransactionRepository(
         impl: TransactionRepositoryImpl
     ): TransactionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMemberRepository(
+        impl: MemberRepositoryImpl
+    ): MemberRepository
 }
