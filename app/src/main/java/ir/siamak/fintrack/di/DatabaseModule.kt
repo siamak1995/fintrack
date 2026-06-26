@@ -34,9 +34,7 @@ object DatabaseModule {
      */
     @Provides
     @Singleton
-    fun provideAppDatabase(
-        @ApplicationContext context: Context
-    ): AppDatabase {
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
@@ -52,9 +50,7 @@ object DatabaseModule {
      */
     @Provides
     @Singleton
-    fun provideFinTrackDao(database: AppDatabase): FinTrackDao {
-        return database.finTrackDao()
-    }
+    fun provideFinTrackDao(database: AppDatabase): FinTrackDao = database.finTrackDao()
 
     /**
      * ارائه DAO اصلی برنامه از روی نمونه دیتابیس.
@@ -64,8 +60,6 @@ object DatabaseModule {
      */
     @Provides
     @Singleton
-    fun provideMemberDao(database: AppDatabase): MemberDao {
-        return database.memberDao()
-    }
+    fun provideMemberDao(database: AppDatabase): MemberDao = database.memberDao()
 
 }

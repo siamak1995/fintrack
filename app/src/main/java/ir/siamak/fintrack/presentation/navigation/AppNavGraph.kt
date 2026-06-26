@@ -21,10 +21,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
 import ir.siamak.fintrack.presentation.components.FTBottomBar
 import ir.siamak.fintrack.presentation.dashboard.DashboardScreen
+import ir.siamak.fintrack.presentation.member.add_edit_member.AddEditMemberScreen
 import ir.siamak.fintrack.presentation.transaction.add_edit_transaction.AddEditTransactionScreen
 import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScreen
 import ir.siamak.fintrack.presentation.wallet.list.WalletRoute
-import ir.siamak.fintrack.presentation.member.add_edit_member.AddEditMemberScreen
 import ir.siamak.fintrack.presentation.member.list.MemberRoute
 
 
@@ -119,12 +119,7 @@ fun AppNavGraph(navController: NavHostController) {
                     )
                 }
 
-                /**
-                 * صفحه اعضا.
-                 */
-                composable<Screen.Members> {
-                    PlaceholderScreen(title = "اعضا")
-                }
+
 
                 /**
                  * صفحه اقساط.
@@ -156,7 +151,7 @@ fun AppNavGraph(navController: NavHostController) {
                     )
                 }
                 /**
-                 * صفحه افزودن یا ویرایش اعضا.
+                 * صفحه اعضا.
                  */
                 composable<Screen.Members> {
                     MemberRoute(
@@ -166,6 +161,16 @@ fun AppNavGraph(navController: NavHostController) {
                         onEditMemberClick = { memberId ->
                             navController.navigate(Screen.AddEditMember(memberId))
                         }
+                    )
+                }
+                /**
+                 * صفحه افزودن یا ویرایش اعضا.
+                 */
+                composable<Screen.AddEditMember> { backStackEntry ->
+                    val args = backStackEntry.toRoute<Screen.AddEditMember>()
+                    AddEditMemberScreen(
+                        memberId = args.memberId,
+                        onBack = { navController.popBackStack() }
                     )
                 }
             }
