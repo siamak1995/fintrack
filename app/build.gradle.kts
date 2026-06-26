@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp") // 1. اضافه کردن KSP
+    id("com.google.dagger.hilt.android") // 2. اضافه کردن Hilt
 }
 
 android {
@@ -60,4 +62,15 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+
+    // Room
+    val room_version = "2.6.1" // یا جدیدترین ورژن
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
+    implementation("androidx.room:room-ktx:$room_version") // برای پشتیبانی از Flow و Coroutines
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.51.1") // یا جدیدترین ورژن
+    ksp("com.google.dagger:hilt-compiler:2.51.1")
+    // Hilt Compose Navigation
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0") // یا جدیدترین ورژن
 }
