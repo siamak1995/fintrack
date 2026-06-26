@@ -7,5 +7,7 @@ import androidx.room.PrimaryKey
 data class MemberEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val name: String,
+    val relation: String,
+    val color: String,
     val icon: String
 )

@@ -2,33 +2,12 @@ package ir.siamak.fintrack.presentation.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.ReceiptLong
-import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,36 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ir.siamak.fintrack.data.model.Wallet
-import ir.siamak.fintrack.presentation.components.EmptyState
-import ir.siamak.fintrack.presentation.components.FTCard
-import ir.siamak.fintrack.presentation.components.FTTopBar
-import ir.siamak.fintrack.presentation.components.MoneyText
-import ir.siamak.fintrack.presentation.components.StatCard
-import ir.siamak.fintrack.presentation.components.SummaryCard
-import ir.siamak.fintrack.presentation.theme.AppTheme
-import ir.siamak.fintrack.presentation.theme.ErrorRed
-import ir.siamak.fintrack.presentation.theme.PrimaryBlue
-import ir.siamak.fintrack.presentation.theme.Success
+import ir.siamak.fintrack.presentation.components.*
+import ir.siamak.fintrack.presentation.theme.*
 
-/**
- * صفحه داشبورد اپلیکیشن.
- *
- * این صفحه نمای کلی وضعیت مالی کاربر را نمایش می‌دهد و در فاز فعلی شامل:
- * - هدر خوش‌آمدگویی
- * - کارت موجودی کل
- * - آمار سریع
- * - عملیات سریع
- * - پیش‌نمایش لیست حساب‌ها
- *
- * داده‌های این صفحه از [DashboardViewModel] دریافت می‌شود.
- *
- * @param viewModel ویومدل صفحه داشبورد
- * @param onAddWalletClick اکشن افزودن حساب
- * @param onWalletClick اکشن کلیک روی یک حساب
- */
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
@@ -75,210 +32,122 @@ fun DashboardScreen(
     val state by viewModel.state.collectAsState()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            // هدر رو آوردیم اینجا که ثابت بمونه و با اسکرول غیب نشه
+                FTTopBar(
+                    title = "سلام کابر عزیز! 👋",
+                    subtitle = "امروز وضعیت جیبت چطوره؟",
+                    actionIcon = Icons.Default.Notifications,
+                    onActionClick = { /* نوتیفیکیشن‌ها */ },
+                    modifier = Modifier.padding(16.dp)
+                )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddWalletClick,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "افزودن حساب"
-                )
+                Icon(Icons.Default.Add, contentDescription = "افزودن")
             }
         }
     ) { innerPadding ->
-        DashboardContent(
-            state = state,
-            onRefresh = { viewModel.onEvent(DashboardEvent.RefreshData) },
-            onAddWalletClick = onAddWalletClick,
-            onWalletClick = onWalletClick,
-            modifier = Modifier.padding(innerPadding)
-        )
-    }
-}
-
-/**
- * محتوای اصلی صفحه داشبورد.
- *
- * @param state وضعیت فعلی UI
- * @param onRefresh رویداد تازه‌سازی اطلاعات
- * @param onAddWalletClick اکشن افزودن حساب
- * @param onWalletClick اکشن ورود به جزئیات حساب
- * @param modifier استایل اضافی
- */
-@Composable
-private fun DashboardContent(
-    state: DashboardState,
-    onRefresh: () -> Unit,
-    onAddWalletClick: () -> Unit,
-    onWalletClick: (Long) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            horizontal = AppTheme.dimens.screenHorizontalPadding,
-            vertical = AppTheme.dimens.screenVerticalPadding
-        ),
-        verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.medium)
-    ) {
-        item {
-            FTTopBar(
-                title = "سلام 👋",
-                subtitle = "نمای کلی وضعیت مالی شما",
-                actionIcon = Icons.Default.Sync,
-                actionContentDescription = "تازه‌سازی",
-                onActionClick = onRefresh
-            )
-        }
-
-        item {
-            TotalBalanceCard(totalBalance = state.totalBalance)
-        }
-
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.medium)
-            ) {
-                StatCard(
-                    title = "تعداد حساب‌ها",
-                    value = state.wallets.size.toString(),
-                    icon = Icons.Default.AccountBalanceWallet,
-                    iconBackground = PrimaryBlue,
-                    modifier = Modifier.weight(1f)
-                )
-
-                SummaryCard(
-                    title = "موجودی کل",
-                    amount = state.totalBalance,
-                    icon = Icons.Default.Info,
-                    iconBackground = Success,
-                    amountColor = Success,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-
-        item {
-            SectionTitle(title = "عملیات سریع")
-        }
-
-        item {
-            QuickActionsRow(
-                onAddAccountClick = onAddWalletClick,
-                onRefreshClick = onRefresh
-            )
-        }
-
-        item {
-            SectionTitle(
-                title = "حساب‌ها",
-                actionLabel = if (state.wallets.isNotEmpty()) "افزودن" else null,
-                onActionClick = onAddWalletClick
-            )
-        }
-
-        if (state.isLoading) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(AppTheme.spacing.large),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-        }
-
-        state.error?.let { errorMessage ->
-            item {
-                Text(
-                    text = errorMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = ErrorRed
-                )
-            }
-        }
-
-        if (!state.isLoading && state.wallets.isEmpty() && state.error == null) {
-            item {
-                EmptyState(
-                    title = "هنوز حسابی ثبت نشده",
-                    description = "برای شروع مدیریت مالی، اولین حساب خود را اضافه کن."
-                )
-            }
-        } else {
-            items(
-                items = state.wallets.take(5),
-                key = { wallet -> wallet.id }
-            ) { wallet ->
-                WalletItem(
-                    wallet = wallet,
-                    onClick = { onWalletClick(wallet.id) }
-                )
-            }
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(80.dp))
-        }
-    }
-}
-
-@Composable
-private fun TotalBalanceCard(
-    totalBalance: Double,
-    modifier: Modifier = Modifier
-) {
-    FTCard(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(AppTheme.spacing.large),
-            verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.small)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-                    contentAlignment = Alignment.Center
+            // --- کارت موجودی کل (ویترین اصلی) ---
+            item {
+                MainBalanceCard(totalBalance = state.totalBalance)
+            }
+
+            // --- بخش عملیات سریع (دکمه‌های دسترسی سریع) ---
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.AccountBalanceWallet,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                    QuickActionItem(
+                        title = "تراکنش جدید",
+                        icon = Icons.Default.ReceiptLong,
+                        color = PrimaryBlue,
+                        modifier = Modifier.weight(1f),
+                        onClick = { /* بعدا اضافه می‌کنیم */ }
                     )
-                }
-
-                Spacer(modifier = Modifier.width(AppTheme.spacing.small))
-
-                Column {
-                    Text(
-                        text = "موجودی کل",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "جمع موجودی همه حساب‌ها",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    QuickActionItem(
+                        title = "افزودن حساب",
+                        icon = Icons.Default.AccountBalanceWallet,
+                        color = Success,
+                        modifier = Modifier.weight(1f),
+                        onClick = onAddWalletClick
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(AppTheme.spacing.small))
+            // --- بخش حساب‌ها (اسلایدر یا لیست کوتاه) ---
+            item {
+                SectionHeader(
+                    title = "حساب‌های من",
+                    actionLabel = "مشاهده همه",
+                    onActionClick = { /* ناوبری به لیست حساب‌ها */ }
+                )
+            }
 
+            if (state.wallets.isEmpty()) {
+                item {
+                    EmptyState(
+                        title = "هنوز حسابی نداری!",
+                        description = "برای شروع، اولین حسابت رو بساز."
+                    )
+                }
+            } else {
+                // فقط ۳ تای اول رو نشون میدیم
+                items(state.wallets.take(3)) { wallet ->
+                    WalletItem(wallet = wallet, onClick = { onWalletClick(wallet.id) })
+                }
+            }
+
+            // --- بخش قسط‌ها یا گزارشات (فعلاً بصورت Placeholder برای زیبایی) ---
+            item {
+                SectionHeader(title = "یادآور قسط‌ها", actionLabel = "بیشتر")
+            }
+
+            item {
+                FTCard {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.EventNote, contentDescription = null, tint = ErrorRed)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("فعلاً قسط سررسید شده‌ای نداری. خیالت راحت! 😎", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(80.dp)) }
+        }
+    }
+}
+
+@Composable
+fun MainBalanceCard(totalBalance: Double) {
+    FTCard(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "موجودی کل فعلی",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             MoneyText(
                 amount = totalBalance,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
@@ -286,173 +155,71 @@ private fun TotalBalanceCard(
 }
 
 @Composable
-private fun SectionTitle(
+fun QuickActionItem(
     title: String,
-    actionLabel: String? = null,
-    onActionClick: (() -> Unit)? = null
+    icon: ImageVector,
+    color: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
+    FTCard(
+        modifier = modifier.clickable { onClick() }
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(28.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = title, style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+@Composable
+fun SectionHeader(title: String, actionLabel: String? = null, onActionClick: (() -> Unit)? = null) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.weight(1f)
-        )
-
-        if (actionLabel != null && onActionClick != null) {
+        Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        if (actionLabel != null) {
             Text(
                 text = actionLabel,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable { onActionClick() }
+                modifier = Modifier.clickable { onActionClick?.invoke() }
             )
         }
     }
 }
 
-@Composable
-private fun QuickActionsRow(
-    onAddAccountClick: () -> Unit,
-    onRefreshClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.medium)
-    ) {
-        QuickActionCard(
-            title = "افزودن حساب",
-            icon = Icons.Default.Add,
-            onClick = onAddAccountClick,
-            modifier = Modifier.weight(1f)
-        )
-
-        QuickActionCard(
-            title = "بروزرسانی",
-            icon = Icons.Default.Sync,
-            onClick = onRefreshClick,
-            modifier = Modifier.weight(1f)
-        )
-    }
+// تابع کمکی برای رنگ‌ها که توی کد قبلی هم داشتیم
+private fun parseWalletColor(colorHex: String): Color {
+    return try { Color(android.graphics.Color.parseColor(colorHex)) } catch (_: Exception) { PrimaryBlue }
 }
 
 @Composable
-private fun QuickActionCard(
-    title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    FTCard(
-        modifier = modifier.clickable(onClick = onClick)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(AppTheme.spacing.medium),
-            verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.small),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-}
-
-@Composable
-private fun WalletItem(
-    wallet: Wallet,
-    onClick: () -> Unit
-) {
-    FTCard(
-        modifier = Modifier.clickable(onClick = onClick)
-    ) {
+fun WalletItem(wallet: Wallet, onClick: () -> Unit) {
+    FTCard(modifier = Modifier.clickable { onClick() }) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(AppTheme.spacing.medium),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(parseWalletColor(wallet.color).copy(alpha = 0.15f)),
+                modifier = Modifier.size(40.dp).clip(MaterialTheme.shapes.small).background(parseWalletColor(wallet.color).copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.AccountBalanceWallet,
-                    contentDescription = null,
-                    tint = parseWalletColor(wallet.color)
-                )
+                Icon(Icons.Default.AccountBalanceWallet, contentDescription = null, tint = parseWalletColor(wallet.color))
             }
-
-            Spacer(modifier = Modifier.width(AppTheme.spacing.medium))
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.extraSmall)
-            ) {
-                Text(
-                    text = wallet.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Text(
-                    text = wallet.currency.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = wallet.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                Text(text = wallet.currency.name, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                MoneyText(
-                    amount = wallet.balance,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = if (wallet.balance >= 0) Success else ErrorRed
-                )
-
-                Spacer(modifier = Modifier.width(AppTheme.spacing.extraSmall))
-
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowLeft,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            MoneyText(amount = wallet.balance, style = MaterialTheme.typography.bodyLarge, color = if (wallet.balance >= 0) Success else ErrorRed)
         }
-    }
-}
-
-/**
- * تبدیل رشته هگز رنگ به Color برای نمایش در UI.
- *
- * اگر مقدار رنگ نامعتبر باشد، رنگ پیش‌فرض برگردانده می‌شود.
- */
-private fun parseWalletColor(colorHex: String): Color {
-    return try {
-        Color(android.graphics.Color.parseColor(colorHex))
-    } catch (_: Exception) {
-        PrimaryBlue
     }
 }

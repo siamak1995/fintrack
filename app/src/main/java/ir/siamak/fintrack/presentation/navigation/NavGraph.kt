@@ -91,7 +91,12 @@ fun AppNavGraph(navController: NavHostController) {
                  */
                 composable<Screen.WalletList> {
                     WalletRoute(
-                        onBack = { navController.popBackStack() }
+                        onAddWalletClick = {
+                            navController.navigate(Screen.AddEditWallet())
+                        },
+                        onEditWalletClick = { walletId ->
+                            navController.navigate(Screen.AddEditWallet(walletId))
+                        }
                     )
                 }
 

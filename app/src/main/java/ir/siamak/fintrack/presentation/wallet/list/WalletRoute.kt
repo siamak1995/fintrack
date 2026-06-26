@@ -1,24 +1,36 @@
 package ir.siamak.fintrack.presentation.wallet.list
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 
 /**
- * لایه Route برای صفحه Wallet.
+ * Route صفحه حساب‌ها.
  *
- * این تابع مسئول دریافت ViewModel از Hilt و ارسال آن
- * به کامپوزبل نمایشی صفحه است.
+ * این تابع لایه اتصال بین ViewModel و UI خالص صفحه است.
+ * در اینجا state از ViewModel دریافت می‌شود و callbackهای لازم به Screen پاس داده می‌شوند.
  *
- * @param onBack callback برای بازگشت به صفحه قبل
- * @param viewModel ویومدل صفحه لیست کیف ‌پول‌ها
+ * مزیت این الگو:
+ * - خود Screen کاملاً stateless می‌شود
+ * - تست و preview راحت‌تر می‌شود
+ * - وابستگی مستقیم UI به Hilt/ViewModel کمتر می‌شود
+ *
+ * @param onAddWalletClick هدایت به صفحه افزودن حساب
+ * @param onEditWalletClick هدایت به صفحه ویرایش حساب
  */
 @Composable
 fun WalletRoute(
-    onBack: () -> Unit,
+    onAddWalletClick: () -> Unit,
+    onEditWalletClick: (Long) -> Unit,
     viewModel: WalletViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     WalletScreen(
-        viewModel = viewModel,
-        onBack = onBack
+        uiState = uiState,
+        onAddWalletClick = onAddWalletClick,
+        onEditWalletClick = onEditWalletClick,
+        onDeleteWalletClick = viewModel::deleteWallet
     )
 }
