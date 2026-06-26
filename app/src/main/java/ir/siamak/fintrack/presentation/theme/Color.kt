@@ -1,6 +1,6 @@
-package ir.siamak.fintrack.ui.theme
+package ir.siamak.fintrack.presentation.theme
 
-import androidx.compose.ui.graphics.Color
+import androidx.compose.presentation.graphics.Color
 
 val PrimaryBlue = Color(0xFF2563EB)
 val SecondaryGreen = Color(0xFF10B981)

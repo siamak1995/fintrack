@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import ir.siamak.fintrack.presentation.navigation.NavGraph
 import ir.siamak.fintrack.presentation.theme.FinTrackTheme
+import ir.siamak.fintrack.ui.theme.FinTrackTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

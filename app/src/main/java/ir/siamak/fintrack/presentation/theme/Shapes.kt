@@ -1,8 +1,8 @@
-package ir.siamak.fintrack.ui.theme
+package ir.siamak.fintrack.presentation.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
-import androidx.compose.ui.unit.dp
+import androidx.compose.presentation.unit.dp
 
 val AppShapes = Shapes(
     small = RoundedCornerShape(8.dp),
