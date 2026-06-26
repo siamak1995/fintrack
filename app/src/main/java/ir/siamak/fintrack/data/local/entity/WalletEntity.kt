@@ -12,8 +12,9 @@ import androidx.room.PrimaryKey
  */
 @Entity(tableName = "wallets")
 data class WalletEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
     val name: String,
     val balance: Double,
-    val color: Long // ذخیره رنگ به صورت Hex (مثل 0xFF2563EB)
+    val color: String // ذخیره رنگ به صورت Hex (مثل 0xFF2563EB)
 )
