@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.wallet
+package ir.siamak.fintrack.presentation.wallet.list
 
 import ir.siamak.fintrack.data.model.Wallet
 

@@ -1,7 +1,5 @@
 package ir.siamak.fintrack.data.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 
 /**
  * نمایش‌دهنده یک حساب یا کیف پول
@@ -14,5 +12,7 @@ data class Wallet(
     val id: Long = 0L,
     val name: String,
     val balance: Double,
-    val color: String
+    val color: String,
+    val iconRes: String? = null,
+    val currency: Currency = Currency.TOMAN
 )

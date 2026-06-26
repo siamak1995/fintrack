@@ -1,34 +1,49 @@
 package ir.siamak.fintrack.presentation.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import ir.siamak.fintrack.presentation.dashboard.DashboardScreen
-import ir.siamak.fintrack.presentation.dashboard.DashboardViewModel
+import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScreen
+import ir.siamak.fintrack.presentation.wallet.list.WalletRoute
 
 /**
- * مدیریت سیستم ناوبری (Navigation) کل اپلیکیشن.
+ * گراف ناوبری اپلیکیشن FinTrack.
+ *
+ * @param navController کنترل‌کننده ناوبری که در سطح Activity تعریف می‌شود.
  */
 @Composable
-fun NavGraph() {
-    val navController = rememberNavController()
-
+fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Dashboard.route
+        startDestination = Screen.Dashboard
     ) {
-        composable(Screen.Dashboard.route) {
-            // ایجاد یا دریافت ویومدل داشبورد با استفاده از Hilt
-            val viewModel: DashboardViewModel = hiltViewModel()
-
+        // صفحه داشبورد
+        composable<Screen.Dashboard> {
             DashboardScreen(
-                viewModel = viewModel,
                 onAddWalletClick = {
-                    // فعلاً مسیری برای رفتن نداریم، اینجا را بعداً پر می‌کنیم
-                    // navController.navigate(Screen.AddWallet.route)
+                    navController.navigate(Screen.AddEditWallet())
+                },
+                onWalletClick = { walletId ->
+                    navController.navigate(Screen.AddEditWallet(walletId))
                 }
+            )
+        }
+
+        // صفحه افزودن/ویرایش کیف ‌پول
+        composable<Screen.AddEditWallet> {
+            AddEditWalletScreen(
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // صفحه لیست کیف ‌پول‌ها
+        composable<Screen.WalletList> {
+            WalletRoute(
+                onBack = { navController.popBackStack() }
             )
         }
     }

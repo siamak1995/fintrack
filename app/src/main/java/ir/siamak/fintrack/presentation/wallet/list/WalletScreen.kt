@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.wallet
+package ir.siamak.fintrack.presentation.wallet.list
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Wallet
+import androidx.hilt.navigation.compose.hiltViewModel
 
 /**
  * صفحه نمایش کیف پول‌ها.
@@ -29,7 +30,8 @@ import ir.siamak.fintrack.data.model.Wallet
  */
 @Composable
 fun WalletScreen(
-    viewModel: WalletViewModel
+    onBack: () -> Unit,
+    viewModel: WalletViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

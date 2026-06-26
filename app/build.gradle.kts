@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -70,4 +71,8 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.51.1")
     // Hilt Compose Navigation
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0") // یا جدیدترین ورژن
+//    اگر Type-safe navigation با @Serializable می‌خواهی، این plugin لازم است.
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+//    برای آیکون
+    implementation("androidx.compose.material:material-icons-extended")
 }

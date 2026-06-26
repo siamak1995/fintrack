@@ -11,5 +11,6 @@ data class Installment(
     val title: String,
     val totalAmount: Double,
     val paidAmount: Double,
-    val dueDate: Long
+    val dueDate: Long,
+    val isPaid: Boolean = false
 )

@@ -11,8 +11,8 @@ import ir.siamak.fintrack.data.model.Wallet
  * این کلاس وضعیت فعلی UI را توصیف می‌کند و توسط [DashboardViewModel]
  * برای به‌روزرسانی رابط کاربری (Compose) استفاده می‌شود.
  *
- * @property wallets لیست کیف‌پول‌های موجود در دیتابیس.
- * @property totalBalance مجموع موجودی تمام کیف‌پول‌ها.
+ * @property wallets لیست کیف ‌پول‌های موجود در دیتابیس.
+ * @property totalBalance مجموع موجودی تمام کیف ‌پول‌ها.
  * @property isLoading نشان‌دهنده وضعیت بارگذاری داده‌ها.
  * @property error متن خطا در صورت بروز مشکل، یا null اگر خطایی وجود ندارد.
  */

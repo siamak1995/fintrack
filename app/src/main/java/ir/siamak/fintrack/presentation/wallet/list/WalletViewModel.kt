@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.wallet
+package ir.siamak.fintrack.presentation.wallet.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
