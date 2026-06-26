@@ -8,10 +8,10 @@ import ir.siamak.fintrack.data.model.Wallet
  */
 data class AddEditTransactionState(
     val amount: String = "",
-    val type: TransactionType = TransactionType.EXPENSE,
+    val type: TransactionType = TransactionType.EXPENSE, // پیش‌فرض روی هزینه
     val selectedCategoryName: String = "سایر",
     val selectedWalletId: Long? = null,
     val note: String = "",
-    val wallets: List<Wallet> = emptyList(),
+    val wallets: List<Wallet> = emptyList(),// برای نمایش لیست حساب‌ها
     val isLoading: Boolean = false
 )
