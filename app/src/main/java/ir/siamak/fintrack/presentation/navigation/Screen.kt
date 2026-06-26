@@ -86,4 +86,13 @@ sealed class Screen {
      */
     @Serializable
     object Settings : Screen()
+
+    /**
+     * صفحه افزودن یا ویرایش تراکنش (درآمد/هزینه).
+     *
+     * @property transactionId شناسه تراکنش برای ویرایش، یا null برای ثبت جدید
+     */
+    @Serializable
+    data class AddEditTransaction(val transactionId: Long? = null) : Screen()
+
 }

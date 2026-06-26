@@ -27,7 +27,8 @@ import ir.siamak.fintrack.presentation.theme.*
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
     onAddWalletClick: () -> Unit,
-    onWalletClick: (Long) -> Unit
+    onWalletClick: (Long) -> Unit,
+    onAddTransactionClick: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -124,6 +125,7 @@ fun DashboardScreen(
                     }
                 }
             }
+
 
             item { Spacer(modifier = Modifier.height(80.dp)) }
         }

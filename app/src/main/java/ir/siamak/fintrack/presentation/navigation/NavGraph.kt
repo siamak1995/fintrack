@@ -21,6 +21,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
 import ir.siamak.fintrack.presentation.components.FTBottomBar
 import ir.siamak.fintrack.presentation.dashboard.DashboardScreen
+import ir.siamak.fintrack.presentation.transaction.add_edit_transaction.AddEditTransactionScreen
 import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScreen
 import ir.siamak.fintrack.presentation.wallet.list.WalletRoute
 
@@ -82,6 +83,9 @@ fun AppNavGraph(navController: NavHostController) {
                         },
                         onWalletClick = { walletId ->
                             navController.navigate(Screen.AddEditWallet(walletId))
+                        },
+                        onAddTransactionClick = {
+                            navController.navigate(Screen.AddEditTransaction())
                         }
                     )
                 }
@@ -138,6 +142,15 @@ fun AppNavGraph(navController: NavHostController) {
                  */
                 composable<Screen.Settings> {
                     PlaceholderScreen(title = "تنظیمات")
+                }
+
+                /**
+                 * صفحه افزودن یا ویرایش تراکنش.
+                 */
+                composable<Screen.AddEditTransaction> {
+                    AddEditTransactionScreen(
+                        onBack = { navController.popBackStack() }
+                    )
                 }
             }
         }
