@@ -18,6 +18,9 @@ interface FinTrackDao {
     @Delete
     suspend fun deleteWallet(wallet: Wallet)
 
+    @Query("SELECT * FROM wallets WHERE id = :id LIMIT 1")
+    suspend fun getWalletById(id: Long): Wallet?
+
     // --- Expenses ---
     @Query("SELECT * FROM expenses ORDER BY date DESC")
     fun getAllExpenses(): Flow<List<Expense>>

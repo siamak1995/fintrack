@@ -1,6 +1,5 @@
-package ir.siamak.fintrack.ui.components
+package ir.siamak.fintrack.presentation.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,7 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import ir.siamak.fintrack.ui.theme.AppTheme
+import ir.siamak.fintrack.presentation.theme.AppTheme
 
 @Composable
 fun FTCard(

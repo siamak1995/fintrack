@@ -1,6 +1,6 @@
 package ir.siamak.fintrack.data.repository
 
-import ir.siamak.fintrack.data.local.dao.FinTrackDao // مسیر صحیحی که تذکر دادید
+import ir.siamak.fintrack.data.local.dao.FinTrackDao
 import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.domain.repository.WalletRepository
 import kotlinx.coroutines.flow.Flow
