@@ -7,7 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import ir.siamak.fintrack.presentation.navigation.AppNavGraph // نام جدید NavGraph
+import ir.siamak.fintrack.presentation.navigation.AppNavGraph
 import ir.siamak.fintrack.presentation.theme.FinTrackTheme
 
 /**
