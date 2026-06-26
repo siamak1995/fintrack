@@ -6,11 +6,10 @@ import androidx.room.PrimaryKey
 /**
  * نمایش‌دهنده یک قسط یا تعهد مالی
  */
-@Entity(tableName = "installment")
 data class Installment(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val id: Long,
     val title: String,
-    val totalAmount: Double, // مبلغ کل وام/قسط
-    val paidAmount: Double,  // مبلغ پرداخت شده تا کنون
-    val dueDate: Long        // تاریخ سررسید بعدی
+    val totalAmount: Double,
+    val paidAmount: Double,
+    val dueDate: Long
 )

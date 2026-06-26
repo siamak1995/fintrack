@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.data.model
+package ir.siamak.fintrack.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -10,9 +10,10 @@ import androidx.room.PrimaryKey
  * @param balance موجودی فعلی
  * @param color کد رنگ برای نمایش گرافیکی در UI
  */
-data class Wallet(
-    val id: Long,
+@Entity(tableName = "wallets")
+data class WalletEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val balance: Double,
-    val color: Long
+    val color: Long // ذخیره رنگ به صورت Hex (مثل 0xFF2563EB)
 )
