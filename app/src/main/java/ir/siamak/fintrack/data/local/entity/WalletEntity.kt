@@ -10,7 +10,7 @@ import androidx.room.PrimaryKey
  * @param balance موجودی فعلی
  * @param color کد رنگ برای نمایش گرافیکی در UI
  */
-@Entity(tableName = "wallets")
+@Entity(tableName = "wallet")
 data class WalletEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
