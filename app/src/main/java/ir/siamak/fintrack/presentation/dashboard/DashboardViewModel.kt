@@ -44,7 +44,7 @@ class DashboardViewModel @Inject constructor(
     }
 
     /**
-     * دریافت لیست کیف‌پول‌ها از لایه UseCase و آپدیت کردن وضعیت [DashboardState].
+     * دریافت لیست کیف ‌پول‌ها از لایه UseCase و آپدیت کردن وضعیت [DashboardState].
      */
     private fun loadData() {
         viewModelScope.launch {

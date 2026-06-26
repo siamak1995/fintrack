@@ -1,16 +1,20 @@
 package ir.siamak.fintrack.presentation.navigation
 
-sealed class Screen(val route: String) {
+import kotlinx.serialization.Serializable
 
-    object Dashboard : Screen("dashboard")
+/**
+ * تعریف مقاصد (Destinations) اپلیکیشن با استفاده از Serialization برای امنیت تایپ.
+ */
+sealed class Screen {
 
-    object Expense : Screen("expense")
+    @Serializable
+    object Dashboard : Screen()
 
-    object Installment : Screen("installment")
+    @Serializable
+    data class AddEditWallet(val walletId: Long? = null) : Screen()
 
-    object Members : Screen("members")
+    @Serializable
+    object WalletList : Screen()
 
-    object Report : Screen("report")
-
-    object Settings : Screen("settings")
+    // بعداً صفحات تراکنش و اعضا را اینجا اضافه می‌کنیم
 }
