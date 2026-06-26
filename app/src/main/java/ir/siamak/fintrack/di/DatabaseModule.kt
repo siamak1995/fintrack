@@ -8,6 +8,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ir.siamak.fintrack.data.local.dao.FinTrackDao
+import ir.siamak.fintrack.data.local.dao.InstallmentDao
 import ir.siamak.fintrack.data.local.dao.MemberDao
 import ir.siamak.fintrack.data.local.database.AppDatabase
 import javax.inject.Singleton
@@ -61,5 +62,15 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideMemberDao(database: AppDatabase): MemberDao = database.memberDao()
+
+    /**
+     * ارائه DAO اصلی برنامه از روی نمونه دیتابیس.
+     *
+     * @param database نمونه دیتابیس برنامه
+     * @return نمونه [InstallmentDao] برای انجام عملیات CRUD
+     */
+    @Provides
+    @Singleton
+    fun provideInstallmentDao(database: AppDatabase): InstallmentDao = database.installmentDao()
 
 }

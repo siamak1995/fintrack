@@ -12,6 +12,8 @@ import ir.siamak.fintrack.domain.usecase.wallet.InsertWalletUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.UpdateWalletUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
 import ir.siamak.fintrack.domain.repository.TransactionRepository
+import ir.siamak.fintrack.domain.usecase.installment.InstallmentUseCases
+import ir.siamak.fintrack.domain.usecase.installments.GetAllInstallmentsUseCase
 import ir.siamak.fintrack.domain.usecase.transaction.DeleteTransactionUseCase
 import ir.siamak.fintrack.domain.usecase.transaction.GetAllTransactionsUseCase
 import ir.siamak.fintrack.domain.usecase.transaction.GetTransactionsByWalletUseCase
@@ -87,6 +89,16 @@ object UseCaseModule {
             insertMember = InsertMemberUseCase(repository),
             updateMember = UpdateMemberUseCase(repository),
             deleteMember = DeleteMemberUseCase(repository)
+        )
+    }
+
+
+    @Provides
+    fun provideInstallmentUseCases(
+        getAllInstallmentsUseCase: GetAllInstallmentsUseCase
+    ): InstallmentUseCases {
+        return InstallmentUseCases(
+            getAllInstallments = getAllInstallmentsUseCase
         )
     }
 

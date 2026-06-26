@@ -21,6 +21,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
 import ir.siamak.fintrack.presentation.components.FTBottomBar
 import ir.siamak.fintrack.presentation.dashboard.DashboardScreen
+import ir.siamak.fintrack.presentation.installment.add_edit_installment.AddEditInstallmentsScreen
+import ir.siamak.fintrack.presentation.installment.list.InstallmentRoute
 import ir.siamak.fintrack.presentation.member.add_edit_member.AddEditMemberScreen
 import ir.siamak.fintrack.presentation.transaction.add_edit_transaction.AddEditTransactionScreen
 import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScreen
@@ -125,11 +127,33 @@ fun AppNavGraph(navController: NavHostController) {
 
 
                 /**
-                 * صفحه اقساط.
+                 * صفحه اقساط
                  */
                 composable<Screen.Installments> {
-                    PlaceholderScreen(title = "اقساط")
+                    InstallmentRoute(
+                        onAddInstallmentClick = {
+                            navController.navigate(Screen.AddEditInstallments())
+                        },
+                        onEditInstallmentClick = { installmentId ->
+                            navController.navigate(
+                                Screen.AddEditInstallments(installmentId)
+                            )
+                        }
+                    )
                 }
+
+                /**
+                 * صفحه افزودن یا ویرایش قسط
+                 */
+                composable<Screen.AddEditInstallments> { backStackEntry ->
+                    val args = backStackEntry.toRoute<Screen.AddEditInstallments>()
+
+                    AddEditInstallmentsScreen(
+                        installmentId = args.installmentId,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
 
                 /**
                  * صفحه گزارشات.
