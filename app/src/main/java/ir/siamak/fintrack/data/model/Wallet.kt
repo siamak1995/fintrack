@@ -11,8 +11,8 @@ import androidx.room.PrimaryKey
  * @param color کد رنگ برای نمایش گرافیکی در UI
  */
 data class Wallet(
-    val id: Long,
+    val id: Long = 0L,
     val name: String,
     val balance: Double,
-    val color: Long
+    val color: String
 )
