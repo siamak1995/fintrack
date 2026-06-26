@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.siamak.fintrack.data.model.Wallet
+import ir.siamak.fintrack.domain.usecase.wallet.GetWalletByIdUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.InsertWalletUseCase
+import ir.siamak.fintrack.domain.usecase.wallet.UpdateWalletUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -19,11 +21,15 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AddEditWalletViewModel @Inject constructor(
-    private val insertWalletUseCase: InsertWalletUseCase
+    private val insertWalletUseCase: InsertWalletUseCase,
+    private val updateWalletUseCase: UpdateWalletUseCase,
+    private val getWalletByIdUseCase: GetWalletByIdUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddEditWalletState())
     val state = _state.asStateFlow()
+
+    private var currentWalletId: Long? = null
 
     /**
      * مدیریت رویدادهای دریافتی از رابط کاربری.
@@ -35,14 +41,21 @@ class AddEditWalletViewModel @Inject constructor(
             is AddEditWalletEvent.EnteredName -> {
                 _state.update { it.copy(name = event.value) }
             }
+
             is AddEditWalletEvent.EnteredBalance -> {
                 _state.update { it.copy(balance = event.value) }
             }
-            is AddEditWalletEvent.SaveWallet -> {
+
+            is AddEditWalletEvent.LoadWallet -> {
+                loadWallet(event.walletId)
+            }
+
+            AddEditWalletEvent.SaveWallet -> {
                 saveWallet()
             }
         }
     }
+
 
     /**
      * اطلاعات وارد شده را به مدل [Wallet] تبدیل کرده و در دیتابیس ذخیره می‌کند.
@@ -56,20 +69,44 @@ class AddEditWalletViewModel @Inject constructor(
             val balance = _state.value.balance.toDoubleOrNull() ?: 0.0
             val color = _state.value.color
 
-            if (name.isNotBlank()) {
-                _state.update { it.copy(isLoading = true) }
+            if (name.isBlank()) return@launch
 
-                // در اینجا تمام پارامترهای مدل Wallet (شامل color) پاس داده شده است
-                insertWalletUseCase(
-                    Wallet(
-                        name = name,
-                        balance = balance,
-                        color = color
+            _state.update { it.copy(isLoading = true) }
+
+            val wallet = Wallet(
+                id = currentWalletId ?: 0L,
+                name = name,
+                balance = balance,
+                color = color
+            )
+
+            if (currentWalletId == null) {
+                insertWalletUseCase(wallet)
+            } else {
+                updateWalletUseCase(wallet)
+            }
+
+            _state.update { it.copy(isLoading = false, isSaved = true) }
+        }
+    }
+
+
+    private fun loadWallet(walletId: Long) {
+        viewModelScope.launch {
+            currentWalletId = walletId
+
+            val wallet = getWalletByIdUseCase(walletId)
+
+            wallet?.let {
+                _state.update { state ->
+                    state.copy(
+                        name = it.name,
+                        balance = it.balance.toString(),
+                        color = it.color
                     )
-                )
-
-                _state.update { it.copy(isLoading = false, isSaved = true) }
+                }
             }
         }
     }
+
 }

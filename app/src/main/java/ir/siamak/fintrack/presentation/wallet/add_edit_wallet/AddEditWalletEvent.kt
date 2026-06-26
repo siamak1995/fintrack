@@ -23,4 +23,6 @@ sealed class AddEditWalletEvent {
      * درخواست برای ذخیره نهایی اطلاعات در دیتابیس.
      */
     object SaveWallet: AddEditWalletEvent()
+
+    data class LoadWallet(val walletId: Long) : AddEditWalletEvent()
 }

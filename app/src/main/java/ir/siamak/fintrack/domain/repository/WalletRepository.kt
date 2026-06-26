@@ -16,4 +16,7 @@ interface WalletRepository {
 
     // حذف یک کیف پول
     suspend fun deleteWallet(wallet: Wallet)
+
+    // بروزرسانی یک کیف پول
+    suspend fun updateWallet(wallet: Wallet)
 }
