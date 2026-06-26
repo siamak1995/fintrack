@@ -52,8 +52,8 @@ fun AddEditMemberScreen(
             FTTopBar(
                 title = if (memberId == null) "عضو جدید" else "ویرایش عضو",
                 subtitle = "اطلاعات عضو خانواده را وارد کنید",
-                navigationIcon = Icons.Default.ArrowForward,
-                onNavigationClick = onBack,
+                actionIcon = Icons.Default.ArrowForward,
+                onActionClick = onBack,
                 modifier = Modifier.padding(16.dp)
             )
         }
