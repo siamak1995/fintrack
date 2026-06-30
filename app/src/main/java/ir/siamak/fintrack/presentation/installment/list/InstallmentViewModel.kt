@@ -3,7 +3,7 @@ package ir.siamak.fintrack.presentation.installment.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ir.siamak.fintrack.domain.usecase.installment.InstallmentUseCases
+import ir.siamak.fintrack.domain.usecase.installments.InstallmentUseCases
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,4 +44,5 @@ class InstallmentViewModel @Inject constructor(
                 }
         }
     }
+
 }

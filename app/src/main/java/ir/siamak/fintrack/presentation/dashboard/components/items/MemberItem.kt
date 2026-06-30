@@ -17,8 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Member
 import ir.siamak.fintrack.presentation.components.FTCard
-import ir.siamak.fintrack.presentation.dashboard.components.memberIconMapper
-import ir.siamak.fintrack.presentation.dashboard.components.parseColorSafely
+import ir.siamak.fintrack.presentation.dashboard.memberIconMapper
+import ir.siamak.fintrack.presentation.dashboard.parseColorSafely
 
 @Composable
 fun MemberItem(member: Member) {

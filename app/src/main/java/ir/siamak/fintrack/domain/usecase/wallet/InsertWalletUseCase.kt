@@ -17,6 +17,6 @@ class InsertWalletUseCase @Inject constructor(
      * @param wallet اطلاعات کیف پول برای ذخیره در دیتابیس
      */
     suspend operator fun invoke(wallet: Wallet) {
-        walletRepository.insertWallet(wallet)
+        walletRepository.insert(wallet)
     }
 }

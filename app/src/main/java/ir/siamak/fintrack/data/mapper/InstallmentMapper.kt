@@ -9,7 +9,12 @@ fun InstallmentEntity.toModel(): Installment {
         title = title,
         totalAmount = totalAmount,
         paidAmount = paidAmount,
-        dueDate = dueDate
+        dueDate = dueDate,
+        createdAt = createdAt,
+        note = note,
+        walletId = walletId,
+        isPaid = isPaid
+
     )
 }
 
@@ -19,6 +24,10 @@ fun Installment.toEntity(): InstallmentEntity {
         title = title,
         totalAmount = totalAmount,
         paidAmount = paidAmount,
-        dueDate = dueDate
+        dueDate = dueDate,
+        createdAt = createdAt,
+        note = note,
+        walletId = walletId,
+        isPaid = isPaid
     )
 }

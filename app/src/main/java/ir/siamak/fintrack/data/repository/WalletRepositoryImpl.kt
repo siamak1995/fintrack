@@ -25,16 +25,23 @@ class WalletRepositoryImpl @Inject constructor(
         return dao.getWalletById(id)?.toModel()
     }
 
-    override suspend fun insertWallet(wallet: Wallet) {
-        // تبدیل Model به Entity برای ذخیره در دیتابیس
+    override suspend fun insert(wallet: Wallet) {
         dao.insertWallet(wallet.toEntity())
     }
 
-    override suspend fun deleteWallet(wallet: Wallet) {
+    override suspend fun update(wallet: Wallet) {
+        dao.updateWallet(wallet.toEntity())
+    }
+
+    override suspend fun delete(wallet: Wallet) {
         dao.deleteWallet(wallet.toEntity())
     }
 
-    override suspend fun updateWallet(wallet: Wallet) {
-        dao.updateWallet(wallet.toEntity())
+    override fun getAll(): Flow<List<Wallet>> {
+        return getAllWallets()
+    }
+
+    override suspend fun getById(id: Long): Wallet? {
+        return getWalletById(id)
     }
 }

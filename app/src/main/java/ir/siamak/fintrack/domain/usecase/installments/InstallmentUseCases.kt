@@ -1,8 +1,15 @@
-package ir.siamak.fintrack.domain.usecase.installment
-
-import ir.siamak.fintrack.domain.usecase.installments.GetAllInstallmentsUseCase
+package ir.siamak.fintrack.domain.usecase.installments
 
 data class InstallmentUseCases(
-    val getAllInstallments: GetAllInstallmentsUseCase
-    // بعدا اگر Delete یا Insert خواستی اینجا اضافه کن
+
+    val getAllInstallments:GetAllInstallmentsUseCase,
+
+    val getInstallmentById: GetInstallmentByIdUseCase,
+
+    val insertInstallment:InsertInstallmentUseCase,
+
+    val updateInstallment: UpdateInstallmentUseCase,
+
+    val deleteInstallment:DeleteInstallmentUseCase
+
 )

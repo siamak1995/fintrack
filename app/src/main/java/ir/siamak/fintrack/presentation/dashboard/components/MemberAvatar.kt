@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Member
+import ir.siamak.fintrack.presentation.dashboard.memberIconMapper
+import ir.siamak.fintrack.presentation.dashboard.parseColorSafely
 
 @Composable
 fun MemberAvatar(

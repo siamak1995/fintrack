@@ -1,13 +1,17 @@
 package ir.siamak.fintrack.presentation.dashboard.components.items
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CallMade
 import androidx.compose.material.icons.filled.CallReceived
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +45,16 @@ fun TransactionItem(
         TransactionType.INCOME -> Icons.Default.CallReceived
         TransactionType.EXPENSE -> Icons.Default.CallMade
         TransactionType.TRANSFER -> Icons.Default.SwapHoriz
+    }
+
+    val amount = when(transaction.type){
+
+        TransactionType.EXPENSE ->
+            -transaction.amount
+
+        else ->
+            transaction.amount
+
     }
 
     FTCard {
@@ -77,10 +91,13 @@ fun TransactionItem(
             }
 
             MoneyText(
-                amount = transaction.amount,
-                color = color,
-                style = MaterialTheme.typography.titleSmall,
-                showSign = true
+
+                amount = amount,
+
+                showSign = true,
+
+                color = color
+
             )
         }
     }

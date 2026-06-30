@@ -83,18 +83,18 @@ fun AppNavGraph(navController: NavHostController) {
                  */
                 composable<Screen.Dashboard> {
                     DashboardScreen(
-                        onAddWalletClick = {
-                            navController.navigate(Screen.AddEditWallet())
-                        },
+//                        onAddWalletClick = {
+//                            navController.navigate(Screen.AddEditWallet())
+//                        },
                         onWalletClick = { walletId ->
                             navController.navigate(Screen.AddEditWallet(walletId))
                         },
                         onAddTransactionClick = {
                             navController.navigate(Screen.AddEditTransaction())
                         },
-                        onMembersClick = {
-                            navController.navigate(Screen.Members)
-                        }
+//                        onMembersClick = {
+//                            navController.navigate(Screen.Members)
+//                        }
                     )
                 }
 

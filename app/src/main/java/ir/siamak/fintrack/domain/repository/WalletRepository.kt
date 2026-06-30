@@ -11,12 +11,13 @@ interface WalletRepository {
     // گرفتن یک کیف پول بر اساس شناسه
     suspend fun getWalletById(id: Long): Wallet?
 
-    // اضافه یا به‌روزرسانی کردن یک کیف پول
-    suspend fun insertWallet(wallet: Wallet)
+    suspend fun insert(wallet: Wallet)
 
-    // حذف یک کیف پول
-    suspend fun deleteWallet(wallet: Wallet)
+    suspend fun update(wallet: Wallet)
 
-    // بروزرسانی یک کیف پول
-    suspend fun updateWallet(wallet: Wallet)
+    suspend fun delete(wallet: Wallet)
+
+    fun getAll(): Flow<List<Wallet>>
+
+    suspend fun getById(id: Long): Wallet?
 }
