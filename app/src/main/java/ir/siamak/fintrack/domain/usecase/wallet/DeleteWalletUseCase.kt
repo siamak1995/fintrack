@@ -17,6 +17,6 @@ class DeleteWalletUseCase @Inject constructor(
      * @param wallet کیف پولی که باید حذف شود
      */
     suspend operator fun invoke(wallet: Wallet) {
-        walletRepository.deleteWallet(wallet)
+        walletRepository.delete(wallet)
     }
 }

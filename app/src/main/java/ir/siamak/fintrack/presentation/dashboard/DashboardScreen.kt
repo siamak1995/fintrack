@@ -19,8 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ir.siamak.fintrack.presentation.dashboard.components.DashboardLoading
-import ir.siamak.fintrack.presentation.dashboard.components.sections.InstallmentSection
-import ir.siamak.fintrack.presentation.dashboard.components.sections.MemberSection
 import ir.siamak.fintrack.presentation.dashboard.components.sections.SummarySection
 import ir.siamak.fintrack.presentation.dashboard.components.sections.TransactionSection
 import ir.siamak.fintrack.presentation.dashboard.components.sections.WalletSection
@@ -31,10 +29,8 @@ import ir.siamak.fintrack.presentation.dashboard.components.sections.WalletSecti
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
-    onAddWalletClick: () -> Unit,
     onWalletClick: (Long) -> Unit,
     onAddTransactionClick: () -> Unit,
-    onMembersClick: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -60,9 +56,9 @@ fun DashboardScreen(
             ) {
                 item {
                     SummarySection(
-                        totalBalance = state.totalBalance,
-                        income = state.monthlyIncome,
-                        expense = state.monthlyExpense
+                        income = state.totalIncome,
+                        expense = state.totalExpense,
+                        totalBalance = state.currentBalance
                     )
                 }
 
@@ -75,19 +71,7 @@ fun DashboardScreen(
 
                 item {
                     TransactionSection(
-                        transactions = state.recentTransactions
-                    )
-                }
-
-                item {
-                    MemberSection(
-                        members = state.members
-                    )
-                }
-
-                item {
-                    InstallmentSection(
-                        installments = state.installments
+                        transactions = state.transactions.take(5)
                     )
                 }
 

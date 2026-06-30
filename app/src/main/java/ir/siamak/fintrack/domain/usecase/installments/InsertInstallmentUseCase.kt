@@ -1,0 +1,13 @@
+package ir.siamak.fintrack.domain.usecase.installments
+
+import ir.siamak.fintrack.data.model.Installment
+import ir.siamak.fintrack.domain.repository.InstallmentRepository
+import javax.inject.Inject
+
+class InsertInstallmentUseCase @Inject constructor(
+    private val repository: InstallmentRepository
+) {
+    suspend operator fun invoke(installment: Installment) {
+        repository.insertInstallment(installment)
+    }
+}

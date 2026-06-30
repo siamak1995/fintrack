@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.dashboard.components
+package ir.siamak.fintrack.presentation.dashboard
 
 import android.graphics.Color.parseColor
 import androidx.compose.foundation.layout.Arrangement

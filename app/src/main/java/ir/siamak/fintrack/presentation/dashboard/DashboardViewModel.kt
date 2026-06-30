@@ -4,86 +4,123 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.siamak.fintrack.data.model.TransactionType
-import ir.siamak.fintrack.domain.usecase.member.GetAllMembersUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.GetAllTransactionsUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.GetAllWalletsUseCase
+import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases
+import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * ویومدل صفحه داشبورد.
- *
- * این کلاس مسئول مدیریت منطق صفحه Dashboard است و داده‌های موردنیاز UI را
- * از لایه domain دریافت کرده و در قالب [DashboardState] به صفحه ارسال می‌کند.
- *
- * وظایف اصلی این ViewModel:
- * - دریافت لیست حساب‌ها
- * - محاسبه مجموع موجودی
- * - مدیریت وضعیت loading
- * - مدیریت خطا
- * - جلوگیری از collect تکراری هنگام refresh
- *
- * @property getAllWalletsUseCase یوزکیس دریافت همه حساب‌ها
- * @property getAllTransactionsUseCase یوزکیس دریافت همه تراکنش ها
- * @property getAllMembersUseCase یوزکیس دریافت همه اعضا
- * @property getAllInstallmentsUseCase یوزکیس دریافت همه اقساط
- */
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val getAllWalletsUseCase: GetAllWalletsUseCase,
-    private val getAllTransactionsUseCase: GetAllTransactionsUseCase,
-    private val getAllMembersUseCase: GetAllMembersUseCase
+    private val walletUseCases: WalletUseCases,
+    private val transactionUseCases: TransactionUseCases
+
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DashboardState())
-    val state: StateFlow<DashboardState> = _state.asStateFlow()
+
+    val state = _state.asStateFlow()
+    private var loadJob: Job? = null
 
     init {
-        loadDashboardData()
+        onEvent(DashboardEvent.RefreshData)
     }
 
     fun onEvent(event: DashboardEvent) {
-        when (event) {
-            DashboardEvent.RefreshData -> loadDashboardData()
+
+        when(event){
+
+            DashboardEvent.RefreshData -> loadDashboard()
+
         }
+
     }
 
-    private fun loadDashboardData() {
-        _state.update { it.copy(isLoading = true) }
+    private fun loadDashboard() {
 
-        // ترکیب ۳ منبع داده به صورت همزمان
-        combine(
-            getAllWalletsUseCase(),
-            getAllTransactionsUseCase(),
-            getAllMembersUseCase()
-        ) { wallets, transactions, members ->
+        loadJob?.cancel()
 
-            val totalBalance = wallets.sumOf { it.balance }
-
-            // محاسبه درآمد و هزینه ماه جاری (مثلاً بر اساس تراکنش‌های کل)
-            val income = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
-            val expense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+        loadJob = viewModelScope.launch {
 
             _state.update {
+
                 it.copy(
-                    wallets = wallets,
-                    recentTransactions = transactions.take(5), // فقط ۵ تای آخر
-                    members = members,
-                    totalBalance = totalBalance,
-                    monthlyIncome = income,
-                    monthlyExpense = expense,
-                    transactionCount = transactions.size,
-                    isLoading = false
+                    isLoading = true,
+                    error = null
                 )
+
             }
-        }.catch { throwable ->
-            _state.update { it.copy(isLoading = false, error = throwable.message) }
-        }.launchIn(viewModelScope)
+
+            combine(
+
+                walletUseCases.getAllWallets(),
+
+                transactionUseCases.getAllTransactions()
+
+            ){ wallets , transactions ->
+
+                Pair(wallets,transactions)
+
+            }
+                .catch { throwable ->
+
+                    _state.update { state ->
+
+                        state.copy(
+                            isLoading = false,
+                            error = throwable.message ?: "خطایی در بارگذاری اطلاعات رخ داد."
+                        )
+
+                    }
+
+                }
+                .collect { (wallets,transactions) ->
+
+                    val income = transactions
+                        .filter { it.type == TransactionType.INCOME }
+                        .sumOf { it.amount }
+
+                    val expense = transactions
+                        .filter { it.type == TransactionType.EXPENSE }
+                        .sumOf { it.amount }
+
+//                    val balance = wallets.sumOf { it.balance }
+                    val balance = income - expense
+
+                    _state.update {
+
+                        it.copy(
+
+                            wallets = wallets,
+
+                            transactions = transactions,
+
+                            totalIncome = income,
+
+                            totalExpense = expense,
+
+                            currentBalance = balance,
+
+                            walletCount = wallets.size,
+
+                            transactionCount = transactions.size,
+
+                            isLoading = false,
+
+                            error = null
+
+                        )
+
+                    }
+
+                }
+
+        }
+
     }
 }

@@ -10,7 +10,11 @@ import androidx.room.PrimaryKey
 data class InstallmentEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
-    val totalAmount: Double, // مبلغ کل وام/قسط
-    val paidAmount: Double,  // مبلغ پرداخت شده تا کنون
-    val dueDate: Long        // تاریخ سررسید بعدی
+    val totalAmount: Double,
+    val paidAmount: Double,
+    val dueDate: Long,
+    val createdAt: Long,
+    val note: String?,
+    val walletId: Long,
+    val isPaid: Boolean = false
 )

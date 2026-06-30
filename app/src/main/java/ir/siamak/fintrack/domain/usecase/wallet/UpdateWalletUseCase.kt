@@ -8,6 +8,6 @@ class UpdateWalletUseCase @Inject constructor(
     private val repository: WalletRepository
 ) {
     suspend operator fun invoke(wallet: Wallet) {
-        repository.updateWallet(wallet)
+        repository.update(wallet)
     }
 }

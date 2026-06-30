@@ -1,35 +1,39 @@
 package ir.siamak.fintrack.presentation.dashboard
 
-import ir.siamak.fintrack.data.model.Installment
-import ir.siamak.fintrack.data.model.Member
 import ir.siamak.fintrack.data.model.Transaction
 import ir.siamak.fintrack.data.model.Wallet
 
 /**
- * وضعیت نمایشی صفحه داشبورد.
+ * وضعیت کامل صفحه داشبورد.
  *
- * این مدل، تمام داده‌هایی را که UI برای نمایش نیاز دارد در یک نقطه نگه می‌دارد.
+ * Dashboard تنها یک لیست از کیف پول‌ها نیست.
+ * این صفحه خلاصه‌ای از وضعیت مالی کاربر را نمایش می‌دهد.
  *
- * @property wallets لیست حساب‌های موجود
- * @property totalBalance مجموع موجودی همه حساب‌ها
- * @property isLoading وضعیت بارگذاری داده‌ها
- * @property error پیام خطا در صورت بروز مشکل
+ * این State تمام داده‌هایی را که UI نیاز دارد نگهداری می‌کند.
+ *
+ * @property wallets لیست حساب‌ها
+ * @property transactions تراکنش‌های ماه جاری
+ * @property totalIncome مجموع درآمد ماه
+ * @property totalExpense مجموع هزینه ماه
+ * @property currentBalance موجودی فعلی
+ * @property walletCount تعداد حساب‌ها
+ * @property transactionCount تعداد تراکنش‌ها
+ * @property isLoading وضعیت بارگذاری
+ * @property error متن خطا
  */
 data class DashboardState(
 
     val wallets: List<Wallet> = emptyList(),
 
-    val recentTransactions: List<Transaction> = emptyList(),
+    val transactions: List<Transaction> = emptyList(),
 
-    val members: List<Member> = emptyList(),
+    val totalIncome: Double = 0.0,
 
-    val installments: List<Installment> = emptyList(),
+    val totalExpense: Double = 0.0,
 
-    val totalBalance: Double = 0.0,
+    val currentBalance: Double = 0.0,
 
-    val monthlyIncome: Double = 0.0,
-
-    val monthlyExpense: Double = 0.0,
+    val walletCount: Int = 0,
 
     val transactionCount: Int = 0,
 

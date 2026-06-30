@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.presentation.components.FTCard
 import ir.siamak.fintrack.presentation.components.MoneyText
-import ir.siamak.fintrack.presentation.dashboard.components.parseColorSafely
+import ir.siamak.fintrack.presentation.dashboard.parseColorSafely
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 

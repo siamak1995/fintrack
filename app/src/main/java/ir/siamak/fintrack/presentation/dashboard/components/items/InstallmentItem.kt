@@ -29,7 +29,7 @@ fun InstallmentItem(installment: Installment) {
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "پرداخت شده: ${"% ,.0f".format(installment.paidAmount).replace(" ", "")} تومان",
+                text = "پرداخت شده: ${"%,.0f".format(installment.paidAmount).replace(" ", "")} تومان",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.outline
             )

@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Transaction
-import ir.siamak.fintrack.presentation.dashboard.components.EmptySectionText
+import ir.siamak.fintrack.presentation.dashboard.EmptySectionText
 import ir.siamak.fintrack.presentation.dashboard.components.SectionHeader
 import ir.siamak.fintrack.presentation.dashboard.components.items.TransactionItem
 

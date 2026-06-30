@@ -4,28 +4,39 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import ir.siamak.fintrack.domain.analytics.DashboardCalculator
+import ir.siamak.fintrack.domain.analytics.DateRangeProvider
+import ir.siamak.fintrack.domain.analytics.InstallmentCalculator
+import ir.siamak.fintrack.domain.analytics.WalletCalculator
+import ir.siamak.fintrack.domain.repository.InstallmentRepository
 import ir.siamak.fintrack.domain.repository.MemberRepository
-import ir.siamak.fintrack.domain.usecase.wallet.DeleteWalletUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.GetAllWalletsUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.GetWalletByIdUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.InsertWalletUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.UpdateWalletUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
 import ir.siamak.fintrack.domain.repository.TransactionRepository
-import ir.siamak.fintrack.domain.usecase.installment.InstallmentUseCases
+import ir.siamak.fintrack.domain.repository.WalletRepository
+import ir.siamak.fintrack.domain.usecase.installments.InstallmentUseCases
+import ir.siamak.fintrack.domain.usecase.installments.DeleteInstallmentUseCase
 import ir.siamak.fintrack.domain.usecase.installments.GetAllInstallmentsUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.DeleteTransactionUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.GetAllTransactionsUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.GetTransactionsByWalletUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.InsertTransactionUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases
-import ir.siamak.fintrack.domain.usecase.transaction.UpdateTransactionUseCase
+import ir.siamak.fintrack.domain.usecase.installments.GetInstallmentByIdUseCase
+import ir.siamak.fintrack.domain.usecase.installments.InsertInstallmentUseCase
+import ir.siamak.fintrack.domain.usecase.installments.UpdateInstallmentUseCase
 import ir.siamak.fintrack.domain.usecase.member.DeleteMemberUseCase
 import ir.siamak.fintrack.domain.usecase.member.GetAllMembersUseCase
 import ir.siamak.fintrack.domain.usecase.member.GetMemberByIdUseCase
 import ir.siamak.fintrack.domain.usecase.member.InsertMemberUseCase
 import ir.siamak.fintrack.domain.usecase.member.MemberUseCases
 import ir.siamak.fintrack.domain.usecase.member.UpdateMemberUseCase
+import ir.siamak.fintrack.domain.usecase.transaction.DeleteTransactionUseCase
+import ir.siamak.fintrack.domain.usecase.transaction.GetAllTransactionsUseCase
+import ir.siamak.fintrack.domain.usecase.transaction.GetTransactionsByWalletUseCase
+import ir.siamak.fintrack.domain.usecase.transaction.InsertTransactionUseCase
+import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases
+import ir.siamak.fintrack.domain.usecase.transaction.UpdateTransactionUseCase
+import ir.siamak.fintrack.domain.usecase.wallet.DeleteWalletUseCase
+import ir.siamak.fintrack.domain.usecase.wallet.GetAllWalletsUseCase
+import ir.siamak.fintrack.domain.usecase.wallet.GetWalletByIdUseCase
+import ir.siamak.fintrack.domain.usecase.wallet.InsertWalletUseCase
+import ir.siamak.fintrack.domain.usecase.wallet.UpdateWalletUseCase
+import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
+import javax.inject.Singleton
 
 
 /**
@@ -68,14 +79,16 @@ object UseCaseModule {
      */
     @Provides
     fun provideTransactionUseCases(
-        repository: TransactionRepository
+        transactionRepository: TransactionRepository,
+        walletRepository: WalletRepository
     ): TransactionUseCases {
         return TransactionUseCases(
-            getAllTransactions = GetAllTransactionsUseCase(repository),
-            getTransactionsByWallet = GetTransactionsByWalletUseCase(repository),
-            insertTransaction = InsertTransactionUseCase(repository),
-            updateTransaction = UpdateTransactionUseCase(repository),
-            deleteTransaction = DeleteTransactionUseCase(repository)
+            getAllTransactions = GetAllTransactionsUseCase(transactionRepository),
+            getTransactionsByWallet = GetTransactionsByWalletUseCase(transactionRepository),
+            // پاس دادن هر دو ریپازیتوری به سازنده UseCase
+            insertTransaction = InsertTransactionUseCase(transactionRepository, walletRepository),
+            updateTransaction = UpdateTransactionUseCase(transactionRepository),
+            deleteTransaction = DeleteTransactionUseCase(transactionRepository)
         )
     }
 
@@ -95,11 +108,31 @@ object UseCaseModule {
 
     @Provides
     fun provideInstallmentUseCases(
-        getAllInstallmentsUseCase: GetAllInstallmentsUseCase
+        installmentRepository: InstallmentRepository
     ): InstallmentUseCases {
         return InstallmentUseCases(
-            getAllInstallments = getAllInstallmentsUseCase
+            getAllInstallments = GetAllInstallmentsUseCase(installmentRepository),
+            insertInstallment = InsertInstallmentUseCase(installmentRepository),
+            deleteInstallment = DeleteInstallmentUseCase(installmentRepository),
+            getInstallmentById = GetInstallmentByIdUseCase(installmentRepository),
+            updateInstallment = UpdateInstallmentUseCase(installmentRepository)
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideDashboardCalculator(): DashboardCalculator = DashboardCalculator()
+
+    @Provides
+    @Singleton
+    fun provideDateRangeProvider(): DateRangeProvider = DateRangeProvider()
+
+    @Provides
+    @Singleton
+    fun provideInstallmentCalculator(): InstallmentCalculator = InstallmentCalculator()
+
+    @Provides
+    @Singleton
+    fun provideWalletCalculator(): WalletCalculator = WalletCalculator()
 
 }
