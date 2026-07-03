@@ -4,38 +4,32 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 /**
- * این کلاس مسئول تولید بازه‌های زمانی است.
- *
- * مثال:
- *
- * - ماه جاری
- * - هفته جاری
- * - سال جاری
- *
- * این بازه‌ها برای گزارشات و داشبورد استفاده می‌شوند.
+ * تولید بازه‌های زمانی.
  */
 class DateRangeProvider {
 
     /**
-     * بازه زمانی ماه جاری.
+     * شروع و پایان ماه جاری
      */
     fun currentMonth(): Pair<Long, Long> {
 
-        val now = LocalDate.now()
+        val today = LocalDate.now()
 
-        val start = now.withDayOfMonth(1)
-        val end = now.withDayOfMonth(now.lengthOfMonth())
-
-        val startMillis = start
+        val start = today
+            .withDayOfMonth(1)
             .atStartOfDay(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
 
-        val endMillis = end
+        val end = today
+            .withDayOfMonth(today.lengthOfMonth())
+            .plusDays(1)
             .atStartOfDay(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
 
-        return startMillis to endMillis
+        return start to end
+
     }
+
 }

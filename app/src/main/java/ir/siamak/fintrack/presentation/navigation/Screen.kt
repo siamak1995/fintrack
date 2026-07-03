@@ -107,4 +107,8 @@ sealed class Screen {
     @Serializable
     data class AddEditTransaction(val transactionId: Long? = null) : Screen()
 
+
+    @Serializable
+    object Landing : Screen()
+
 }

@@ -1,66 +1,123 @@
 package ir.siamak.fintrack.domain.analytics
 
+import ir.siamak.fintrack.core.extensions.isToday
 import ir.siamak.fintrack.data.model.Transaction
 import ir.siamak.fintrack.data.model.TransactionType
+import ir.siamak.fintrack.data.model.Wallet
+import java.time.LocalDate
+import kotlin.math.roundToInt
 
 /**
- * کلاس محاسبه‌گر داشبورد.
+ * مسئول تمام محاسبات داشبورد.
  *
- * این کلاس تمام محاسبات مالی مربوط به داشبورد را انجام می‌دهد.
- * هدف این است که منطق مالی از ViewModel و UI جدا شود.
- *
- * تمام مقادیر داشبورد مانند:
- *
- * - مجموع درآمد ماه
- * - مجموع هزینه ماه
- * - مانده ماه
- * - تعداد تراکنش‌ها
- *
- * از طریق این کلاس محاسبه می‌شوند.
- *
- * این کلاس فقط روی داده‌های Transaction کار می‌کند.
+ * هیچ محاسبه‌ای داخل ViewModel انجام نمی‌شود.
  */
 class DashboardCalculator {
 
     /**
-     * محاسبه مجموع درآمد.
+     * مجموع درآمد
      */
-    fun calculateTotalIncome(
+    fun income(
         transactions: List<Transaction>
     ): Double {
+
         return transactions
             .filter { it.type == TransactionType.INCOME }
             .sumOf { it.amount }
+
     }
 
     /**
-     * محاسبه مجموع هزینه.
+     * مجموع هزینه
      */
-    fun calculateTotalExpense(
+    fun expense(
         transactions: List<Transaction>
     ): Double {
+
         return transactions
             .filter { it.type == TransactionType.EXPENSE }
             .sumOf { it.amount }
+
     }
 
     /**
-     * محاسبه مانده باقی مانده.
+     * موجودی واقعی
      */
-    fun calculateRemainingBalance(
-        income: Double,
-        expense: Double
-    ): Double {
-        return income - expense
-    }
-
-    /**
-     * محاسبه تعداد تراکنش‌ها.
-     */
-    fun calculateTransactionCount(
+    fun balance(
         transactions: List<Transaction>
-    ): Int {
-        return transactions.size
+    ): Double {
+
+        return income(transactions) - expense(transactions)
+
     }
 
+    /**
+     * آخرین تراکنش‌ها
+     */
+    fun recentTransactions(
+        transactions: List<Transaction>,
+        count: Int = 5
+    ): List<Transaction> {
+
+        return transactions
+            .sortedByDescending { it.date }
+            .take(count)
+
+    }
+
+    fun saving(
+        transactions: List<Transaction>
+    ): Double {
+
+        return income(transactions) - expense(transactions)
+
+    }
+
+    fun spendingPercent(
+        transactions: List<Transaction>
+    ): Float {
+
+        val income = income(transactions)
+
+        if (income == 0.0) return 0f
+
+        return ((expense(transactions) / income) * 100).toFloat()
+
+    }
+
+    fun savingPercent(
+        transactions: List<Transaction>
+    ): Float {
+
+        val income = income(transactions)
+
+        if (income == 0.0) return 0f
+
+        return ((saving(transactions) / income) * 100).toFloat()
+
+    }
+
+    fun insight(
+        transactions: List<Transaction>
+    ): String {
+
+        val saving = saving(transactions)
+
+        return when {
+
+            transactions.isEmpty() ->
+                "هنوز تراکنشی ثبت نشده است."
+
+            saving > 0 ->
+                "عملکرد مالی این ماه مثبت است."
+
+            saving == 0.0 ->
+                "درآمد و هزینه برابر است."
+
+            else ->
+                "هزینه‌ها از درآمد بیشتر شده‌اند."
+
+        }
+
+    }
 }

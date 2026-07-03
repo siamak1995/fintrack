@@ -2,9 +2,7 @@ package ir.siamak.fintrack.presentation.dashboard
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -13,72 +11,169 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import ir.siamak.fintrack.presentation.dashboard.components.DashboardLoading
-import ir.siamak.fintrack.presentation.dashboard.components.sections.SummarySection
-import ir.siamak.fintrack.presentation.dashboard.components.sections.TransactionSection
+import ir.siamak.fintrack.presentation.dashboard.components.sections.ChartSection
+import ir.siamak.fintrack.presentation.dashboard.components.sections.FinancialSummarySection
+import ir.siamak.fintrack.presentation.dashboard.components.sections.GreetingSection
+import ir.siamak.fintrack.presentation.dashboard.components.sections.InsightSection
+import ir.siamak.fintrack.presentation.dashboard.components.sections.MemberSection
+import ir.siamak.fintrack.presentation.dashboard.components.sections.QuickActionsSection
+import ir.siamak.fintrack.presentation.dashboard.components.sections.RecentTransactionsSection
+import ir.siamak.fintrack.presentation.dashboard.components.sections.UpcomingInstallmentsSection
 import ir.siamak.fintrack.presentation.dashboard.components.sections.WalletSection
 
-/**
- * صفحه اصلی داشبورد برنامه.
- */
 @Composable
 fun DashboardScreen(
-    viewModel: DashboardViewModel = hiltViewModel(),
-    onWalletClick: (Long) -> Unit,
+
+    state: DashboardState,
+
     onAddTransactionClick: () -> Unit,
+
+    onAddWalletClick: () -> Unit,
+
+    onWalletClick: (Long) -> Unit,
+
+    onMembersClick: () -> Unit,
+
+    onOpenInstallment: () -> Unit,
+
+    onOpenReports: () -> Unit
+
 ) {
-    val state by viewModel.state.collectAsState()
 
     Scaffold(
+
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddTransactionClick) {
+
+            FloatingActionButton(
+
+                onClick = onAddTransactionClick
+
+            ) {
+
                 Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "افزودن تراکنش"
+                    Icons.Default.Add,
+                    null
+                )
+
+            }
+
+        }
+
+    ) { padding ->
+
+        if (state.isLoading) {
+
+            DashboardLoading()
+
+            return@Scaffold
+
+        }
+
+        LazyColumn(
+
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+
+            contentPadding = PaddingValues(16.dp),
+
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+
+        ) {
+
+            item {
+                GreetingSection(
+                    userName = state.userName,
+                    insight = state.insight
                 )
             }
-        }
-    ) { paddingValues ->
-        if (state.isLoading) {
-            DashboardLoading()
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                item {
-                    SummarySection(
-                        income = state.totalIncome,
-                        expense = state.totalExpense,
-                        totalBalance = state.currentBalance
-                    )
-                }
 
-                item {
-                    WalletSection(
-                        wallets = state.wallets,
-                        onWalletClick = onWalletClick
-                    )
-                }
+            item {
+                FinancialSummarySection(
 
-                item {
-                    TransactionSection(
-                        transactions = state.transactions.take(5)
-                    )
-                }
+                    totalBalance = state.totalBalance,
 
-                item {
-                    Spacer(modifier = Modifier.height(80.dp))
-                }
+                    income = state.monthlyIncome,
+
+                    expense = state.monthlyExpense,
+
+                    walletBalance = state.walletBalance
+
+                )
             }
+
+            item {
+                QuickActionsSection(
+
+                    onAddWallet = onAddWalletClick,
+
+                    onAddTransaction = onAddTransactionClick,
+
+                    onOpenMembers = onMembersClick,
+
+                    onOpenInstallment = onOpenInstallment,
+
+                    onOpenReports = onOpenReports
+                )
+            }
+
+            item {
+                ChartSection(
+
+                    spending = state.spendingPercent,
+
+                    saving = state.savingPercent
+
+                )
+            }
+
+            item {
+                InsightSection(
+                    insight = state.insight
+                )
+            }
+
+            item {
+                WalletSection(
+
+                    wallets = state.wallets,
+
+                    onWalletClick = onWalletClick,
+
+                    onAddWalletClick = onAddWalletClick
+
+                )
+            }
+
+            item {
+                RecentTransactionsSection(
+                    transactions = state.recentTransactions
+                )
+            }
+
+            item {
+                UpcomingInstallmentsSection(
+                    installments = state.installments
+                )
+            }
+
+            item {
+                MemberSection(
+
+                    members = state.members,
+
+                    onMembersClick = onMembersClick
+
+                )
+            }
+
+
+
         }
+
     }
+
 }
