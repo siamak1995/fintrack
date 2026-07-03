@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.reports
+package ir.siamak.fintrack.presentation.report
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

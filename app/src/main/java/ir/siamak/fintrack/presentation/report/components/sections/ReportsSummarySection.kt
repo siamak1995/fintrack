@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.reports.components.sections
+package ir.siamak.fintrack.presentation.report.components.sectionss
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.presentation.dashboard.SectionHeader
-import ir.siamak.fintrack.presentation.reports.components.ReportSummaryCard
+import ir.siamak.fintrack.presentation.report.components.ReportSummaryCard
 import ir.siamak.fintrack.presentation.theme.ErrorRed
 import ir.siamak.fintrack.presentation.theme.Success
 

@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.reports
+package ir.siamak.fintrack.presentation.report
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,10 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.presentation.dashboard.SectionHeader
-import ir.siamak.fintrack.presentation.reports.components.CategoryReportCard
-import ir.siamak.fintrack.presentation.reports.components.MonthlyReportCard
-import ir.siamak.fintrack.presentation.reports.components.WalletReportCard
-import ir.siamak.fintrack.presentation.reports.components.sections.ReportsSummarySection
+import ir.siamak.fintrack.presentation.report.components.CategoryReportCard
+import ir.siamak.fintrack.presentation.report.components.MonthlyReportCard
+import ir.siamak.fintrack.presentation.report.components.WalletReportCard
+import ir.siamak.fintrack.presentation.report.components.sectionss.ReportsSummarySection
 
 @Composable
 fun ReportsScreen(

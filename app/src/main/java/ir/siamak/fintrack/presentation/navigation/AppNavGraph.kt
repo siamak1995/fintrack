@@ -128,7 +128,7 @@ fun AppNavGraph(navController: NavHostController) {
                         },
 
                         onReportsClick = {
-                            navController.navigate(Screen.AddEditTransaction)
+                            navController.navigate(Screen.Reports)
                         },
                     )
                 }

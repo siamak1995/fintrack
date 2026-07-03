@@ -27,7 +27,7 @@ fun GreetingSection(
     ) {
 
         Text(
-            text = greeting,
+            text = "$greeting، $userName",
             style = MaterialTheme.typography.headlineSmall
         )
 

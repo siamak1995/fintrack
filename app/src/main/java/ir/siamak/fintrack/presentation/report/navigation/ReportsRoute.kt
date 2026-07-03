@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ir.siamak.fintrack.presentation.reports.ReportsScreen
-import ir.siamak.fintrack.presentation.reports.ReportsViewModel
+import ir.siamak.fintrack.presentation.report.ReportsScreen
+import ir.siamak.fintrack.presentation.report.ReportsViewModel
 
 @Composable
 fun ReportsRoute(

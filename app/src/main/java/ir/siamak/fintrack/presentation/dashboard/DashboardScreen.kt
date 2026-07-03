@@ -13,6 +13,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import ir.siamak.fintrack.presentation.dashboard.components.DashboardEmpty
+import ir.siamak.fintrack.presentation.dashboard.components.DashboardError
 import ir.siamak.fintrack.presentation.dashboard.components.DashboardLoading
 import ir.siamak.fintrack.presentation.dashboard.components.sections.ChartSection
 import ir.siamak.fintrack.presentation.dashboard.components.sections.FinancialSummarySection
@@ -70,6 +72,25 @@ fun DashboardScreen(
 
             return@Scaffold
 
+        }
+
+        state.error?.let {
+
+            DashboardError(it)
+
+            return@Scaffold
+
+        }
+
+        val hasAnyData =
+            state.wallets.isNotEmpty() ||
+                    state.transactions.isNotEmpty() ||
+                    state.members.isNotEmpty() ||
+                    state.installments.isNotEmpty()
+
+        if (!hasAnyData) {
+            DashboardEmpty("هنوز اطلاعاتی ثبت نشده است.")
+            return@Scaffold
         }
 
         LazyColumn(
@@ -169,7 +190,6 @@ fun DashboardScreen(
 
                 )
             }
-
 
 
         }

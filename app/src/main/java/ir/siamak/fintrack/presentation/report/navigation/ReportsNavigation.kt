@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.reports.navigation
+package ir.siamak.fintrack.presentation.report.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable

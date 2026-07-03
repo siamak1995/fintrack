@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.reports.components
+package ir.siamak.fintrack.presentation.report.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
