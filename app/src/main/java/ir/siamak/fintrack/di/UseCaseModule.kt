@@ -135,4 +135,9 @@ object UseCaseModule {
     @Singleton
     fun provideWalletCalculator(): WalletCalculator = WalletCalculator()
 
+//    @Provides
+//    @Singleton
+//    fun provideReportCalculator(): ReportCalculator {
+//        return ReportCalculator()
+//    }
 }

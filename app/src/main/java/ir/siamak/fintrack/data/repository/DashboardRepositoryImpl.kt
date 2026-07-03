@@ -1,6 +1,6 @@
 package ir.siamak.fintrack.data.dashboard
 
-import ir.siamak.fintrack.domain.analytics.DashboardData
+import ir.siamak.fintrack.domain.dashboard.DashboardData
 import ir.siamak.fintrack.domain.dashboard.DashboardRepository
 import ir.siamak.fintrack.domain.usecase.installments.InstallmentUseCases
 import ir.siamak.fintrack.domain.usecase.member.MemberUseCases

@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.domain.analytics
+package ir.siamak.fintrack.domain.dashboard
 
 import ir.siamak.fintrack.data.model.Installment
 import ir.siamak.fintrack.data.model.Member

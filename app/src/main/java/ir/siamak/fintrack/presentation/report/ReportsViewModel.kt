@@ -3,133 +3,131 @@ package ir.siamak.fintrack.presentation.report
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import ir.siamak.fintrack.data.model.Member
+import ir.siamak.fintrack.data.model.Transaction
+import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.domain.analytics.ReportCalculator
+import ir.siamak.fintrack.domain.report.model.ReportData
+import ir.siamak.fintrack.domain.report.model.ReportFilter
+import ir.siamak.fintrack.domain.usecase.member.MemberUseCases
 import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases
 import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ReportsViewModel @Inject constructor(
-
+class ReportViewModel @Inject constructor(
+    private val calculator: ReportCalculator,
+    private val transactionUseCases: TransactionUseCases,
+    private val memberUseCases: MemberUseCases,
     private val walletUseCases: WalletUseCases,
-
-    private val transactionUseCases: TransactionUseCases
-
 ) : ViewModel() {
 
-    private val calculator = ReportCalculator()
-
     private val _state = MutableStateFlow(ReportsState())
-
     val state = _state.asStateFlow()
 
+    private var allTransactions = listOf<Transaction>()
+    private var allMembers = listOf<Member>()
+    private var allWallets = listOf<Wallet>()
+
     init {
-
-        onEvent(
-            ReportsEvent.LoadReports
-        )
-
+        loadData()
     }
 
-    fun onEvent(
-
-        event: ReportsEvent
-
-    ) {
-
-        when (event) {
-
-            ReportsEvent.LoadReports,
-            ReportsEvent.Refresh ->
-
-                load()
-
-        }
-
-    }
-
-    private fun load() {
+    private fun loadData() {
 
         viewModelScope.launch {
 
-            _state.update {
-
-                it.copy(
-                    isLoading = true,
-                    error = null
-                )
-
-            }
-
             combine(
-
-                walletUseCases.getAllWallets(),
-
-                transactionUseCases.getAllTransactions()
-
-            ) { wallets, transactions ->
-
-                Pair(
-                    wallets,
-                    transactions
+                transactionUseCases.getAllTransactions(),
+                memberUseCases.getAllMembers(),
+                walletUseCases.getAllWallets()
+            ) { t, m, w ->
+                ReportData(
+                    transactions = t,
+                    members = m,
+                    wallets = w
                 )
+            }.collect { data ->
 
+                allTransactions = data.transactions
+                allMembers = data.members
+                allWallets = data.wallets
+
+                refreshReport()
             }
-                .catch {
+        }
+    }
 
-                    _state.update { state ->
+    fun updateFilter(filter: ReportFilter) {
+        _state.update { it.copy(filter = filter) }
+        refreshReport()
+    }
 
-                        state.copy(
+    private fun refreshReport() {
 
-                            isLoading = false,
+        val filter = _state.value.filter
 
-                            error = it.message
+        val filtered =
+            calculator.filterTransactions(
+                allTransactions,
+                filter
+            )
 
-                        )
+        val report =
+            calculator.buildAdvancedReport(
+                transactions = allTransactions,
+                members = allMembers,
+                filter = filter
+            )
 
-                    }
+        val memberReports =
+            calculator.reportByMember(
+                transactions = allTransactions,
+                members = allMembers,
+                filter = filter
+            )
 
-                }
-                .collect { (wallets, transactions) ->
+        val monthlyReports =
+            calculator.monthlyReport(filtered)
 
-                    _state.update {
+        val walletReports =
+            calculator.walletReport(allWallets)
 
-                        it.copy(
+        val categoryReports =
+            calculator.categoryReport(filtered)
 
-                            totalIncome =
-                                calculator.totalIncome(transactions),
+        _state.update {
 
-                            totalExpense =
-                                calculator.totalExpense(transactions),
+            it.copy(
 
-                            totalSaving =
-                                calculator.totalSaving(transactions),
+                report = report,
 
-                            monthlyReports =
-                                calculator.monthlyReport(transactions),
+                memberReports = memberReports,
 
-                            walletReports =
-                                calculator.walletReport(wallets),
+                totalIncome = report.income,
 
-                            categoryReports =
-                                calculator.categoryReport(transactions),
+                totalExpense = report.expense,
 
-                            isLoading = false
+                totalSaving = report.balance,
 
-                        )
+                monthlyReports = monthlyReports,
 
-                    }
+                walletReports = walletReports,
 
-                }
+                categoryReports = categoryReports,
+
+                isLoading = false,
+
+                error = null
+
+            )
 
         }
 
     }
-
 }

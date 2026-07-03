@@ -6,6 +6,9 @@ import ir.siamak.fintrack.data.model.Member
 import ir.siamak.fintrack.data.model.Transaction
 import ir.siamak.fintrack.data.model.TransactionType
 import ir.siamak.fintrack.data.model.Wallet
+import ir.siamak.fintrack.domain.dashboard.DashboardChart
+import ir.siamak.fintrack.domain.dashboard.DashboardMoney
+import ir.siamak.fintrack.domain.dashboard.DashboardStatistics
 
 /**
  * مسئول تمام محاسبات داشبورد.
