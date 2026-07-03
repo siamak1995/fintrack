@@ -1,13 +1,19 @@
 package ir.siamak.fintrack.presentation.dashboard
 
-sealed class DashboardUiAction {
+sealed interface DashboardUiAction {
 
-    data object OpenAddWallet : DashboardUiAction()
+    data object AddWallet : DashboardUiAction
 
-    data class OpenWallet(val id:Long):DashboardUiAction()
+    data object AddTransaction : DashboardUiAction
 
-    data object OpenTransactions : DashboardUiAction()
+    data object OpenMembers : DashboardUiAction
 
-    data object OpenMembers : DashboardUiAction()
+    data object OpenReports : DashboardUiAction
+
+    data object OpenInstallments : DashboardUiAction
+
+    data class EditWallet(
+        val id: Long
+    ) : DashboardUiAction
 
 }

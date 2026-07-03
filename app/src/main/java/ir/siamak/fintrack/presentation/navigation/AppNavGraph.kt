@@ -20,9 +20,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
 import ir.siamak.fintrack.presentation.components.FTBottomBar
-import ir.siamak.fintrack.presentation.dashboard.DashboardScreen
+import ir.siamak.fintrack.presentation.dashboard.DashboardRoute
 import ir.siamak.fintrack.presentation.installment.add_edit_installment.AddEditInstallmentsScreen
 import ir.siamak.fintrack.presentation.installment.list.InstallmentRoute
+import ir.siamak.fintrack.presentation.landing.LandingScreen
 import ir.siamak.fintrack.presentation.member.add_edit_member.AddEditMemberScreen
 import ir.siamak.fintrack.presentation.transaction.add_edit_transaction.AddEditTransactionScreen
 import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScreen
@@ -75,26 +76,59 @@ fun AppNavGraph(navController: NavHostController) {
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = Screen.Dashboard,
+                startDestination = Screen.Landing,
                 modifier = Modifier.padding(innerPadding)
             ) {
+                /**
+                 * صفحه اصلی .
+                 */
+                composable<Screen.Landing> {
+
+                    LandingScreen(
+
+                        onEnterDashboard = {
+
+                            navController.navigate(Screen.Dashboard) {
+
+                                popUpTo(Screen.Landing) {
+                                    inclusive = true
+                                }
+
+                            }
+
+                        }
+
+                    )
+
+                }
                 /**
                  * صفحه اصلی داشبورد.
                  */
                 composable<Screen.Dashboard> {
-                    DashboardScreen(
-//                        onAddWalletClick = {
-//                            navController.navigate(Screen.AddEditWallet())
-//                        },
+                    DashboardRoute(
+                        onAddWalletClick = {
+                            navController.navigate(Screen.AddEditWallet())
+                        },
+
                         onWalletClick = { walletId ->
                             navController.navigate(Screen.AddEditWallet(walletId))
                         },
+
                         onAddTransactionClick = {
                             navController.navigate(Screen.AddEditTransaction())
                         },
-//                        onMembersClick = {
-//                            navController.navigate(Screen.Members)
-//                        }
+
+                        onInstallmentClick = {
+                            navController.navigate(Screen.AddEditInstallments())
+                        },
+
+                        onMembersClick = {
+                            navController.navigate(Screen.Members)
+                        },
+
+                        onReportsClick = {
+                            navController.navigate(Screen.AddEditTransaction)
+                        },
                     )
                 }
 

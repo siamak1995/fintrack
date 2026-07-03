@@ -19,7 +19,7 @@ import ir.siamak.fintrack.data.local.entity.WalletEntity
         InstallmentEntity::class,
         MemberEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

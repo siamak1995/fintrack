@@ -3,7 +3,7 @@ package ir.siamak.fintrack.presentation.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ir.siamak.fintrack.data.model.TransactionType
+import ir.siamak.fintrack.domain.analytics.DashboardCalculator
 import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases
 import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
 import kotlinx.coroutines.Job
@@ -23,7 +23,7 @@ class DashboardViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DashboardState())
-
+    private val calculator = DashboardCalculator()
     val state = _state.asStateFlow()
     private var loadJob: Job? = null
 
@@ -36,6 +36,8 @@ class DashboardViewModel @Inject constructor(
         when(event){
 
             DashboardEvent.RefreshData -> loadDashboard()
+            DashboardEvent.RefreshChart -> refreshChart()
+            DashboardEvent.RefreshInsight -> refreshInsight()
 
         }
 
@@ -79,19 +81,27 @@ class DashboardViewModel @Inject constructor(
                     }
 
                 }
-                .collect { (wallets,transactions) ->
+                .collect { (wallets, transactions) ->
+                    val income =
+                        calculator.income(transactions)
 
-                    val income = transactions
-                        .filter { it.type == TransactionType.INCOME }
-                        .sumOf { it.amount }
+                    val expense =
+                        calculator.expense(transactions)
 
-                    val expense = transactions
-                        .filter { it.type == TransactionType.EXPENSE }
-                        .sumOf { it.amount }
+                    val balance =
+                        calculator.balance(transactions)
 
-//                    val balance = wallets.sumOf { it.balance }
-                    val balance = income - expense
+                    val saving =
+                        calculator.saving(transactions)
 
+                    val spendingPercent =
+                        calculator.spendingPercent(transactions)
+
+                    val savingPercent =
+                        calculator.savingPercent(transactions)
+
+                    val insight =
+                        calculator.insight(transactions)
                     _state.update {
 
                         it.copy(
@@ -100,11 +110,24 @@ class DashboardViewModel @Inject constructor(
 
                             transactions = transactions,
 
-                            totalIncome = income,
+                            recentTransactions =
+                                calculator.recentTransactions(transactions),
 
-                            totalExpense = expense,
+                            monthlyIncome = income,
 
-                            currentBalance = balance,
+                            monthlyExpense = expense,
+
+                            totalBalance = balance,
+
+                            saving = saving,
+
+                            spendingPercent = spendingPercent,
+
+                            savingPercent = savingPercent,
+
+                            insight = insight,
+
+                            walletBalance = wallets.sumOf { it.balance },
 
                             walletCount = wallets.size,
 
@@ -121,6 +144,14 @@ class DashboardViewModel @Inject constructor(
                 }
 
         }
+
+    }
+
+    private fun refreshChart(){
+
+    }
+
+    private fun refreshInsight(){
 
     }
 }
