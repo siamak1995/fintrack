@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.siamak.fintrack.domain.analytics.DashboardCalculator
-import ir.siamak.fintrack.domain.analytics.DashboardData
+import ir.siamak.fintrack.domain.dashboard.DashboardData
 import ir.siamak.fintrack.domain.usecase.installments.InstallmentUseCases
 import ir.siamak.fintrack.domain.usecase.member.MemberUseCases
 import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases

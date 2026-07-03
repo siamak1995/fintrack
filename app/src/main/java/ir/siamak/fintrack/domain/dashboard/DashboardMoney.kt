@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.domain.analytics
+package ir.siamak.fintrack.domain.dashboard
 
 data class DashboardMoney(
 
