@@ -1,73 +1,50 @@
 package ir.siamak.fintrack.domain.analytics
 
+import ir.siamak.fintrack.core.extensions.isToday
+import ir.siamak.fintrack.data.model.Installment
+import ir.siamak.fintrack.data.model.Member
 import ir.siamak.fintrack.data.model.Transaction
 import ir.siamak.fintrack.data.model.TransactionType
+import ir.siamak.fintrack.data.model.Wallet
 
 /**
  * مسئول تمام محاسبات داشبورد.
  *
- * هیچ محاسبه‌ای داخل ViewModel انجام نمی‌شود.
+ * این کلاس هیچ وابستگی به UI ندارد و فقط محاسبات Domain را انجام می‌دهد.
  */
 class DashboardCalculator {
 
-    /**
-     * مجموع درآمد
-     */
     fun income(
         transactions: List<Transaction>
-    ): Double {
-
-        return transactions
+    ): Double =
+        transactions
             .filter { it.type == TransactionType.INCOME }
             .sumOf { it.amount }
 
-    }
-
-    /**
-     * مجموع هزینه
-     */
     fun expense(
         transactions: List<Transaction>
-    ): Double {
-
-        return transactions
+    ): Double =
+        transactions
             .filter { it.type == TransactionType.EXPENSE }
             .sumOf { it.amount }
 
-    }
-
-    /**
-     * موجودی واقعی
-     */
     fun balance(
         transactions: List<Transaction>
-    ): Double {
-
-        return income(transactions) - expense(transactions)
-
-    }
-
-    /**
-     * آخرین تراکنش‌ها
-     */
-    fun recentTransactions(
-        transactions: List<Transaction>,
-        count: Int = 5
-    ): List<Transaction> {
-
-        return transactions
-            .sortedByDescending { it.date }
-            .take(count)
-
-    }
+    ): Double =
+        income(transactions) - expense(transactions)
 
     fun saving(
         transactions: List<Transaction>
-    ): Double {
+    ): Double =
+        balance(transactions)
 
-        return income(transactions) - expense(transactions)
-
-    }
+    fun recentTransactions(
+        transactions: List<Transaction>,
+        count: Int = 5
+    ): List<Transaction> =
+        transactions
+            .sortedByDescending { it.date }
+            .take(count)
 
     fun spendingPercent(
         transactions: List<Transaction>
@@ -75,13 +52,11 @@ class DashboardCalculator {
 
         val income = income(transactions)
 
-        if (income == 0.0)
-            return 0f
+        if (income == 0.0) return 0f
 
         return ((expense(transactions) / income) * 100)
-            .coerceIn(0.0,100.0)
+            .coerceIn(0.0, 100.0)
             .toFloat()
-
     }
 
     fun savingPercent(
@@ -90,15 +65,12 @@ class DashboardCalculator {
 
         val income = income(transactions)
 
-        if (income == 0.0)
-            return 0f
+        if (income == 0.0) return 0f
 
         return ((saving(transactions) / income) * 100)
-            .coerceIn(0.0,100.0)
+            .coerceIn(0.0, 100.0)
             .toFloat()
-
     }
-
 
     fun insight(
         transactions: List<Transaction>
@@ -119,8 +91,87 @@ class DashboardCalculator {
 
             else ->
                 "هزینه‌ها از درآمد بیشتر شده‌اند."
-
         }
-
     }
+
+    fun todayIncome(
+        transactions: List<Transaction>
+    ): Double =
+        transactions
+            .filter {
+                it.type == TransactionType.INCOME &&
+                        it.date.isToday()
+            }
+            .sumOf { it.amount }
+
+    fun todayExpense(
+        transactions: List<Transaction>
+    ): Double =
+        transactions
+            .filter {
+                it.type == TransactionType.EXPENSE &&
+                        it.date.isToday()
+            }
+            .sumOf { it.amount }
+
+    fun calculateMoney(
+        wallets: List<Wallet>,
+        transactions: List<Transaction>
+    ): DashboardMoney {
+
+        val income = income(transactions)
+        val expense = expense(transactions)
+        val balance = income - expense
+
+        return DashboardMoney(
+
+            income = income,
+
+            expense = expense,
+
+            saving = balance,
+
+            balance = balance,
+
+            walletBalance = wallets.sumOf { it.balance },
+
+            todayIncome = todayIncome(transactions),
+
+            todayExpense = todayExpense(transactions)
+
+        )
+    }
+
+    fun calculateChart(
+        transactions: List<Transaction>
+    ) = DashboardChart(
+
+        spendingPercent = spendingPercent(transactions),
+
+        savingPercent = savingPercent(transactions)
+
+    )
+
+    fun calculateStatistics(
+
+        wallets: List<Wallet>,
+
+        members: List<Member>,
+
+        installments: List<Installment>,
+
+        transactions: List<Transaction>
+
+    ) = DashboardStatistics(
+
+        walletCount = wallets.size,
+
+        transactionCount = transactions.size,
+
+        memberCount = members.size,
+
+        installmentCount = installments.size
+
+    )
+
 }

@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.reports
+package ir.siamak.fintrack.presentation.report
 
 import ir.siamak.fintrack.domain.report.CategoryReportItem
 import ir.siamak.fintrack.domain.report.MonthlyReportItem

@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.siamak.fintrack.domain.analytics.DashboardCalculator
+import ir.siamak.fintrack.domain.analytics.DashboardData
+import ir.siamak.fintrack.domain.usecase.installments.InstallmentUseCases
+import ir.siamak.fintrack.domain.usecase.member.MemberUseCases
 import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases
 import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
 import kotlinx.coroutines.Job
@@ -18,12 +21,15 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val walletUseCases: WalletUseCases,
-    private val transactionUseCases: TransactionUseCases
+    private val transactionUseCases: TransactionUseCases,
+    private val memberUseCases: MemberUseCases,
+    private val installmentUseCases: InstallmentUseCases,
+    private val calculator: DashboardCalculator
 
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DashboardState())
-    private val calculator = DashboardCalculator()
+
     val state = _state.asStateFlow()
     private var loadJob: Job? = null
 
@@ -62,11 +68,29 @@ class DashboardViewModel @Inject constructor(
 
                 walletUseCases.getAllWallets(),
 
-                transactionUseCases.getAllTransactions()
+                transactionUseCases.getAllTransactions(),
 
-            ){ wallets , transactions ->
+                memberUseCases.getAllMembers(),
 
-                Pair(wallets,transactions)
+                installmentUseCases.getAllInstallments()
+
+            ){ wallets,
+               transactions,
+               members,
+               installments ->
+
+                DashboardData(
+
+                    wallets = wallets,
+
+                    transactions = transactions,
+
+                    members = members,
+
+                    installments = installments
+
+                )
+
 
             }
                 .catch { throwable ->
@@ -81,57 +105,76 @@ class DashboardViewModel @Inject constructor(
                     }
 
                 }
-                .collect { (wallets, transactions) ->
-                    val income =
-                        calculator.income(transactions)
+                .collect { data ->
 
-                    val expense =
-                        calculator.expense(transactions)
+                    val money = calculator.calculateMoney(
 
-                    val balance =
-                        calculator.balance(transactions)
+                        data.wallets,
 
-                    val saving =
-                        calculator.saving(transactions)
+                        data.transactions
 
-                    val spendingPercent =
-                        calculator.spendingPercent(transactions)
+                    )
 
-                    val savingPercent =
-                        calculator.savingPercent(transactions)
+                    val chart = calculator.calculateChart(
 
-                    val insight =
-                        calculator.insight(transactions)
+                        data.transactions
+
+                    )
+
+                    val statistics = calculator.calculateStatistics(
+
+                        data.wallets,
+
+                        data.members,
+
+                        data.installments,
+
+                        data.transactions
+
+                    )
+
                     _state.update {
 
                         it.copy(
 
-                            wallets = wallets,
+                            wallets = data.wallets,
 
-                            transactions = transactions,
+                            transactions = data.transactions,
+
+                            members = data.members,
+
+                            installments = data.installments,
 
                             recentTransactions =
-                                calculator.recentTransactions(transactions),
+                                calculator.recentTransactions(data.transactions),
 
-                            monthlyIncome = income,
+                            monthlyIncome = money.income,
 
-                            monthlyExpense = expense,
+                            monthlyExpense = money.expense,
 
-                            totalBalance = balance,
+                            totalBalance = money.balance,
 
-                            saving = saving,
+                            saving = money.saving,
 
-                            spendingPercent = spendingPercent,
+                            walletBalance = money.walletBalance,
 
-                            savingPercent = savingPercent,
+                            todayIncome = money.todayIncome,
 
-                            insight = insight,
+                            todayExpense = money.todayExpense,
 
-                            walletBalance = wallets.sumOf { it.balance },
+                            spendingPercent = chart.spendingPercent,
 
-                            walletCount = wallets.size,
+                            savingPercent = chart.savingPercent,
 
-                            transactionCount = transactions.size,
+                            walletCount = statistics.walletCount,
+
+                            transactionCount = statistics.transactionCount,
+
+                            memberCount = statistics.memberCount,
+
+                            installmentCount = statistics.installmentCount,
+
+                            insight = calculator.insight(data.transactions),
 
                             isLoading = false,
 
@@ -142,7 +185,6 @@ class DashboardViewModel @Inject constructor(
                     }
 
                 }
-
         }
 
     }
