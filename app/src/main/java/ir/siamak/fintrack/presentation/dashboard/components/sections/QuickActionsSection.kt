@@ -1,18 +1,34 @@
 package ir.siamak.fintrack.presentation.dashboard.components.sections
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.presentation.components.FTCard
+import ir.siamak.fintrack.presentation.dashboard.SectionHeader
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun QuickActionsSection(
     onAddWallet: () -> Unit,
@@ -22,53 +38,122 @@ fun QuickActionsSection(
     onOpenReports: () -> Unit
 ) {
 
-    Row(
+    SectionHeader("دسترسی سریع")
+
+    FlowRow(
+
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+
     ) {
 
-        ActionButton(
-            modifier = Modifier.weight(1f),
-            text = "حساب",
-            onClick = onAddWallet
+        ActionItem(
+            "حساب",
+            Icons.Default.AccountBalanceWallet,
+            Color(0xFF3B82F6),
+            onAddWallet
         )
-        ActionButton(
-            modifier = Modifier.weight(1f),
-            text = "تراکنش",
-            onClick = onAddTransaction
+
+        ActionItem(
+            "تراکنش",
+            Icons.Default.Payments,
+            Color(0xFF22C55E),
+            onAddTransaction
         )
-        ActionButton(
-            modifier = Modifier.weight(1f),
-            text = "اعضا",
-            onClick = onOpenMembers
+
+        ActionItem(
+            "اعضا",
+            Icons.Default.Groups,
+            Color(0xFFF59E0B),
+            onOpenMembers
         )
-        ActionButton(
-            modifier = Modifier.weight(1f),
-            text = "گزارش",
-            onClick = onOpenReports
+
+        ActionItem(
+            "اقساط",
+            Icons.Default.ReceiptLong,
+            Color(0xFFEC4899),
+            onOpenInstallment
         )
+
+        ActionItem(
+            "گزارش",
+            Icons.Default.BarChart,
+            Color(0xFF8B5CF6),
+            onOpenReports
+        )
+
     }
+
 }
 
 @Composable
-fun ActionButton(
-    modifier: Modifier = Modifier,
-    text: String,
+private fun ActionItem(
+    title: String,
+    icon: ImageVector,
+    color: Color,
     onClick: () -> Unit
 ) {
 
     FTCard(
-        modifier = modifier
-            .clickable { onClick() }
+
+        modifier = Modifier
+            .clickable(onClick = onClick)
+
     ) {
 
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(text)
+
+            androidx.compose.foundation.layout.Column(
+
+                horizontalAlignment = Alignment.CenterHorizontally,
+
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+
+            ) {
+
+                Box(
+
+                    modifier = Modifier
+                        .size(54.dp)
+                        .background(
+                            color.copy(alpha = .15f),
+                            CircleShape
+                        ),
+
+                    contentAlignment = Alignment.Center
+
+                ) {
+
+                    Icon(
+
+                        imageVector = icon,
+
+                        contentDescription = null,
+
+                        tint = color
+
+                    )
+
+                }
+
+                Text(
+
+                    text = title,
+
+                    style = MaterialTheme.typography.labelLarge
+
+                )
+
+            }
+
         }
+
     }
+
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,7 +23,6 @@ import ir.siamak.fintrack.presentation.components.SummaryCard
 import ir.siamak.fintrack.presentation.dashboard.SectionHeader
 import ir.siamak.fintrack.presentation.theme.ErrorRed
 import ir.siamak.fintrack.presentation.theme.Success
-import androidx.compose.foundation.layout.FlowRow
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
