@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Wallet
-import ir.siamak.fintrack.presentation.dashboard.components.items.WalletItem
+import ir.siamak.fintrack.domain.dashboard.items.WalletItem
 
 @Composable
 fun WalletSection(

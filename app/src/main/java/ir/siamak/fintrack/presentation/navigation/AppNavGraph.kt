@@ -20,7 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
 import ir.siamak.fintrack.presentation.components.FTBottomBar
-import ir.siamak.fintrack.presentation.dashboard.DashboardRoute
+import ir.siamak.fintrack.presentation.dashboard.navigation.DashboardRoute
 import ir.siamak.fintrack.presentation.installment.add_edit_installment.AddEditInstallmentsScreen
 import ir.siamak.fintrack.presentation.installment.list.InstallmentRoute
 import ir.siamak.fintrack.presentation.landing.LandingScreen
@@ -29,6 +29,7 @@ import ir.siamak.fintrack.presentation.transaction.add_edit_transaction.AddEditT
 import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScreen
 import ir.siamak.fintrack.presentation.wallet.list.WalletRoute
 import ir.siamak.fintrack.presentation.member.list.MemberRoute
+import ir.siamak.fintrack.presentation.report.navigation.ReportsRoute
 
 
 /**
@@ -193,7 +194,7 @@ fun AppNavGraph(navController: NavHostController) {
                  * صفحه گزارشات.
                  */
                 composable<Screen.Reports> {
-                    PlaceholderScreen(title = "گزارشات")
+                    ReportsRoute()
                 }
 
                 /**

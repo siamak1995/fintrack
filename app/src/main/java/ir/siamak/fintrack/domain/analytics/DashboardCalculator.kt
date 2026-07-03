@@ -1,11 +1,7 @@
 package ir.siamak.fintrack.domain.analytics
 
-import ir.siamak.fintrack.core.extensions.isToday
 import ir.siamak.fintrack.data.model.Transaction
 import ir.siamak.fintrack.data.model.TransactionType
-import ir.siamak.fintrack.data.model.Wallet
-import java.time.LocalDate
-import kotlin.math.roundToInt
 
 /**
  * مسئول تمام محاسبات داشبورد.
@@ -79,9 +75,12 @@ class DashboardCalculator {
 
         val income = income(transactions)
 
-        if (income == 0.0) return 0f
+        if (income == 0.0)
+            return 0f
 
-        return ((expense(transactions) / income) * 100).toFloat()
+        return ((expense(transactions) / income) * 100)
+            .coerceIn(0.0,100.0)
+            .toFloat()
 
     }
 
@@ -91,11 +90,15 @@ class DashboardCalculator {
 
         val income = income(transactions)
 
-        if (income == 0.0) return 0f
+        if (income == 0.0)
+            return 0f
 
-        return ((saving(transactions) / income) * 100).toFloat()
+        return ((saving(transactions) / income) * 100)
+            .coerceIn(0.0,100.0)
+            .toFloat()
 
     }
+
 
     fun insight(
         transactions: List<Transaction>
