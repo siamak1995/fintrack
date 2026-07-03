@@ -70,8 +70,10 @@ fun AddEditTransactionScreen(
 
             // ۲. ورودی مبلغ
             FTTextField(
-                value = state.amount,
-                onValueChange = { viewModel.onEvent(AddEditTransactionEvent.EnteredAmount(it)) },
+                value = state.amount, // فقط نمایشی (با کاما)
+                onValueChange = {
+                    viewModel.onEvent(AddEditTransactionEvent.EnteredAmount(it))
+                },
                 label = "مبلغ (تومان)",
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()

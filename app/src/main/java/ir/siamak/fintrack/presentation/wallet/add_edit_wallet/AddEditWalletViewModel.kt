@@ -3,6 +3,7 @@ package ir.siamak.fintrack.presentation.wallet.add_edit_wallet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import ir.siamak.fintrack.core.extensions.formatAmount
 import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.domain.usecase.wallet.GetWalletByIdUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.InsertWalletUseCase
@@ -43,7 +44,12 @@ class AddEditWalletViewModel @Inject constructor(
             }
 
             is AddEditWalletEvent.EnteredBalance -> {
-                _state.update { it.copy(balance = event.value) }
+                val clean = event.value.replace(",", "").filter { it.isDigit() }
+                _state.value = _state.value.copy(
+                    balanceRaw = clean,
+                    balance = formatAmount(clean)
+                )
+//                _state.update { it.copy(balance = event.value) }
             }
 
             is AddEditWalletEvent.LoadWallet -> {
@@ -70,7 +76,7 @@ class AddEditWalletViewModel @Inject constructor(
     private fun saveWallet() {
         viewModelScope.launch {
             val name = _state.value.name.trim()
-            val balance = _state.value.balance.toDoubleOrNull() ?: 0.0
+            val balance = _state.value.balanceRaw.toDoubleOrNull() ?: 0.0
             val color = _state.value.color
 
             if (name.isBlank()) return@launch

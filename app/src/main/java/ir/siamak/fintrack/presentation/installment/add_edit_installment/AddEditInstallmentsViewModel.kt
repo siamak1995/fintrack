@@ -3,6 +3,7 @@ package ir.siamak.fintrack.presentation.installment.add_edit_installment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import ir.siamak.fintrack.core.extensions.formatAmount
 import ir.siamak.fintrack.data.model.Installment
 import ir.siamak.fintrack.domain.usecase.installments.InstallmentUseCases
 import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
@@ -79,26 +80,34 @@ class AddEditInstallmentsViewModel @Inject constructor(
 
             is AddEditInstallmentEvent.TotalAmountChanged -> {
 
-                _state.update {
+                val clean = event.value.replace(",", "").filter { it.isDigit() }
 
-                    it.copy(
-                        totalAmount = event.value
-                    )
+                val formatted = formatAmount(clean)
 
-                }
+                val paid = _state.value.paidAmountRaw.toDoubleOrNull() ?: 0.0
+                val total = clean.toDoubleOrNull() ?: 0.0
+
+                _state.value = _state.value.copy(
+                    totalAmountRaw = clean,
+                    totalAmountFormatted = formatted,
+                    paidExceedsTotal = paid > total
+                )
 
             }
 
             is AddEditInstallmentEvent.PaidAmountChanged -> {
+                val clean = event.value.replace(",", "").filter { it.isDigit() }
 
-                _state.update {
+                val formatted = formatAmount(clean)
 
-                    it.copy(
-                        paidAmount = event.value
-                    )
+                val total = _state.value.totalAmountRaw.toDoubleOrNull() ?: 0.0
+                val paid = clean.toDoubleOrNull() ?: 0.0
 
-                }
-
+                _state.value = _state.value.copy(
+                    paidAmountRaw = clean,
+                    paidAmountFormatted = formatted,
+                    paidExceedsTotal = paid > total
+                )
             }
 
             is AddEditInstallmentEvent.DueDateChanged -> {
@@ -141,7 +150,7 @@ class AddEditInstallmentsViewModel @Inject constructor(
             return
         }
 
-        val total = state.totalAmount.toDoubleOrNull()
+        val total = state.totalAmountRaw.toDoubleOrNull()
 
         if (total == null || total <= 0) {
 
@@ -156,7 +165,19 @@ class AddEditInstallmentsViewModel @Inject constructor(
             return
         }
 
-        val paid = state.paidAmount.toDoubleOrNull() ?: 0.0
+        val paid = state.paidAmountRaw.toDoubleOrNull() ?: 0.0
+
+        if (paid > total) {
+            _state.update {
+
+                it.copy(
+                    error = "مبلغ پرداختی نمیتواند بیشتر از کل مبلغ باشد."
+                )
+
+            }
+
+            return
+        }
 
         viewModelScope.launch {
 

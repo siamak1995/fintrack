@@ -7,6 +7,7 @@ import ir.siamak.fintrack.data.model.Wallet
  * وضعیت فیلدهای صفحه افزودن تراکنش.
  */
 data class AddEditTransactionState(
+    val amountRaw: String = "",
     val amount: String = "",
     val type: TransactionType = TransactionType.EXPENSE, // پیش‌فرض روی هزینه
     val selectedCategoryName: String = "سایر",

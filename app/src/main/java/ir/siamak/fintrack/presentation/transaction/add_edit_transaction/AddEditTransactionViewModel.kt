@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import ir.siamak.fintrack.core.extensions.formatAmount
 import ir.siamak.fintrack.data.model.Transaction
 import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases
 import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
@@ -52,7 +53,12 @@ class AddEditTransactionViewModel @Inject constructor(
     fun onEvent(event: AddEditTransactionEvent) {
         when (event) {
             is AddEditTransactionEvent.EnteredAmount -> {
-                _state.value = _state.value.copy(amount = event.value)
+                val clean = event.value.replace(",", "").filter { it.isDigit() }
+
+                _state.value = _state.value.copy(
+                    amountRaw = clean,
+                    amount = formatAmount(clean)
+                )
             }
             is AddEditTransactionEvent.TypeChanged -> {
                 _state.value = _state.value.copy(type = event.type)
@@ -74,7 +80,7 @@ class AddEditTransactionViewModel @Inject constructor(
 
     private fun saveTransaction() {
         viewModelScope.launch {
-            val amount = _state.value.amount.toDoubleOrNull() ?: 0.0
+            val amount = _state.value.amountRaw.toDoubleOrNull() ?: 0.0
 
             // چک کردن برای null یا مقدار پیش‌فرض -1
             if (amount <= 0.0 || _state.value.selectedWalletId == null || _state.value.selectedWalletId == -1L) {

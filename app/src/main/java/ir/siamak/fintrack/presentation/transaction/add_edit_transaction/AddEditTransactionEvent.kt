@@ -10,4 +10,5 @@ sealed class AddEditTransactionEvent {
     data class WalletSelected(val walletId: Long) : AddEditTransactionEvent()
     data class EnteredNote(val value: String) : AddEditTransactionEvent()
     object SaveTransaction : AddEditTransactionEvent()
+
 }

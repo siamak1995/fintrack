@@ -1,5 +1,6 @@
 package ir.siamak.fintrack.presentation.report
 
+import ir.siamak.fintrack.data.model.Transaction
 import ir.siamak.fintrack.domain.report.CategoryReportItem
 import ir.siamak.fintrack.domain.report.MonthlyReportItem
 import ir.siamak.fintrack.domain.report.WalletReportItem
@@ -24,6 +25,7 @@ data class ReportsState(
     val monthlyReports: List<MonthlyReportItem> = emptyList(),
     val walletReports: List<WalletReportItem> = emptyList(),
     val categoryReports: List<CategoryReportItem> = emptyList(),
+    val transactions: List<Transaction> = emptyList(),
 
     // --- STATE ---
     val isLoading: Boolean = false,

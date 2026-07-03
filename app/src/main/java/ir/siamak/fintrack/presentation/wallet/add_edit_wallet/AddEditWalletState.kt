@@ -11,6 +11,7 @@ package ir.siamak.fintrack.presentation.wallet.add_edit_wallet
  */
 data class AddEditWalletState(
     val name: String = "",
+    val balanceRaw: String = "",
     val balance: String = "",
     val color: String = "#4CAF50", // رنگ پیش‌فرض سبز
     val isLoading: Boolean = false,

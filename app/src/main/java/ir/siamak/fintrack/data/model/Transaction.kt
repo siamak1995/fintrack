@@ -10,5 +10,5 @@ data class Transaction(
     val walletId: Long,
     val memberId: Long,
     val date: Long,
-    val note: String? = null
+    val note: String
 )
