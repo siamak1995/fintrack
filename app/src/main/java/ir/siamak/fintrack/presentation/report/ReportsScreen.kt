@@ -22,13 +22,9 @@ fun ReportsScreen(
 ) {
 
     LazyColumn(
-
         modifier = Modifier.fillMaxSize(),
-
         contentPadding = PaddingValues(16.dp),
-
         verticalArrangement = Arrangement.spacedBy(20.dp)
-
     ) {
 
         item {
@@ -46,10 +42,9 @@ fun ReportsScreen(
         }
 
         item {
-
             SectionHeader("گزارش ماهانه")
-
         }
+
 
         items(
 
@@ -90,6 +85,16 @@ fun ReportsScreen(
         ) {
 
             WalletReportCard(it)
+
+        }
+
+        item {
+
+            SectionHeader(
+
+                "تراکنش‌ها"
+
+            )
 
         }
 

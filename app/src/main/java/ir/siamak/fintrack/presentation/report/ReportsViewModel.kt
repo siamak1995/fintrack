@@ -71,6 +71,15 @@ class ReportViewModel @Inject constructor(
     private fun refreshReport() {
 
         val filter = _state.value.filter
+        val filteredTransactions =
+
+            calculator.filterTransactions(
+
+                allTransactions,
+
+                filter
+
+            )
 
         val filtered =
             calculator.filterTransactions(
@@ -120,6 +129,8 @@ class ReportViewModel @Inject constructor(
                 walletReports = walletReports,
 
                 categoryReports = categoryReports,
+
+                transactions = filteredTransactions,
 
                 isLoading = false,
 

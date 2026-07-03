@@ -28,172 +28,107 @@ import ir.siamak.fintrack.presentation.dashboard.components.sections.WalletSecti
 
 @Composable
 fun DashboardScreen(
-
     state: DashboardState,
-
     onAddTransactionClick: () -> Unit,
-
     onAddWalletClick: () -> Unit,
-
     onWalletClick: (Long) -> Unit,
-
     onMembersClick: () -> Unit,
-
     onOpenInstallment: () -> Unit,
-
     onOpenReports: () -> Unit
-
 ) {
 
     Scaffold(
-
         floatingActionButton = {
-
-            FloatingActionButton(
-
-                onClick = onAddTransactionClick
-
-            ) {
-
-                Icon(
-                    Icons.Default.Add,
-                    null
-                )
-
+            FloatingActionButton(onClick = onAddTransactionClick) {
+                Icon(Icons.Default.Add, null)
             }
-
         }
-
     ) { padding ->
 
-        if (state.isLoading) {
+        when {
 
-            DashboardLoading()
+            state.isLoading -> {
+                DashboardLoading()
+                return@Scaffold
+            }
 
-            return@Scaffold
+            state.error != null -> {
+                DashboardError(state.error!!)
+                return@Scaffold
+            }
 
-        }
+            state.wallets.isEmpty()
+                    && state.transactions.isEmpty()
+                    && state.members.isEmpty()
+                    && state.installments.isEmpty() -> {
 
-        state.error?.let {
-
-            DashboardError(it)
-
-            return@Scaffold
-
-        }
-
-        val hasAnyData =
-            state.wallets.isNotEmpty() ||
-                    state.transactions.isNotEmpty() ||
-                    state.members.isNotEmpty() ||
-                    state.installments.isNotEmpty()
-
-        if (!hasAnyData) {
-            DashboardEmpty("هنوز اطلاعاتی ثبت نشده است.")
-            return@Scaffold
+                DashboardEmpty("هنوز اطلاعاتی ثبت نشده است.")
+                return@Scaffold
+            }
         }
 
         LazyColumn(
-
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-
             contentPadding = PaddingValues(16.dp),
-
             verticalArrangement = Arrangement.spacedBy(20.dp)
-
         ) {
 
             item {
-                GreetingSection(
-                    userName = state.userName,
-                    insight = state.insight
-                )
+                GreetingSection(state.userName, state.insight)
             }
 
             item {
                 FinancialSummarySection(
-
                     totalBalance = state.totalBalance,
-
                     income = state.monthlyIncome,
-
                     expense = state.monthlyExpense,
-
                     walletBalance = state.walletBalance
-
                 )
             }
 
             item {
                 QuickActionsSection(
-
                     onAddWallet = onAddWalletClick,
-
                     onAddTransaction = onAddTransactionClick,
-
                     onOpenMembers = onMembersClick,
-
                     onOpenInstallment = onOpenInstallment,
-
                     onOpenReports = onOpenReports
                 )
             }
 
             item {
                 ChartSection(
-
                     spending = state.spendingPercent,
-
                     saving = state.savingPercent
-
                 )
             }
 
-            item {
-                InsightSection(
-                    insight = state.insight
-                )
-            }
+            item { InsightSection(state.insight) }
 
             item {
                 WalletSection(
-
                     wallets = state.wallets,
-
                     onWalletClick = onWalletClick,
-
                     onAddWalletClick = onAddWalletClick
-
                 )
             }
 
             item {
-                RecentTransactionsSection(
-                    transactions = state.recentTransactions
-                )
+                RecentTransactionsSection(state.recentTransactions)
             }
 
             item {
-                UpcomingInstallmentsSection(
-                    installments = state.installments
-                )
+                UpcomingInstallmentsSection(state.installments)
             }
 
             item {
                 MemberSection(
-
                     members = state.members,
-
                     onMembersClick = onMembersClick
-
                 )
             }
-
-
         }
-
     }
-
 }

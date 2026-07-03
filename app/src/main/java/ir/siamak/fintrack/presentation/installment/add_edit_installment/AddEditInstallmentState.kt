@@ -6,9 +6,12 @@ data class AddEditInstallmentState(
 
     val title: String = "",
 
-    val totalAmount: String = "",
+    val totalAmountFormatted: String = "",
+    val totalAmountRaw: String = "",
 
-    val paidAmount: String = "",
+
+    val paidAmountFormatted: String = "",
+    val paidAmountRaw: String = "",
 
     val dueDate: Long = System.currentTimeMillis(),
 
@@ -20,6 +23,8 @@ data class AddEditInstallmentState(
 
     val error: String? = null,
 
-    val wallets: List<Wallet> = emptyList()
+    val wallets: List<Wallet> = emptyList(),
+
+    val paidExceedsTotal: Boolean = false
 
 )
