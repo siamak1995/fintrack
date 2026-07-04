@@ -25,7 +25,7 @@ import ir.siamak.fintrack.data.local.entity.WalletEntity
         TagEntity::class,
         TransactionTagCrossRef::class
     ],
-    version = 4,
+    version = 1,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
