@@ -9,5 +9,6 @@ data class TagEntity(
     val id: Long = 0L,
     val name: String,
     val color: Long? = null,
-    val workspaceId: Long? = null
+    val workspaceId: Long? = null,
+    val allowedType: String
 )

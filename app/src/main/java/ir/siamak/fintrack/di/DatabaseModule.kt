@@ -30,38 +30,39 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-//    val MIGRATION_2_3 = object : Migration(2, 3) {
-//        override fun migrate(db: SupportSQLiteDatabase) {
-//            db.execSQL("ALTER TABLE transactions ADD COLUMN toWalletId INTEGER DEFAULT NULL")
-//            db.execSQL("CREATE INDEX IF NOT EXISTS index_transactions_toWalletId ON transactions(toWalletId)")
-//        }
-//    }
-//
-//    val MIGRATION_3_4 = object : Migration(3, 4) {
-//        override fun migrate(database: SupportSQLiteDatabase) {
-//            database.execSQL("""
-//                CREATE TABLE IF NOT EXISTS tags (
-//                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-//                    name TEXT NOT NULL,
-//                    color INTEGER,
-//                    workspaceId INTEGER
-//                )
-//            """.trimIndent())
-//
-//            database.execSQL("""
-//                CREATE TABLE IF NOT EXISTS transaction_tags (
-//                    transactionId INTEGER NOT NULL,
-//                    tagId INTEGER NOT NULL,
-//                    PRIMARY KEY(transactionId, tagId),
-//                    FOREIGN KEY(transactionId) REFERENCES transactions(id) ON DELETE CASCADE,
-//                    FOREIGN KEY(tagId) REFERENCES tags(id) ON DELETE CASCADE
-//                )
-//            """.trimIndent())
-//
-//            database.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_tags_transactionId ON transaction_tags(transactionId)")
-//            database.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_tags_tagId ON transaction_tags(tagId)")
-//        }
-//    }
+    val MIGRATION_1_4 = object : Migration(1, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+
+            // 1) transactions: اضافه شدن toWalletId (اگر نسخه 1 نداشت)
+            db.execSQL("ALTER TABLE transactions ADD COLUMN toWalletId INTEGER")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_transactions_toWalletId ON transactions(toWalletId)")
+
+            // 2) tags table
+            db.execSQL("""
+            CREATE TABLE IF NOT EXISTS tags (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                name TEXT NOT NULL,
+                color INTEGER,
+                workspaceId INTEGER
+            )
+        """.trimIndent())
+
+            // 3) cross-ref table
+            db.execSQL("""
+            CREATE TABLE IF NOT EXISTS transaction_tags (
+                transactionId INTEGER NOT NULL,
+                tagId INTEGER NOT NULL,
+                PRIMARY KEY(transactionId, tagId),
+                FOREIGN KEY(transactionId) REFERENCES transactions(id) ON DELETE CASCADE,
+                FOREIGN KEY(tagId) REFERENCES tags(id) ON DELETE CASCADE
+            )
+        """.trimIndent())
+
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_tags_transactionId ON transaction_tags(transactionId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_tags_tagId ON transaction_tags(tagId)")
+        }
+    }
+
 
 
     /**
@@ -78,7 +79,8 @@ object DatabaseModule {
             AppDatabase::class.java,
             "fintrack_db"
         )
-//            .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_4)
+            .fallbackToDestructiveMigration()
             .build()
     }
 

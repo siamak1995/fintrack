@@ -8,7 +8,8 @@ fun TagEntity.toTag(): Tag {
         id = id,
         name = name,
         color = color,
-        workspaceId = workspaceId
+        workspaceId = workspaceId,
+        allowedType=allowedType
     )
 }
 
@@ -17,6 +18,7 @@ fun Tag.toEntity(): TagEntity {
         id = id,
         name = name,
         color = color,
-        workspaceId = workspaceId
+        allowedType = allowedType,
+
     )
 }
