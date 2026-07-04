@@ -82,14 +82,6 @@ sealed class Screen {
         val installmentId: Long? = null
     ) : Screen()
 
-    /**
-     * صفحه گزارشات.
-     *
-     * برای نمایش گزارش‌های مالی بر اساس بازه زمانی، شخص، نوع تراکنش
-     * و سایر فیلترهای تحلیلی.
-     */
-    @Serializable
-    object Reports : Screen()
 
     /**
      * صفحه تنظیمات.
@@ -110,5 +102,29 @@ sealed class Screen {
 
     @Serializable
     object Landing : Screen()
+
+    /**
+     * صفحه گزارشات.
+     *
+     * برای نمایش گزارش‌های مالی بر اساس بازه زمانی، شخص، نوع تراکنش
+     * و سایر فیلترهای تحلیلی.
+     */
+    @Serializable
+    object Reports : Screen()
+
+    @Serializable
+    object VisualReport : Screen()
+
+    @Serializable
+    data object WalletReport : Screen()
+
+    @Serializable
+    data object MemberReport : Screen()
+
+    @Serializable
+    data object HistoryReport : Screen()
+
+    @Serializable
+    data object FilteredReport : Screen()
 
 }
