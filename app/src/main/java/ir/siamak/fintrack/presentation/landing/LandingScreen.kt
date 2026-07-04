@@ -49,15 +49,23 @@ fun LandingScreen(
             modifier = Modifier.padding(top = 32.dp),
             onClick = onEnterDashboard
         ) {
-            Text("ورود به حسابدار خانه")
+            Text("ورود به حسابدار")
         }
 
-        Button(
-            modifier = Modifier.padding(top = 32.dp),
-            onClick = onEnterDashboard
-        ) {
-            Text("ورود به حسابدار فروشگاه")
-        }
+        //@TODO - phase -2
+//        Button(
+//            modifier = Modifier.padding(top = 32.dp),
+//            onClick = onEnterDashboard
+//        ) {
+//            Text("ورود به حسابدار خانه")
+//        }
+//
+//        Button(
+//            modifier = Modifier.padding(top = 32.dp),
+//            onClick = onEnterDashboard
+//        ) {
+//            Text("ورود به حسابدار فروشگاه")
+//        }
 
     }
 

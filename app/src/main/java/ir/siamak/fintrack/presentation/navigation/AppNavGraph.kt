@@ -30,6 +30,11 @@ import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScree
 import ir.siamak.fintrack.presentation.wallet.list.WalletRoute
 import ir.siamak.fintrack.presentation.member.list.MemberRoute
 import ir.siamak.fintrack.presentation.report.navigation.ReportsRoute
+import ir.siamak.fintrack.presentation.report.pages.filtered.FilteredReportScreen
+import ir.siamak.fintrack.presentation.report.pages.history.HistoryReportScreen
+import ir.siamak.fintrack.presentation.report.pages.member.MemberReportScreen
+import ir.siamak.fintrack.presentation.report.pages.visual.VisualReportScreen
+import ir.siamak.fintrack.presentation.report.pages.wallet.WalletReportScreen
 
 
 /**
@@ -195,11 +200,41 @@ fun AppNavGraph(navController: NavHostController) {
                  */
                 composable<Screen.Reports> {
                     ReportsRoute(
-                        onMemberReportClick = { navController.navigate("report_member") },
-                        onWalletReportClick = { navController.navigate("report_wallet") },
-                        onHistoryReportClick = { navController.navigate("report_history") },
-                        onFilteredReportClick = { navController.navigate("report_filtered") },
-                        onVisualReportClick = { navController.navigate("report_visual") }
+                        onMemberReportClick = { navController.navigate(Screen.MemberReport) },
+                        onWalletReportClick = { navController.navigate(Screen.WalletReport) },
+                        onHistoryReportClick = { navController.navigate(Screen.HistoryReport) },
+                        onFilteredReportClick = { navController.navigate(Screen.FilteredReport) },
+                        onVisualReportClick = { navController.navigate(Screen.VisualReport) }
+                    )
+                }
+
+                composable<Screen.WalletReport> {
+                    WalletReportScreen(
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+
+                composable<Screen.MemberReport> {
+                    MemberReportScreen(
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+
+                composable<Screen.HistoryReport> {
+                    HistoryReportScreen(
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+
+                composable<Screen.FilteredReport> {
+                    FilteredReportScreen(
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+
+                composable<Screen.VisualReport> {
+                    VisualReportScreen(
+                        onBackClick = { navController.popBackStack() }
                     )
                 }
 
