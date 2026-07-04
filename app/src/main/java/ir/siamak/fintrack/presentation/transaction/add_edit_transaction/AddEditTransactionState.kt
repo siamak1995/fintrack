@@ -14,6 +14,7 @@ data class AddEditTransactionState(
     val selectedCategoryName: String = "سایر",
     val selectedWalletId: Long? = null,
     val selectedMemberId: Long? = null,
+    val selectedToWalletId: Long? = null,
     val note: String = "",
     val wallets: List<Wallet> = emptyList(),// برای نمایش لیست حساب‌ها
     val members: List<Member> = emptyList(),//برای نمایش لیست اعضا

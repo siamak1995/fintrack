@@ -2,6 +2,8 @@ package ir.siamak.fintrack.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,6 +29,15 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // اضافه کردن ستون جدید به جدول تراکنش‌ها
+            db.execSQL("ALTER TABLE transactions ADD COLUMN toWalletId INTEGER DEFAULT NULL")
+            // ساخت ایندکس برای ستون جدید جهت بهبود پرفورمنس
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_transactions_toWalletId ON transactions(toWalletId)")
+        }
+    }
+
     /**
      * ساخت و ارائه نمونه Singleton از دیتابیس اصلی برنامه با استفاده از Room.
      *
@@ -40,7 +51,9 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "fintrack_db"
-        ).build()
+        )
+            .addMigrations(MIGRATION_2_3)
+            .build()
     }
 
     /**
@@ -72,5 +85,10 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideInstallmentDao(database: AppDatabase): InstallmentDao = database.installmentDao()
+
+
+
+
+
 
 }

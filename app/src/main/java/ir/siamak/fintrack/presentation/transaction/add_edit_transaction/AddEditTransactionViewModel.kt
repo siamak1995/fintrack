@@ -70,6 +70,11 @@ class AddEditTransactionViewModel @Inject constructor(
 
     fun onEvent(event: AddEditTransactionEvent) {
         when (event) {
+
+            is AddEditTransactionEvent.ToWalletSelected -> {
+                _state.value = _state.value.copy(selectedToWalletId = event.walletId)
+            }
+
             is AddEditTransactionEvent.EnteredAmount -> {
                 val clean = event.value.persianToEnglishDigits().replace(",", "").filter { it.isDigit() }
 
@@ -113,51 +118,52 @@ class AddEditTransactionViewModel @Inject constructor(
         viewModelScope.launch {
             val amount = _state.value.amountRaw.toDoubleOrNull() ?: 0.0
 
-            // چک کردن برای مقدار پیش‌فرض -1
-            if (amount < 0.0) {
-                _eventFlow.emit(UiEvent.ShowSnackbar("مبلغ وارد شده صحیح نیست"))
+            if (amount <= 0.0) {
+                _eventFlow.emit(UiEvent.ShowSnackbar("مبلغ وارد شده باید بیشتر از صفر باشد"))
                 return@launch
             }
 
-            // چک کردن برای null
-            if (_state.value.selectedWalletId == null || _state.value.selectedWalletId == -1L) {
-                _eventFlow.emit(UiEvent.ShowSnackbar("حساب بانکی انتخاب شده معتبر نیست."))
+            val walletId = _state.value.selectedWalletId ?: run {
+                _eventFlow.emit(UiEvent.ShowSnackbar("حساب مبدا انتخاب نشده است"))
                 return@launch
             }
 
-            // - چک کردن شناسه کیف پول
-            val walletId = _state.value.selectedWalletId?: run {
-                _eventFlow.emit(UiEvent.ShowSnackbar("حساب انتخاب نشده است"))
+            val wallet = walletUseCases.getWalletById(walletId) ?: run {
+                _eventFlow.emit(UiEvent.ShowSnackbar("حساب مبدا پیدا نشد"))
                 return@launch
             }
 
-            // - چک کردن خود کیف پول
-            val wallet = walletUseCases.getWalletById(walletId)
-            if (wallet == null) {
-                _eventFlow.emit(UiEvent.ShowSnackbar("حساب پیدا نشد"))
-                return@launch
-            }
-
-            // - چک کردن همخوانی مبلغ کیف پول انتخابی و میزان هزینه
-            if (_state.value.type == TransactionType.EXPENSE) {
+            // اعتبارسنجی تراکنش‌های هزینه‌ای و انتقال
+            if (_state.value.type == TransactionType.EXPENSE || _state.value.type == TransactionType.TRANSFER) {
                 if (wallet.balance < amount) {
-                    _eventFlow.emit(UiEvent.ShowSnackbar("موجودی کیف پول کافی نیست"))
+                    _eventFlow.emit(UiEvent.ShowSnackbar("موجودی حساب مبدا کافی نیست"))
+                    return@launch
+                }
+            }
+
+            // اعتبارسنجی مخصوص انتقال
+            if (_state.value.type == TransactionType.TRANSFER) {
+                val toWalletId = _state.value.selectedToWalletId
+                if (toWalletId == null || toWalletId == -1L) {
+                    _eventFlow.emit(UiEvent.ShowSnackbar("حساب مقصد انتخاب نشده است"))
+                    return@launch
+                }
+                if (walletId == toWalletId) {
+                    _eventFlow.emit(UiEvent.ShowSnackbar("حساب مبدا و مقصد نمی‌توانند یکسان باشند"))
                     return@launch
                 }
             }
 
             try {
-                Log.d(
-                    "SAVE",
-                    _state.value.type.name
-                )
                 transactionUseCases.insertTransaction(
                     Transaction(
                         amount = amount,
                         type = _state.value.type,
-                        categoryName = _state.value.selectedCategoryName ?: "عمومی",
-                        walletId = _state.value.selectedWalletId!!, // <--- اضافه کردن علامت !! برای رفع خطا
-                        memberId =_state.value.selectedMemberId!!,
+                        // تگ یا دسته‌بندی پیش‌فرض برای انتقال
+                        categoryName = if (_state.value.type == TransactionType.TRANSFER) "انتقال" else (_state.value.selectedCategoryName ?: "عمومی"),
+                        walletId = walletId,
+                        toWalletId = if (_state.value.type == TransactionType.TRANSFER) _state.value.selectedToWalletId else null,
+                        memberId = _state.value.selectedMemberId ?: -1L, // عضو اختیاری یا پیش‌فرض
                         date = System.currentTimeMillis(),
                         note = _state.value.note
                     )
@@ -168,6 +174,7 @@ class AddEditTransactionViewModel @Inject constructor(
             }
         }
     }
+
 
 
     /**

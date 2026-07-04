@@ -16,50 +16,52 @@ import javax.inject.Inject
  * همیشه اطلاعات صحیح داشته باشند.
  */
 class InsertTransactionUseCase @Inject constructor(
-
     private val transactionRepository: TransactionRepository,
-
     private val walletRepository: WalletRepository
-
 ) {
-
     /**
      * ثبت تراکنش جدید.
      */
     suspend operator fun invoke(transaction: Transaction) {
+        val sourceWallet = walletRepository.getById(transaction.walletId)
+            ?: throw IllegalArgumentException("کیف پول مبدا پیدا نشد.")
 
-        val wallet =
-            walletRepository.getById(transaction.walletId)
-                ?: throw IllegalArgumentException("کیف پول پیدا نشد.")
+        when (transaction.type) {
+            TransactionType.INCOME -> {
+                val newBalance = sourceWallet.balance + transaction.amount
+                walletRepository.update(sourceWallet.copy(balance = newBalance))
+            }
 
-        if (
-            transaction.type == TransactionType.EXPENSE &&
-            wallet.balance < transaction.amount
-        ) {
-            throw IllegalStateException("Insufficient balance")
+            TransactionType.EXPENSE -> {
+                if (sourceWallet.balance < transaction.amount) {
+                    throw IllegalStateException("موجودی حساب مبدا کافی نیست.")
+                }
+                val newBalance = sourceWallet.balance - transaction.amount
+                walletRepository.update(sourceWallet.copy(balance = newBalance))
+            }
+
+            TransactionType.TRANSFER -> {
+                val targetWalletId = transaction.toWalletId
+                    ?: throw IllegalArgumentException("کیف پول مقصد انتخاب نشده است.")
+
+                if (transaction.walletId == targetWalletId) {
+                    throw IllegalArgumentException("کیف پول مبدا و مقصد نمی‌توانند یکسان باشند.")
+                }
+
+                val targetWallet = walletRepository.getById(targetWalletId)
+                    ?: throw IllegalArgumentException("کیف پول مقصد پیدا نشد.")
+
+                if (sourceWallet.balance < transaction.amount) {
+                    throw IllegalStateException("موجودی حساب مبدا برای انتقال کافی نیست.")
+                }
+
+                // کسر از مبدا و افزودن به مقصد
+                walletRepository.update(sourceWallet.copy(balance = sourceWallet.balance - transaction.amount))
+                walletRepository.update(targetWallet.copy(balance = targetWallet.balance + transaction.amount))
+            }
         }
-        
-        val newBalance = when (transaction.type) {
 
-            TransactionType.INCOME ->
-                wallet.balance + transaction.amount
-
-            TransactionType.EXPENSE ->
-                wallet.balance - transaction.amount
-
-            TransactionType.TRANSFER ->
-                wallet.balance
-
-        }
-
-        walletRepository.update(
-            wallet.copy(
-                balance = newBalance
-            )
-        )
-
+        // ذخیره خود تراکنش در تاریخچه دیتابیس
         transactionRepository.insert(transaction)
-
     }
-
 }

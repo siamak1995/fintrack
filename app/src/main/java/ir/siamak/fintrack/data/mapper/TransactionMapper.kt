@@ -10,6 +10,7 @@ fun TransactionEntity.toModel(): Transaction {
         type = type,
         categoryName = categoryName,
         walletId = walletId,
+        toWalletId = toWalletId,
         memberId = memberId,
         date = date,
         note = note
@@ -23,6 +24,7 @@ fun Transaction.toEntity(): TransactionEntity {
         type = type,
         categoryName = categoryName,
         walletId = walletId,
+        toWalletId = toWalletId,
         memberId = memberId,
         date = date,
         note = note

@@ -18,7 +18,7 @@ import ir.siamak.fintrack.presentation.theme.AppTheme
 import kotlinx.coroutines.flow.collectLatest
 
 /**
- * صفحه ثبت یا ویرایش تراکنش مالی (درآمد/هزینه).
+ * صفحه ثبت یا ویرایش تراکنش مالی (درآمد/هزینه/انتقال).
  *
  * @param onBack کالبک برای بازگشت به صفحه قبل (معمولاً داشبورد)
  * @param viewModel ویومدل تزریق شده توسط Hilt
@@ -62,6 +62,7 @@ fun AddEditTransactionScreen(
                 .padding(AppTheme.spacing.medium),
             verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.medium)
         ) {
+
             // ۱. انتخاب نوع تراکنش
             TransactionTypeSelector(
                 selectedType = state.type,
@@ -79,9 +80,9 @@ fun AddEditTransactionScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // ۳. انتخاب حساب بانکی
+            // ۳. انتخاب حساب بانکی (مبدا)
             Text(
-                text = "انتخاب حساب:",
+                text = if (state.type == TransactionType.TRANSFER) "از حساب (مبدا):" else "انتخاب حساب:",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -107,7 +108,36 @@ fun AddEditTransactionScreen(
                 }
             }
 
-            // ۳. انتخاب اعضا
+            // ۴. انتخاب حساب مقصد (فقط برای تراکنش‌های انتقالی)
+            if (state.type == TransactionType.TRANSFER) {
+                Text(
+                    text = "به حساب (مقصد):",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (state.wallets.isEmpty()) {
+                    Text(
+                        text = "حسابی برای انتخاب وجود ندارد",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        state.wallets.forEach { wallet ->
+                            FilterChip(
+                                selected = state.selectedToWalletId == wallet.id,
+                                onClick = { viewModel.onEvent(AddEditTransactionEvent.ToWalletSelected(wallet.id)) },
+                                label = { Text(wallet.name) }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ۵. انتخاب اعضا
             Text(
                 text = "انتخاب عضو:",
                 style = MaterialTheme.typography.labelMedium,
@@ -135,7 +165,7 @@ fun AddEditTransactionScreen(
                 }
             }
 
-            // 5. یادداشت تراکنش
+            // ۶. یادداشت تراکنش
             FTTextField(
                 value = state.note,
                 onValueChange = { viewModel.onEvent(AddEditTransactionEvent.EnteredNote(it)) },
@@ -145,7 +175,7 @@ fun AddEditTransactionScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // ۵. دکمه نهایی ذخیره
+            // ۷. دکمه نهایی ذخیره
             FTButton(
                 text = "ذخیره تراکنش",
                 onClick = { viewModel.onEvent(AddEditTransactionEvent.SaveTransaction) },
@@ -156,7 +186,7 @@ fun AddEditTransactionScreen(
 }
 
 /**
- * کامپوننت انتخابگر نوع تراکنش (هزینه/درآمد) با استفاده از SegmentedButtons.
+ * کامپوننت انتخابگر نوع تراکنش (هزینه/درآمد/انتقال) با استفاده از SegmentedButtons.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -168,16 +198,23 @@ private fun TransactionTypeSelector(
         SegmentedButton(
             selected = selectedType == TransactionType.EXPENSE,
             onClick = { onTypeSelected(TransactionType.EXPENSE) },
-            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
         ) {
             Text("هزینه")
         }
         SegmentedButton(
             selected = selectedType == TransactionType.INCOME,
             onClick = { onTypeSelected(TransactionType.INCOME) },
-            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
         ) {
             Text("درآمد")
+        }
+        SegmentedButton(
+            selected = selectedType == TransactionType.TRANSFER,
+            onClick = { onTypeSelected(TransactionType.TRANSFER) },
+            shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
+        ) {
+            Text("انتقال")
         }
     }
 }

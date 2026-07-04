@@ -8,6 +8,7 @@ data class Transaction(
     val type: TransactionType,
     val categoryName: String,
     val walletId: Long,
+    val toWalletId: Long? = null,
     val memberId: Long,
     val date: Long,
     val note: String
