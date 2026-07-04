@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.siamak.fintrack.core.extensions.formatAmount
+import ir.siamak.fintrack.core.extensions.persianToEnglishDigits
 import ir.siamak.fintrack.data.model.Installment
 import ir.siamak.fintrack.domain.usecase.installments.InstallmentUseCases
 import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
@@ -80,32 +81,28 @@ class AddEditInstallmentsViewModel @Inject constructor(
 
             is AddEditInstallmentEvent.TotalAmountChanged -> {
 
-                val clean = event.value.replace(",", "").filter { it.isDigit() }
-
-                val formatted = formatAmount(clean)
+                val clean = event.value.persianToEnglishDigits().replace(",", "").filter { it.isDigit() }
 
                 val paid = _state.value.paidAmountRaw.toDoubleOrNull() ?: 0.0
                 val total = clean.toDoubleOrNull() ?: 0.0
 
                 _state.value = _state.value.copy(
                     totalAmountRaw = clean,
-                    totalAmountFormatted = formatted,
+                    totalAmountFormatted = formatAmount(clean),
                     paidExceedsTotal = paid > total
                 )
 
             }
 
             is AddEditInstallmentEvent.PaidAmountChanged -> {
-                val clean = event.value.replace(",", "").filter { it.isDigit() }
-
-                val formatted = formatAmount(clean)
+                val clean = event.value.persianToEnglishDigits().replace(",", "").filter { it.isDigit() }
 
                 val total = _state.value.totalAmountRaw.toDoubleOrNull() ?: 0.0
                 val paid = clean.toDoubleOrNull() ?: 0.0
 
                 _state.value = _state.value.copy(
                     paidAmountRaw = clean,
-                    paidAmountFormatted = formatted,
+                    paidAmountFormatted = formatAmount(clean),
                     paidExceedsTotal = paid > total
                 )
             }

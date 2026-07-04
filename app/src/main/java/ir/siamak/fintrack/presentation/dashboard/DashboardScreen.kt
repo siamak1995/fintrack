@@ -94,16 +94,6 @@ fun DashboardScreen(
             }
 
             item {
-                QuickActionsSection(
-                    onAddWallet = onAddWalletClick,
-                    onAddTransaction = onAddTransactionClick,
-                    onOpenMembers = onMembersClick,
-                    onOpenInstallment = onOpenInstallment,
-                    onOpenReports = onOpenReports
-                )
-            }
-
-            item {
                 ChartSection(
                     spending = state.spendingPercent,
                     saving = state.savingPercent
@@ -112,13 +102,6 @@ fun DashboardScreen(
 
             item { InsightSection(state.insight) }
 
-            item {
-                WalletSection(
-                    wallets = state.wallets,
-                    onWalletClick = onWalletClick,
-                    onAddWalletClick = onAddWalletClick
-                )
-            }
 
             item {
                 RecentTransactionsSection(state.recentTransactions)
@@ -128,12 +111,6 @@ fun DashboardScreen(
                 UpcomingInstallmentsSection(state.installments)
             }
 
-            item {
-                MemberSection(
-                    members = state.members,
-                    onMembersClick = onMembersClick
-                )
-            }
         }
     }
 }

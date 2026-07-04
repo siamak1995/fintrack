@@ -115,11 +115,7 @@ class DashboardViewModel @Inject constructor(
 
                     )
 
-                    val chart = calculator.calculateChart(
-
-                        data.transactions
-
-                    )
+                    val chart = calculator.calculateChart(data.transactions)
 
                     val statistics = calculator.calculateStatistics(
 
