@@ -61,4 +61,10 @@ interface FinTrackDao {
 
     @Query("SELECT * FROM installment WHERE id = :installmentId LIMIT 1")
     suspend fun getInstallmentById(installmentId: Long): InstallmentEntity?
+
+    @Query("SELECT * FROM transactions WHERE date BETWEEN :start AND :end")
+    suspend fun getTransactionsByDateRangeSync(start: Long, end: Long): List<TransactionEntity>
+
+    @Query("SELECT * FROM transactions")
+    suspend fun getAllTransactionsSync(): List<TransactionEntity>
 }

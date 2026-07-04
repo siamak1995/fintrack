@@ -1,5 +1,6 @@
 package ir.siamak.fintrack.domain.repository
 
+import ir.siamak.fintrack.data.local.entity.TransactionEntity
 import ir.siamak.fintrack.data.model.Transaction
 import kotlinx.coroutines.flow.Flow
 
@@ -16,4 +17,9 @@ interface TransactionRepository {
     suspend fun deleteTransaction(transaction: Transaction)
 
     suspend fun insert(transaction: Transaction)
+
+    suspend fun getTransactionsByDateRange(fromDate: Long?, toDate: Long?): List<Transaction>
+
+    suspend fun getAllTransactionsSync(): List<Transaction>
+
 }

@@ -25,16 +25,16 @@ import ir.siamak.fintrack.presentation.installment.add_edit_installment.AddEditI
 import ir.siamak.fintrack.presentation.installment.list.InstallmentRoute
 import ir.siamak.fintrack.presentation.landing.LandingScreen
 import ir.siamak.fintrack.presentation.member.add_edit_member.AddEditMemberScreen
-import ir.siamak.fintrack.presentation.transaction.add_edit_transaction.AddEditTransactionScreen
-import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScreen
-import ir.siamak.fintrack.presentation.wallet.list.WalletRoute
 import ir.siamak.fintrack.presentation.member.list.MemberRoute
 import ir.siamak.fintrack.presentation.report.navigation.ReportsRoute
 import ir.siamak.fintrack.presentation.report.pages.filtered.FilteredReportScreen
 import ir.siamak.fintrack.presentation.report.pages.history.HistoryReportScreen
-import ir.siamak.fintrack.presentation.report.pages.member.MemberReportScreen
+import ir.siamak.fintrack.presentation.report.pages.member.MemberReportRoute
 import ir.siamak.fintrack.presentation.report.pages.visual.VisualReportScreen
 import ir.siamak.fintrack.presentation.report.pages.wallet.WalletReportScreen
+import ir.siamak.fintrack.presentation.transaction.add_edit_transaction.AddEditTransactionScreen
+import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScreen
+import ir.siamak.fintrack.presentation.wallet.list.WalletRoute
 
 
 /**
@@ -215,7 +215,7 @@ fun AppNavGraph(navController: NavHostController) {
                 }
 
                 composable<Screen.MemberReport> {
-                    MemberReportScreen(
+                    MemberReportRoute(
                         onBackClick = { navController.popBackStack() }
                     )
                 }
