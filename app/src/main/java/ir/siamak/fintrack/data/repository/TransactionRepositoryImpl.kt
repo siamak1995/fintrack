@@ -1,6 +1,8 @@
 package ir.siamak.fintrack.data.repository
 
+import androidx.room.Query
 import ir.siamak.fintrack.data.local.dao.TransactionDao
+import ir.siamak.fintrack.data.local.entity.TransactionEntity
 import ir.siamak.fintrack.data.mapper.toEntity
 import ir.siamak.fintrack.data.mapper.toModel
 import ir.siamak.fintrack.data.model.Transaction
@@ -52,6 +54,15 @@ class TransactionRepositoryImpl @Inject constructor(
             startMatch && endMatch
         }.map { it.toModel() } // تبدیل Entity به Domain Model
     }
+
+    override suspend fun getTransactionsByDateRangeSync(
+        startTimestamp: Long,
+        endTimestamp: Long
+    ): List<Transaction> {
+        return dao.getTransactionsByDateRangeSync(startTimestamp, endTimestamp)
+            .map { it.toModel() }
+    }
+
 
     override suspend fun getAllTransactionsSync(): List<Transaction> {
         return dao.getAllTransactionsSync().map { it.toModel() }

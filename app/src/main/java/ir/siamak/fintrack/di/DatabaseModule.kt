@@ -11,6 +11,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ir.siamak.fintrack.data.local.dao.InstallmentDao
 import ir.siamak.fintrack.data.local.dao.MemberDao
+import ir.siamak.fintrack.data.local.dao.TransactionDao
+import ir.siamak.fintrack.data.local.dao.WalletDao
 import ir.siamak.fintrack.data.local.database.AppDatabase
 import javax.inject.Singleton
 
@@ -102,9 +104,18 @@ object DatabaseModule {
     @Singleton
     fun provideInstallmentDao(database: AppDatabase): InstallmentDao = database.installmentDao()
 
+    @Provides
+    @Singleton
+    fun provideWalletDao(
+        database: AppDatabase
+    ): WalletDao = database.walletDao()
 
 
-
+    @Provides
+    @Singleton
+    fun provideTransactionDao(
+        database: AppDatabase
+    ): TransactionDao = database.transactionDao()
 
 
 }

@@ -44,4 +44,17 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions WHERE walletId = :walletId ORDER BY date DESC")
     fun getTransactionsByWallet(walletId: Long): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    suspend fun getAllTransactionsSync(): List<TransactionEntity>
+
+    @Query(
+        "SELECT * FROM transactions " +
+                "WHERE date >= :startTimestamp AND date <= :endTimestamp " +
+                "ORDER BY date DESC"
+    )
+    suspend fun getTransactionsByDateRangeSync(
+        startTimestamp: Long,
+        endTimestamp: Long
+    ): List<TransactionEntity>
 }

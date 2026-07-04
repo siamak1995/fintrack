@@ -19,7 +19,7 @@ interface TransactionRepository {
     suspend fun insert(transaction: Transaction)
 
     suspend fun getTransactionsByDateRange(fromDate: Long?, toDate: Long?): List<Transaction>
-
+    suspend fun getTransactionsByDateRangeSync(startTimestamp: Long, endTimestamp: Long): List<Transaction>
     suspend fun getAllTransactionsSync(): List<Transaction>
 
 }

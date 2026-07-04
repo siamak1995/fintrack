@@ -1,24 +1,26 @@
 package ir.siamak.fintrack.domain.report.usecases
 
-import ir.siamak.fintrack.data.local.dao.TransactionDao
 import ir.siamak.fintrack.data.model.TransactionType
 import ir.siamak.fintrack.domain.report.model.WalletReport
+import ir.siamak.fintrack.domain.repository.TransactionRepository
+import ir.siamak.fintrack.domain.repository.WalletRepository
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class GetWalletReportUseCase @Inject constructor(
-    private val dao: TransactionDao
+    private val transactionRepository: TransactionRepository,
+    private val walletRepository: WalletRepository
 ) {
     suspend operator fun invoke(startTimestamp: Long?, endTimestamp: Long?): List<WalletReport> {
         // ۱. دریافت تمامی تراکنش‌های بازه فیلتر شده یا کل تراکنش‌ها
         val transactions = if (startTimestamp != null && endTimestamp != null) {
-            dao.getTransactionsByDateRangeSync(startTimestamp, endTimestamp)
+            transactionRepository.getTransactionsByDateRangeSync(startTimestamp, endTimestamp)
         } else {
-            dao.getAllTransactionsSync()
+            transactionRepository.getAllTransactionsSync()
         }
 
         // ۲. دریافت لیست کیف پول‌ها برای متناظر کردن نام و موجودی لحظه‌ای
-        val wallets = dao.getAllWallets().first()
+        val wallets = walletRepository.getAllWallets().first()
 
         // ۳. گروه‌بندی تراکنش‌ها بر اساس Wallet ID
         val txGroupedByWallet = transactions.groupBy { it.walletId }
