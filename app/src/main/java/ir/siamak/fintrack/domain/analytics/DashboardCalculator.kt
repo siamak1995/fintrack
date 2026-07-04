@@ -9,6 +9,10 @@ import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.domain.dashboard.DashboardChart
 import ir.siamak.fintrack.domain.dashboard.DashboardMoney
 import ir.siamak.fintrack.domain.dashboard.DashboardStatistics
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.YearMonth
+import java.time.Instant
 
 /**
  * مسئول تمام محاسبات داشبورد.
@@ -134,8 +138,10 @@ class DashboardCalculator {
     fun calculateChart(
         transactions: List<Transaction>
     ): DashboardChart {
-        val income = income(transactions)
-        val expense = expense(transactions)
+        val monthlyTransactions = transactions.filter { it.isInCurrentMonth() }
+
+        val income = income(monthlyTransactions)
+        val expense = expense(monthlyTransactions)
         val saving = (income - expense).coerceAtLeast(0.0)
 
         val total = expense + saving
@@ -151,13 +157,45 @@ class DashboardCalculator {
             spendingPercent = ((expense / total) * 100)
                 .coerceIn(0.0, 100.0)
                 .toFloat(),
-
             savingPercent = ((saving / total) * 100)
                 .coerceIn(0.0, 100.0)
                 .toFloat()
         )
     }
+    fun calculateMonthlyMoney(
+        wallets: List<Wallet>,
+        transactions: List<Transaction>
+    ): DashboardMoney {
+        val monthlyTransactions = transactions.filter { it.isInCurrentMonth() }
 
+        val monthlyIncome = income(monthlyTransactions)
+        val monthlyExpense = expense(monthlyTransactions)
+        val monthlyBalance = monthlyIncome - monthlyExpense
+
+        return DashboardMoney(
+            income = monthlyIncome,
+            expense = monthlyExpense,
+            saving = monthlyBalance,
+            balance = monthlyBalance,
+            // محاسبه مجموع موجودی از کل کیف‌پول‌ها به صورت پویا و زنده:
+            walletBalance = wallets.sumOf { it.balance },
+            todayIncome = todayIncome(monthlyTransactions),
+            todayExpense = todayExpense(monthlyTransactions)
+        )
+    }
+
+
+
+    private fun Transaction.isInCurrentMonth(): Boolean {
+        val txDate = Instant.ofEpochMilli(date)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+
+        val currentMonth = YearMonth.now()
+        val txMonth = YearMonth.from(txDate)
+
+        return txMonth == currentMonth
+    }
 
     fun calculateStatistics(
 

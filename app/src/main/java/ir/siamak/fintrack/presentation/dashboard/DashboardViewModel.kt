@@ -107,14 +107,10 @@ class DashboardViewModel @Inject constructor(
                 }
                 .collect { data ->
 
-                    val money = calculator.calculateMoney(
-
-                        data.wallets,
-
-                        data.transactions
-
+                    val money = calculator.calculateMonthlyMoney(
+                        wallets = data.wallets,
+                        transactions = data.transactions
                     )
-
                     val chart = calculator.calculateChart(data.transactions)
 
                     val statistics = calculator.calculateStatistics(
