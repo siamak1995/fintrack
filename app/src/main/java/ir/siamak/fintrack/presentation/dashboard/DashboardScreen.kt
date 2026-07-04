@@ -40,13 +40,13 @@ fun DashboardScreen(
 ) {
 
     Scaffold(
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onAddTransactionClick,
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text("تراکنش جدید") }
-            )
-        }
+//        floatingActionButton = {
+//            ExtendedFloatingActionButton(
+//                onClick = onAddTransactionClick,
+//                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+//                text = { Text("تراکنش جدید") }
+//            )
+//        }
 
     ) { padding ->
 
