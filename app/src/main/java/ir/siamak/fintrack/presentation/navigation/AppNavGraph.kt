@@ -7,11 +7,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -19,24 +21,27 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
+import ir.siamak.fintrack.presentation.baseinfo.BaseInfoScreen
+import ir.siamak.fintrack.presentation.baseinfo.installment.add_edit_installment.AddEditInstallmentsScreen
+import ir.siamak.fintrack.presentation.baseinfo.installment.list.InstallmentRoute
+import ir.siamak.fintrack.presentation.baseinfo.member.add_edit_member.AddEditMemberScreen
+import ir.siamak.fintrack.presentation.baseinfo.member.list.MemberRoute
+import ir.siamak.fintrack.presentation.baseinfo.tags.add_edit_tag.AddEditTagScreen
+import ir.siamak.fintrack.presentation.baseinfo.tags.add_edit_tag.AddEditTagViewModel
+import ir.siamak.fintrack.presentation.baseinfo.tags.list.TagListScreen
+import ir.siamak.fintrack.presentation.baseinfo.tags.list.TagListViewModel
+import ir.siamak.fintrack.presentation.baseinfo.wallet.add_edit_wallet.AddEditWalletScreen
+import ir.siamak.fintrack.presentation.baseinfo.wallet.list.WalletRoute
 import ir.siamak.fintrack.presentation.components.FTBottomBar
 import ir.siamak.fintrack.presentation.dashboard.navigation.DashboardRoute
-import ir.siamak.fintrack.presentation.installment.add_edit_installment.AddEditInstallmentsScreen
-import ir.siamak.fintrack.presentation.installment.list.InstallmentRoute
 import ir.siamak.fintrack.presentation.landing.LandingScreen
-import ir.siamak.fintrack.presentation.member.add_edit_member.AddEditMemberScreen
-import ir.siamak.fintrack.presentation.member.list.MemberRoute
 import ir.siamak.fintrack.presentation.report.navigation.ReportsRoute
 import ir.siamak.fintrack.presentation.report.pages.filtered.FilteredReportRoute
-import ir.siamak.fintrack.presentation.report.pages.filtered.FilteredReportScreen
 import ir.siamak.fintrack.presentation.report.pages.history.HistoryReportScreen
 import ir.siamak.fintrack.presentation.report.pages.member.MemberReportRoute
 import ir.siamak.fintrack.presentation.report.pages.visual.VisualReportScreen
 import ir.siamak.fintrack.presentation.report.pages.wallet.WalletReportRoute
-import ir.siamak.fintrack.presentation.report.pages.wallet.WalletReportScreen
 import ir.siamak.fintrack.presentation.transaction.add_edit_transaction.AddEditTransactionScreen
-import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScreen
-import ir.siamak.fintrack.presentation.wallet.list.WalletRoute
 
 
 /**
@@ -54,12 +59,12 @@ fun AppNavGraph(navController: NavHostController) {
 
     val currentBottomScreen = when {
         currentDestination?.hasRoute<Screen.Dashboard>() == true -> Screen.Dashboard
-        currentDestination?.hasRoute<Screen.WalletList>() == true -> Screen.WalletList
-        currentDestination?.hasRoute<Screen.Members>() == true -> Screen.Members
-        currentDestination?.hasRoute<Screen.Installments>() == true -> Screen.Installments
+        currentDestination?.hasRoute<Screen.BaseInfo>() == true -> Screen.BaseInfo
+        currentDestination?.hasRoute<Screen.AddEditTransaction>() == true -> Screen.AddEditTransaction()
         currentDestination?.hasRoute<Screen.Reports>() == true -> Screen.Reports
         else -> null
     }
+
 
     val showBottomBar = currentBottomScreen != null
 
@@ -141,6 +146,25 @@ fun AppNavGraph(navController: NavHostController) {
                 }
 
                 /**
+                 * ثبت اطلاعات.
+                 */
+                composable<Screen.BaseInfo> {
+                    BaseInfoScreen(
+                        onWalletClick = {
+                            navController.navigate(Screen.WalletList)
+                        },
+                        onMemberClick = {
+                            navController.navigate(Screen.Members)
+                        },
+                        onInstallmentClick = {
+                            navController.navigate(Screen.Installments)
+                        },
+                        onTagClick = {
+                            navController.navigate(Screen.Tags)
+                        }
+                    )
+                }
+                /**
                  * صفحه لیست حساب‌ها.
                  */
                 composable<Screen.WalletList> {
@@ -195,6 +219,29 @@ fun AppNavGraph(navController: NavHostController) {
                         onBack = { navController.popBackStack() }
                     )
                 }
+                composable<Screen.Tags> {
+                    val vm: TagListViewModel = hiltViewModel()
+                    TagListScreen(
+                        viewModel = vm,
+                        onBack = { navController.popBackStack() },
+                        onAddTag = { navController.navigate(Screen.AddEditTag()) },
+                        onEditTag = { id -> navController.navigate(Screen.AddEditTag(id)) }
+                    )
+                }
+
+                composable<Screen.AddEditTag> { entry ->
+                    val vm: AddEditTagViewModel = hiltViewModel()
+                    val id = entry.arguments?.getInt("tagId")
+
+                    LaunchedEffect(id) { vm.loadTag(id) }
+
+                    AddEditTagScreen(
+                        tagId = id,
+                        viewModel = vm,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
 
 
                 /**

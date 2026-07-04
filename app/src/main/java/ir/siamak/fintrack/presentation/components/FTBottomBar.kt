@@ -1,6 +1,7 @@
 package ir.siamak.fintrack.presentation.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Group
@@ -58,19 +59,14 @@ fun FTBottomBar(
             icon = Icons.Default.Home
         ),
         BottomNavItem(
-            screen = Screen.WalletList,
-            label = "حساب‌ها",
+            screen = Screen.BaseInfo,
+            label = "ثبت اطلاعات اولیه",
             icon = Icons.Default.CreditCard
         ),
         BottomNavItem(
-            screen = Screen.Members,
-            label = "اعضا",
-            icon = Icons.Default.Group
-        ),
-        BottomNavItem(
-            screen = Screen.Installments,
-            label = "اقساط",
-            icon = Icons.Default.ReceiptLong
+            screen = Screen.AddEditTransaction(),
+            label = "ثبت تراکنش",
+            icon = Icons.Default.AddCircle
         ),
         BottomNavItem(
             screen = Screen.Reports,
@@ -78,6 +74,7 @@ fun FTBottomBar(
             icon = Icons.Default.Assessment
         )
     )
+
 
     NavigationBar {
         items.forEach { item ->

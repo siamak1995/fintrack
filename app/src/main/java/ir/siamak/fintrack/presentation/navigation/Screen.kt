@@ -127,4 +127,12 @@ sealed class Screen {
     @Serializable
     data object FilteredReport : Screen()
 
+    @Serializable
+    object BaseInfo : Screen()
+
+    @Serializable object Tags : Screen()
+
+    @Serializable
+    data class AddEditTag(val tagId: Int? = null) : Screen()
+
 }
