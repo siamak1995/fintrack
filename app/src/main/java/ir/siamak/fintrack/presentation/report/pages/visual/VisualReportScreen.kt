@@ -18,12 +18,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.razaghimahdi.compose_persian_date_picker.PersianDatePickerDialog
-import com.razaghimahdi.compose_persian_date_picker.rememberPersianDatePickerState
 import ir.siamak.fintrack.presentation.components.FTCard
 import ir.siamak.fintrack.presentation.dashboard.SectionHeader
+import java.time.Instant
 import java.time.LocalDate
-import java.time.chrono.PersianChronology
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,18 +31,13 @@ import java.time.temporal.ChronoUnit
 fun VisualReportScreen(
     onBackClick: () -> Unit
 ) {
-    // استیت‌های بازه‌های زمانی
     var startDateText by remember { mutableStateOf("") }
     var endDateText by remember { mutableStateOf("") }
     var previousPeriodText by remember { mutableStateOf("بازه قبلی مشخص نیست") }
     var daysDifference by remember { mutableStateOf(0L) }
 
-    // استیت‌های کنترل نمایش دیالوگ‌ها
-    var showStartPicker by remember { mutableStateOf(false) }
-    var showEndPicker by remember { mutableStateOf(false) }
-
-    val startDatePickerState = rememberPersianDatePickerState()
-    val endDatePickerState = rememberPersianDatePickerState()
+    var showDatePickerRange by remember { mutableStateOf(false) }
+    val dateRangePickerState = rememberDateRangePickerState()
 
     // مقادیر فرضی برای نمایش نمودارها
     val currentPeriodIncome = listOf(140f, 190f, 110f, 250f, 180f)
@@ -69,9 +64,9 @@ fun VisualReportScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
 
-            // بخش ۱: انتخاب بازه تاریخ شمسی
+            // بخش ۱: انتخاب بازه تاریخ استاندارد
             item {
-                FTCard(onClick = { showStartPicker = true }) {
+                FTCard(onClick = { showDatePickerRange = true }) {
                     Row(
                         modifier = Modifier
                             .padding(16.dp)
@@ -89,7 +84,7 @@ fun VisualReportScreen(
                             val dateLabel = if (startDateText.isNotEmpty() && endDateText.isNotEmpty()) {
                                 "از $startDateText تا $endDateText"
                             } else {
-                                "انتخاب بازه زمانی (شمسی)"
+                                "انتخاب بازه زمانی"
                             }
                             Text(text = dateLabel, style = MaterialTheme.typography.bodyMedium)
                         }
@@ -103,7 +98,7 @@ fun VisualReportScreen(
                 }
             }
 
-            // بخش ۲: نمودار اصلی درآمد و هزینه در بازه جاری
+            // بخش ۲: نمودار اصلی درآمد و هزینه
             item {
                 FTCard {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -164,55 +159,47 @@ fun VisualReportScreen(
             }
         }
 
-        // دیالوگ انتخاب تاریخ شروع
-        if (showStartPicker) {
-            PersianDatePickerDialog(
-                onDismissRequest = { showStartPicker = false },
-                onDoneClick = { date ->
-                    startDateText = "${date.year}/${date.month}/${date.day}"
-                    showStartPicker = false
-                    showEndPicker = true // باز کردن خودکار دیالوگ تاریخ پایان
-                },
-                persianDatePickerState = startDatePickerState
-            )
-        }
+        // دیالوگ استاندارد انتخاب بازه تاریخ Material 3
+        if (showDatePickerRange) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePickerRange = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val startMillis = dateRangePickerState.selectedStartDateMillis
+                        val endMillis = dateRangePickerState.selectedEndDateMillis
 
-        // دیالوگ انتخاب تاریخ پایان
-        if (showEndPicker) {
-            PersianDatePickerDialog(
-                onDismissRequest = { showEndPicker = false },
-                onDoneClick = { date ->
-                    endDateText = "${date.year}/${date.month}/${date.day}"
-                    showEndPicker = false
+                        if (startMillis != null && endMillis != null) {
+                            val startLocalDate = Instant.ofEpochMilli(startMillis)
+                                .atZone(ZoneId.systemDefault()).toLocalDate()
+                            val endLocalDate = Instant.ofEpochMilli(endMillis)
+                                .atZone(ZoneId.systemDefault()).toLocalDate()
 
-                    // انجام محاسبات اختلاف روزها و دوره قبلی
-                    try {
-                        val startJalali = startDatePickerState.getPersianDate()
-                        val endJalali = endDatePickerState.getPersianDate()
+                            val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
+                            startDateText = startLocalDate.format(formatter)
+                            endDateText = endLocalDate.format(formatter)
 
-                        val startLocalDate = LocalDate.ofEpochDay(0)
-                            .with(PersianChronology.INSTANCE.date(startJalali.year, startJalali.month, startJalali.day))
-                        val endLocalDate = LocalDate.ofEpochDay(0)
-                            .with(PersianChronology.INSTANCE.date(endJalali.year, endJalali.month, endJalali.day))
-
-                        daysDifference = ChronoUnit.DAYS.between(startLocalDate, endLocalDate)
-
-                        if (daysDifference >= 0) {
-                            val prevStartLocalDate = startLocalDate.minusDays(daysDifference)
-                            val prevEndLocalDate = startLocalDate.minusDays(1)
-
-                            val prevStartPersian = PersianChronology.INSTANCE.date(prevStartLocalDate)
-                            val prevEndPersian = PersianChronology.INSTANCE.date(prevEndLocalDate)
-
-                            previousPeriodText = "از ${prevStartPersian.get(java.time.temporal.ChronoField.YEAR)}/${prevStartPersian.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)}/${prevStartPersian.get(java.time.temporal.ChronoField.DAY_OF_MONTH)} " +
-                                    "تا ${prevEndPersian.get(java.time.temporal.ChronoField.YEAR)}/${prevEndPersian.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)}/${prevEndPersian.get(java.time.temporal.ChronoField.DAY_OF_MONTH)}"
+                            // محاسبه اختلاف و دوره قبل
+                            daysDifference = ChronoUnit.DAYS.between(startLocalDate, endLocalDate) + 1
+                            val prevStart = startLocalDate.minusDays(daysDifference)
+                            val prevEnd = startLocalDate.minusDays(1)
+                            previousPeriodText = "از ${prevStart.format(formatter)} تا ${prevEnd.format(formatter)}"
                         }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                        showDatePickerRange = false
+                    }) {
+                        Text("تایید")
                     }
                 },
-                persianDatePickerState = endDatePickerState
-            )
+                dismissButton = {
+                    TextButton(onClick = { showDatePickerRange = false }) {
+                        Text("انصراف")
+                    }
+                }
+            ) {
+                DateRangePicker(
+                    state = dateRangePickerState,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
@@ -236,11 +223,11 @@ fun CustomBarChart(
         labels.forEachIndexed { index, label ->
             val animatedIncomeHeight by animateFloatAsState(
                 targetValue = (incomeData[index] / maxValue),
-                animationSpec = tween(durationMillis = 1000)
+                animationSpec = tween(durationMillis = 1000), label = ""
             )
             val animatedExpenseHeight by animateFloatAsState(
                 targetValue = (expenseData[index] / maxValue),
-                animationSpec = tween(durationMillis = 1000)
+                animationSpec = tween(durationMillis = 1000), label = ""
             )
 
             Column(
@@ -251,14 +238,12 @@ fun CustomBarChart(
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    // ستون درآمد (سبز)
                     Box(
                         modifier = Modifier
                             .width(14.dp)
                             .fillMaxHeight(animatedIncomeHeight)
                             .background(Color(0xFF22C55E), RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                     )
-                    // ستون هزینه (قرمز)
                     Box(
                         modifier = Modifier
                             .width(14.dp)
@@ -290,25 +275,23 @@ fun ComparisonChart(
         currentValues.forEachIndexed { index, value ->
             val animatedCurrentHeight by animateFloatAsState(
                 targetValue = (value / maxValue),
-                animationSpec = tween(durationMillis = 1000)
+                animationSpec = tween(durationMillis = 1000), label = ""
             )
             val animatedPrevHeight by animateFloatAsState(
                 targetValue = (previousValues[index] / maxValue),
-                animationSpec = tween(durationMillis = 1000)
+                animationSpec = tween(durationMillis = 1000), label = ""
             )
 
             Row(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // ستون بازه قبلی (خاکستری)
                 Box(
                     modifier = Modifier
                         .width(14.dp)
                         .fillMaxHeight(animatedPrevHeight)
                         .background(Color.LightGray.copy(alpha = 0.6f), RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                 )
-                // ستون بازه فعلی (رنگ اصلی تم)
                 Box(
                     modifier = Modifier
                         .width(14.dp)
