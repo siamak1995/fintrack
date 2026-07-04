@@ -17,61 +17,46 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun LandingScreen(
-
     onEnterDashboard: () -> Unit,
-
     viewModel: LandingViewModel = hiltViewModel()
-
 ) {
 
     val state by viewModel.state.collectAsState()
-
     Column(
-
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-
         horizontalAlignment = Alignment.CenterHorizontally,
-
         verticalArrangement = Arrangement.Center
-
     ) {
 
         Text(
-
             text = state.userName,
-
             style = MaterialTheme.typography.headlineMedium
-
         )
 
         Text(
-
             text = state.welcome,
-
             style = MaterialTheme.typography.titleLarge
-
         )
 
         Text(
-
             text = state.todaySummary,
-
             modifier = Modifier.padding(top = 12.dp)
-
         )
 
         Button(
-
             modifier = Modifier.padding(top = 32.dp),
-
             onClick = onEnterDashboard
-
         ) {
+            Text("ورود به حسابدار خانه")
+        }
 
-            Text("ورود به برنامه")
-
+        Button(
+            modifier = Modifier.padding(top = 32.dp),
+            onClick = onEnterDashboard
+        ) {
+            Text("ورود به حسابدار فروشگاه")
         }
 
     }

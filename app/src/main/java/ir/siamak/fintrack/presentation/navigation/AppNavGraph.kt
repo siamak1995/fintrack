@@ -193,8 +193,14 @@ fun AppNavGraph(navController: NavHostController) {
                 /**
                  * صفحه گزارشات.
                  */
-                composable<Screen.Reports> {
-                    ReportsRoute()
+                composable(route = "reports_route") {
+                    ReportsRoute(
+                        onMemberReportClick = { navController.navigate("report_member") },
+                        onWalletReportClick = { navController.navigate("report_wallet") },
+                        onHistoryReportClick = { navController.navigate("report_history") },
+                        onFilteredReportClick = { navController.navigate("report_filtered") },
+                        onVisualReportClick = { navController.navigate("report_visual") }
+                    )
                 }
 
                 /**

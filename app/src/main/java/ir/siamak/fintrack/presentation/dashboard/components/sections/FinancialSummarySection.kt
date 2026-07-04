@@ -43,10 +43,10 @@ fun FinancialSummarySection(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            SummaryCard("موجودی", totalBalance, MaterialTheme.colorScheme.primary)
-            SummaryCard("کیف پول‌ها", walletBalance, Color(0xFF7C3AED))
-            SummaryCard("درآمد", income, Success)
-            SummaryCard("هزینه", expense, ErrorRed)
+            SummaryCard("موجودی کیف ها", totalBalance, MaterialTheme.colorScheme.primary)
+            SummaryCard("مجموع دارائی", walletBalance, Color(0xFF7C3AED))
+            SummaryCard("جمع درآمد ها", income, Success)
+            SummaryCard("جمع هزینه ها", expense, ErrorRed)
         }
     }
 }

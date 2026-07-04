@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.siamak.fintrack.core.extensions.formatAmount
+import ir.siamak.fintrack.core.extensions.persianToEnglishDigits
 import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.domain.usecase.wallet.GetWalletByIdUseCase
 import ir.siamak.fintrack.domain.usecase.wallet.InsertWalletUseCase
@@ -44,7 +45,7 @@ class AddEditWalletViewModel @Inject constructor(
             }
 
             is AddEditWalletEvent.EnteredBalance -> {
-                val clean = event.value.replace(",", "").filter { it.isDigit() }
+                val clean = event.value.persianToEnglishDigits().replace(",", "").filter { it.isDigit() }
                 _state.value = _state.value.copy(
                     balanceRaw = clean,
                     balance = formatAmount(clean)

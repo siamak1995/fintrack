@@ -49,31 +49,7 @@ class DashboardCalculator {
             .sortedByDescending { it.date }
             .take(count)
 
-    fun spendingPercent(
-        transactions: List<Transaction>
-    ): Float {
 
-        val income = income(transactions)
-
-        if (income == 0.0) return 0f
-
-        return ((expense(transactions) / income) * 100)
-            .coerceIn(0.0, 100.0)
-            .toFloat()
-    }
-
-    fun savingPercent(
-        transactions: List<Transaction>
-    ): Float {
-
-        val income = income(transactions)
-
-        if (income == 0.0) return 0f
-
-        return ((saving(transactions) / income) * 100)
-            .coerceIn(0.0, 100.0)
-            .toFloat()
-    }
 
     fun insight(
         transactions: List<Transaction>
@@ -145,15 +121,43 @@ class DashboardCalculator {
         )
     }
 
+    fun spendingPercent(
+        transactions: List<Transaction>
+    ): Float =
+        calculateChart(transactions).spendingPercent
+
+    fun savingPercent(
+        transactions: List<Transaction>
+    ): Float =
+        calculateChart(transactions).savingPercent
+
     fun calculateChart(
         transactions: List<Transaction>
-    ) = DashboardChart(
+    ): DashboardChart {
+        val income = income(transactions)
+        val expense = expense(transactions)
+        val saving = (income - expense).coerceAtLeast(0.0)
 
-        spendingPercent = spendingPercent(transactions),
+        val total = expense + saving
 
-        savingPercent = savingPercent(transactions)
+        if (total <= 0.0) {
+            return DashboardChart(
+                spendingPercent = 0f,
+                savingPercent = 0f
+            )
+        }
 
-    )
+        return DashboardChart(
+            spendingPercent = ((expense / total) * 100)
+                .coerceIn(0.0, 100.0)
+                .toFloat(),
+
+            savingPercent = ((saving / total) * 100)
+                .coerceIn(0.0, 100.0)
+                .toFloat()
+        )
+    }
+
 
     fun calculateStatistics(
 
