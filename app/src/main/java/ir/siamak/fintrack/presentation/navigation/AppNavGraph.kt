@@ -29,7 +29,6 @@ import ir.siamak.fintrack.presentation.baseinfo.member.list.MemberRoute
 import ir.siamak.fintrack.presentation.baseinfo.tags.add_edit_tag.AddEditTagScreen
 import ir.siamak.fintrack.presentation.baseinfo.tags.add_edit_tag.AddEditTagViewModel
 import ir.siamak.fintrack.presentation.baseinfo.tags.list.TagListScreen
-import ir.siamak.fintrack.presentation.baseinfo.tags.list.TagListViewModel
 import ir.siamak.fintrack.presentation.baseinfo.wallet.add_edit_wallet.AddEditWalletScreen
 import ir.siamak.fintrack.presentation.baseinfo.wallet.list.WalletRoute
 import ir.siamak.fintrack.presentation.components.FTBottomBar
@@ -37,7 +36,7 @@ import ir.siamak.fintrack.presentation.dashboard.navigation.DashboardRoute
 import ir.siamak.fintrack.presentation.landing.LandingScreen
 import ir.siamak.fintrack.presentation.report.navigation.ReportsRoute
 import ir.siamak.fintrack.presentation.report.pages.filtered.FilteredReportRoute
-import ir.siamak.fintrack.presentation.report.pages.history.HistoryReportScreen
+import ir.siamak.fintrack.presentation.report.pages.transactionsHistory.HistoryReportScreen
 import ir.siamak.fintrack.presentation.report.pages.member.MemberReportRoute
 import ir.siamak.fintrack.presentation.report.pages.visual.VisualReportScreen
 import ir.siamak.fintrack.presentation.report.pages.wallet.WalletReportRoute
@@ -119,29 +118,7 @@ fun AppNavGraph(navController: NavHostController) {
                  */
                 composable<Screen.Dashboard> {
                     DashboardRoute(
-                        onAddWalletClick = {
-                            navController.navigate(Screen.AddEditWallet())
-                        },
 
-                        onWalletClick = { walletId ->
-                            navController.navigate(Screen.AddEditWallet(walletId))
-                        },
-
-                        onAddTransactionClick = {
-                            navController.navigate(Screen.AddEditTransaction())
-                        },
-
-                        onInstallmentClick = {
-                            navController.navigate(Screen.AddEditInstallments())
-                        },
-
-                        onMembersClick = {
-                            navController.navigate(Screen.Members)
-                        },
-
-                        onReportsClick = {
-                            navController.navigate(Screen.Reports)
-                        },
                     )
                 }
 
@@ -156,9 +133,10 @@ fun AppNavGraph(navController: NavHostController) {
                         onMemberClick = {
                             navController.navigate(Screen.Members)
                         },
-                        onInstallmentClick = {
-                            navController.navigate(Screen.Installments)
-                        },
+                        //@TODO - phase-2
+//                        onInstallmentClick = {
+//                            navController.navigate(Screen.Installments)
+//                        },
                         onTagClick = {
                             navController.navigate(Screen.Tags)
                         }

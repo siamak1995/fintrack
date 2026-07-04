@@ -32,9 +32,7 @@ object DatabaseModule {
 
     val MIGRATION_2_3 = object : Migration(2, 3) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            // اضافه کردن ستون جدید به جدول تراکنش‌ها
             db.execSQL("ALTER TABLE transactions ADD COLUMN toWalletId INTEGER DEFAULT NULL")
-            // ساخت ایندکس برای ستون جدید جهت بهبود پرفورمنس
             db.execSQL("CREATE INDEX IF NOT EXISTS index_transactions_toWalletId ON transactions(toWalletId)")
         }
     }
@@ -42,23 +40,23 @@ object DatabaseModule {
     val MIGRATION_3_4 = object : Migration(3, 4) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("""
-            CREATE TABLE IF NOT EXISTS tags (
-                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                name TEXT NOT NULL,
-                color INTEGER,
-                workspaceId INTEGER
-            )
-        """.trimIndent())
+                CREATE TABLE IF NOT EXISTS tags (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    name TEXT NOT NULL,
+                    color INTEGER,
+                    workspaceId INTEGER
+                )
+            """.trimIndent())
 
             database.execSQL("""
-            CREATE TABLE IF NOT EXISTS transaction_tags (
-                transactionId INTEGER NOT NULL,
-                tagId INTEGER NOT NULL,
-                PRIMARY KEY(transactionId, tagId),
-                FOREIGN KEY(transactionId) REFERENCES transactions(id) ON DELETE CASCADE,
-                FOREIGN KEY(tagId) REFERENCES tags(id) ON DELETE CASCADE
-            )
-        """.trimIndent())
+                CREATE TABLE IF NOT EXISTS transaction_tags (
+                    transactionId INTEGER NOT NULL,
+                    tagId INTEGER NOT NULL,
+                    PRIMARY KEY(transactionId, tagId),
+                    FOREIGN KEY(transactionId) REFERENCES transactions(id) ON DELETE CASCADE,
+                    FOREIGN KEY(tagId) REFERENCES tags(id) ON DELETE CASCADE
+                )
+            """.trimIndent())
 
             database.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_tags_transactionId ON transaction_tags(transactionId)")
             database.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_tags_tagId ON transaction_tags(tagId)")
@@ -80,10 +78,9 @@ object DatabaseModule {
             AppDatabase::class.java,
             "fintrack_db"
         )
-            .addMigrations(MIGRATION_3_4)
+            .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
             .build()
     }
-
 
     /**
      * ارائه DAO اصلی برنامه از روی نمونه دیتابیس.

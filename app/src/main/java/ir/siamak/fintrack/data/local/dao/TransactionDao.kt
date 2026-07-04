@@ -5,10 +5,12 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.OnConflictStrategy
+import androidx.room.Transaction
 import androidx.room.Update
 import ir.siamak.fintrack.data.local.entity.TagEntity
 import ir.siamak.fintrack.data.local.entity.TransactionEntity
 import ir.siamak.fintrack.data.local.entity.TransactionTagCrossRef
+import ir.siamak.fintrack.data.local.entity.TransactionWithTags
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -57,4 +59,8 @@ interface TransactionDao {
         startTimestamp: Long,
         endTimestamp: Long
     ): List<TransactionEntity>
+
+    @Transaction
+    @Query("SELECT * FROM transactions ORDER BY date DESC LIMIT :limit")
+    fun getRecentTransactionsWithTags(limit: Int): Flow<List<TransactionWithTags>>
 }

@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.report.pages.history
+package ir.siamak.fintrack.presentation.report.pages.transactionsHistory
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -31,24 +31,9 @@ import ir.siamak.fintrack.presentation.dashboard.components.sections.WalletSecti
 @Composable
 fun DashboardScreen(
     state: DashboardState,
-    onAddTransactionClick: () -> Unit,
-    onAddWalletClick: () -> Unit,
-    onWalletClick: (Long) -> Unit,
-    onMembersClick: () -> Unit,
-    onOpenInstallment: () -> Unit,
-    onOpenReports: () -> Unit
 ) {
 
-    Scaffold(
-//        floatingActionButton = {
-//            ExtendedFloatingActionButton(
-//                onClick = onAddTransactionClick,
-//                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-//                text = { Text("تراکنش جدید") }
-//            )
-//        }
-
-    ) { padding ->
+    Scaffold() { padding ->
 
         when {
 
@@ -106,10 +91,10 @@ fun DashboardScreen(
             item {
                 RecentTransactionsSection(state.recentTransactions)
             }
-
-            item {
-                UpcomingInstallmentsSection(state.installments)
-            }
+//@TODO - phase-2
+//            item {
+//                UpcomingInstallmentsSection(state.installments)
+//            }
 
         }
     }

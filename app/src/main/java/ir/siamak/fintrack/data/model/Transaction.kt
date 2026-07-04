@@ -11,5 +11,6 @@ data class Transaction(
     val toWalletId: Long? = null,
     val memberId: Long,
     val date: Long,
-    val note: String
+    val note: String,
+    val tags: List<Tag> = emptyList()
 )

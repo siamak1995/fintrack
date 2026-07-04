@@ -14,30 +14,11 @@ import ir.siamak.fintrack.presentation.dashboard.DashboardViewModel
  */
 @Composable
 fun DashboardRoute(
-
-    onAddTransactionClick: () -> Unit,
-    onAddWalletClick: () -> Unit,
-    onWalletClick: (Long) -> Unit,
-    onMembersClick: () -> Unit,
-    onInstallmentClick: () -> Unit,
-    onReportsClick: () -> Unit,
-
     viewModel: DashboardViewModel = hiltViewModel()
-
 ) {
 
     val state by viewModel.state.collectAsState()
 
-    DashboardScreen(
-
-        state = state,
-
-        onAddTransactionClick = onAddTransactionClick,
-        onAddWalletClick = onAddWalletClick,
-        onWalletClick = onWalletClick,
-        onOpenInstallment = onInstallmentClick,
-        onMembersClick = onMembersClick,
-        onOpenReports = onReportsClick
-    )
+    DashboardScreen(state = state)
 
 }

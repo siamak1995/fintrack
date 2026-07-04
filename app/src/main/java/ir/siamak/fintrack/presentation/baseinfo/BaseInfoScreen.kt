@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -35,13 +34,15 @@ data class BaseInfoMenuItem(
 fun BaseInfoScreen(
     onWalletClick: () -> Unit,
     onMemberClick: () -> Unit,
-    onInstallmentClick: () -> Unit,
+    //@TODO - phase-2
+//    onInstallmentClick: () -> Unit,
     onTagClick: () -> Unit
 ) {
     val items = listOf(
         BaseInfoMenuItem("حساب‌ها", Icons.Default.AccountBalanceWallet, onWalletClick),
         BaseInfoMenuItem("اعضا", Icons.Default.People, onMemberClick),
-        BaseInfoMenuItem("اقساط", Icons.Default.ReceiptLong, onInstallmentClick),
+        //@TODO - phase-2
+//        BaseInfoMenuItem("اقساط", Icons.Default.ReceiptLong, onInstallmentClick),
         BaseInfoMenuItem("تگ‌ها", Icons.Default.Label, onTagClick)
     )
 
