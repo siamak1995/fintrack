@@ -107,7 +107,35 @@ fun AddEditTransactionScreen(
                 }
             }
 
-            // ۴. یادداشت تراکنش
+            // ۳. انتخاب اعضا
+            Text(
+                text = "انتخاب عضو:",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            if (state.members.isEmpty()) {
+                Text(
+                    text = "ابتدا یک عضو در بخش 'اعضا' بسازید",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    state.members.forEach { member ->
+                        FilterChip(
+                            selected = state.selectedMemberId == member.id,
+                            onClick = { viewModel.onEvent(AddEditTransactionEvent.MemberSelected(member.id)) },
+                            label = { Text(member.name) }
+                        )
+                    }
+                }
+            }
+
+            // 5. یادداشت تراکنش
             FTTextField(
                 value = state.note,
                 onValueChange = { viewModel.onEvent(AddEditTransactionEvent.EnteredNote(it)) },
