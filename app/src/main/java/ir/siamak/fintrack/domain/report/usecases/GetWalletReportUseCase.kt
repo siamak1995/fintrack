@@ -1,13 +1,13 @@
 package ir.siamak.fintrack.domain.report.usecases
 
-import ir.siamak.fintrack.data.local.dao.FinTrackDao
+import ir.siamak.fintrack.data.local.dao.TransactionDao
 import ir.siamak.fintrack.data.model.TransactionType
 import ir.siamak.fintrack.domain.report.model.WalletReport
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class GetWalletReportUseCase @Inject constructor(
-    private val dao: FinTrackDao
+    private val dao: TransactionDao
 ) {
     suspend operator fun invoke(startTimestamp: Long?, endTimestamp: Long?): List<WalletReport> {
         // ۱. دریافت تمامی تراکنش‌های بازه فیلتر شده یا کل تراکنش‌ها

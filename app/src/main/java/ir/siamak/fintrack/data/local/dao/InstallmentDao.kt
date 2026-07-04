@@ -1,7 +1,13 @@
 package ir.siamak.fintrack.data.local.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import ir.siamak.fintrack.data.local.entity.InstallmentEntity
+import ir.siamak.fintrack.data.local.entity.TransactionEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -28,4 +34,10 @@ interface InstallmentDao {
         installment: InstallmentEntity
     )
 
+
+    @Query("SELECT * FROM transactions WHERE date BETWEEN :start AND :end")
+    suspend fun getTransactionsByDateRangeSync(start: Long, end: Long): List<TransactionEntity>
+
+    @Query("SELECT * FROM transactions")
+    suspend fun getAllTransactionsSync(): List<TransactionEntity>
 }

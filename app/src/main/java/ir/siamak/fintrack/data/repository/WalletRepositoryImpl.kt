@@ -1,6 +1,6 @@
 package ir.siamak.fintrack.data.repository
 
-import ir.siamak.fintrack.data.local.dao.FinTrackDao
+import ir.siamak.fintrack.data.local.dao.WalletDao
 import ir.siamak.fintrack.data.mapper.toEntity
 import ir.siamak.fintrack.data.mapper.toModel
 import ir.siamak.fintrack.data.model.Wallet
@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class WalletRepositoryImpl @Inject constructor(
-    private val dao: FinTrackDao
+    private val dao: WalletDao
 ) : WalletRepository {
 
     override fun getAllWallets(): Flow<List<Wallet>> {

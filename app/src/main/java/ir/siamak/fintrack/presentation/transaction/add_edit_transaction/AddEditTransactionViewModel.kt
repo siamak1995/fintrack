@@ -111,6 +111,16 @@ class AddEditTransactionViewModel @Inject constructor(
             is AddEditTransactionEvent.SaveTransaction -> {
                 saveTransaction()
             }
+            is AddEditTransactionEvent.TagToggled -> {
+                val currentTags = _state.value.selectedTagIds
+                val newTags = if (event.tagId in currentTags) {
+                    currentTags - event.tagId
+                } else {
+                    currentTags + event.tagId
+                }
+
+                _state.value = _state.value.copy(selectedTagIds = newTags)
+            }
         }
     }
 

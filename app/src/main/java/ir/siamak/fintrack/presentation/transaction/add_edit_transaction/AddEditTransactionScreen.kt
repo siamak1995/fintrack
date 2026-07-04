@@ -165,7 +165,37 @@ fun AddEditTransactionScreen(
                 }
             }
 
-            // ۶. یادداشت تراکنش
+            // 6. انتخاب تگ
+            Text(
+                text = "تگ‌ها:",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            if (state.tags.isEmpty()) {
+                Text(
+                    text = "هنوز تگی ساخته نشده است",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    state.tags.forEach { tag ->
+                        FilterChip(
+                            selected = tag.id in state.selectedTagIds,
+                            onClick = {
+                                viewModel.onEvent(AddEditTransactionEvent.TagToggled(tag.id))
+                            },
+                            label = { Text(tag.name) }
+                        )
+                    }
+                }
+            }
+
+            // 7. یادداشت تراکنش
             FTTextField(
                 value = state.note,
                 onValueChange = { viewModel.onEvent(AddEditTransactionEvent.EnteredNote(it)) },

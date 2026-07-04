@@ -1,7 +1,6 @@
 package ir.siamak.fintrack.data.repository
 
-import ir.siamak.fintrack.data.local.dao.FinTrackDao
-import ir.siamak.fintrack.data.local.entity.TransactionEntity
+import ir.siamak.fintrack.data.local.dao.TransactionDao
 import ir.siamak.fintrack.data.mapper.toEntity
 import ir.siamak.fintrack.data.mapper.toModel
 import ir.siamak.fintrack.data.model.Transaction
@@ -11,7 +10,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class TransactionRepositoryImpl @Inject constructor(
-    private val dao: FinTrackDao
+    private val dao: TransactionDao
 ) : TransactionRepository {
 
     override fun getAllTransactions(): Flow<List<Transaction>> {

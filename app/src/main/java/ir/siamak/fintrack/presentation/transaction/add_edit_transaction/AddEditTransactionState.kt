@@ -1,6 +1,7 @@
 package ir.siamak.fintrack.presentation.transaction.add_edit_transaction
 
 import ir.siamak.fintrack.data.model.Member
+import ir.siamak.fintrack.data.model.Tag
 import ir.siamak.fintrack.data.model.TransactionType
 import ir.siamak.fintrack.data.model.Wallet
 
@@ -18,5 +19,7 @@ data class AddEditTransactionState(
     val note: String = "",
     val wallets: List<Wallet> = emptyList(),// برای نمایش لیست حساب‌ها
     val members: List<Member> = emptyList(),//برای نمایش لیست اعضا
+    val tags: List<Tag> = emptyList(),
+    val selectedTagIds: List<Long> = emptyList(),
     val isLoading: Boolean = false
 )

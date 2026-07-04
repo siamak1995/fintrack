@@ -9,7 +9,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import ir.siamak.fintrack.data.local.dao.FinTrackDao
 import ir.siamak.fintrack.data.local.dao.InstallmentDao
 import ir.siamak.fintrack.data.local.dao.MemberDao
 import ir.siamak.fintrack.data.local.database.AppDatabase
@@ -20,7 +19,6 @@ import javax.inject.Singleton
  *
  * وظیفه این ماژول:
  * - ساخت نمونه Singleton از [AppDatabase]
- * - فراهم کردن نمونه [FinTrackDao] برای استفاده در Repositoryها
  *
  * این ماژول در سطح [SingletonComponent] نصب می‌شود، بنابراین
  * در کل طول عمر برنامه فقط یک نمونه از دیتابیس و DAO ساخته خواهد شد.
@@ -38,6 +36,33 @@ object DatabaseModule {
         }
     }
 
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("""
+            CREATE TABLE IF NOT EXISTS tags (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                name TEXT NOT NULL,
+                color INTEGER,
+                workspaceId INTEGER
+            )
+        """.trimIndent())
+
+            database.execSQL("""
+            CREATE TABLE IF NOT EXISTS transaction_tags (
+                transactionId INTEGER NOT NULL,
+                tagId INTEGER NOT NULL,
+                PRIMARY KEY(transactionId, tagId),
+                FOREIGN KEY(transactionId) REFERENCES transactions(id) ON DELETE CASCADE,
+                FOREIGN KEY(tagId) REFERENCES tags(id) ON DELETE CASCADE
+            )
+        """.trimIndent())
+
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_tags_transactionId ON transaction_tags(transactionId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_tags_tagId ON transaction_tags(tagId)")
+        }
+    }
+
+
     /**
      * ساخت و ارائه نمونه Singleton از دیتابیس اصلی برنامه با استفاده از Room.
      *
@@ -52,19 +77,10 @@ object DatabaseModule {
             AppDatabase::class.java,
             "fintrack_db"
         )
-            .addMigrations(MIGRATION_2_3)
+            .addMigrations(MIGRATION_3_4)
             .build()
     }
 
-    /**
-     * ارائه DAO اصلی برنامه از روی نمونه دیتابیس.
-     *
-     * @param database نمونه دیتابیس برنامه
-     * @return نمونه [FinTrackDao] برای انجام عملیات CRUD
-     */
-    @Provides
-    @Singleton
-    fun provideFinTrackDao(database: AppDatabase): FinTrackDao = database.finTrackDao()
 
     /**
      * ارائه DAO اصلی برنامه از روی نمونه دیتابیس.

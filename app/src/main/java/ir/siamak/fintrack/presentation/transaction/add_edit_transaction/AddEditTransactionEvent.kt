@@ -14,4 +14,6 @@ sealed class AddEditTransactionEvent {
     data class EnteredNote(val value: String) : AddEditTransactionEvent()
     object SaveTransaction : AddEditTransactionEvent()
 
+    data class TagToggled(val tagId: Long) : AddEditTransactionEvent()
+
 }
