@@ -27,6 +27,7 @@ import ir.siamak.fintrack.presentation.landing.LandingScreen
 import ir.siamak.fintrack.presentation.member.add_edit_member.AddEditMemberScreen
 import ir.siamak.fintrack.presentation.member.list.MemberRoute
 import ir.siamak.fintrack.presentation.report.navigation.ReportsRoute
+import ir.siamak.fintrack.presentation.report.pages.filtered.FilteredReportRoute
 import ir.siamak.fintrack.presentation.report.pages.filtered.FilteredReportScreen
 import ir.siamak.fintrack.presentation.report.pages.history.HistoryReportScreen
 import ir.siamak.fintrack.presentation.report.pages.member.MemberReportRoute
@@ -228,7 +229,7 @@ fun AppNavGraph(navController: NavHostController) {
                 }
 
                 composable<Screen.FilteredReport> {
-                    FilteredReportScreen(
+                    FilteredReportRoute(
                         onBackClick = { navController.popBackStack() }
                     )
                 }

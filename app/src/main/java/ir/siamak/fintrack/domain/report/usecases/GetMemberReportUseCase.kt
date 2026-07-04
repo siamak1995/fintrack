@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.domain.usecase.report
+package ir.siamak.fintrack.domain.report.usecases
 
 import ir.siamak.fintrack.data.model.TransactionType
 import ir.siamak.fintrack.domain.model.MemberReport

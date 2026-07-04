@@ -6,7 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.siamak.fintrack.core.datepicker.calendar.JalaliCalendarEngine
 import ir.siamak.fintrack.core.datepicker.calendar.JalaliDateConverter
 import ir.siamak.fintrack.core.datepicker.model.PersianDate
-import ir.siamak.fintrack.domain.usecase.report.GetMemberReportUseCase
+import ir.siamak.fintrack.domain.report.usecases.GetMemberReportUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
