@@ -8,6 +8,6 @@ data class TagEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
     val name: String,
-    val color: Int? = null,
+    val color: Long? = null,
     val workspaceId: Long? = null
 )
