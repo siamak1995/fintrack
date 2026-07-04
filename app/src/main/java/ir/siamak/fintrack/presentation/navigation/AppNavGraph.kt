@@ -220,20 +220,28 @@ fun AppNavGraph(navController: NavHostController) {
                     )
                 }
                 composable<Screen.Tags> {
-                    val vm: TagListViewModel = hiltViewModel()
                     TagListScreen(
-                        viewModel = vm,
+                        viewModel = hiltViewModel(),
                         onBack = { navController.popBackStack() },
-                        onAddTag = { navController.navigate(Screen.AddEditTag()) },
-                        onEditTag = { id -> navController.navigate(Screen.AddEditTag(id)) }
+                        onAddTag = {
+                            // برای افزودن تگ جدید، پارامتر را خالی (null) می‌فرستیم
+                            navController.navigate(Screen.AddEditTag(tagId = null))
+                        },
+                        onEditTag = { id ->
+                            // برای ویرایش تگ، شناسه آن را پاس می‌دهیم
+                            navController.navigate(Screen.AddEditTag(tagId = id))
+                        }
                     )
                 }
 
                 composable<Screen.AddEditTag> { entry ->
                     val vm: AddEditTagViewModel = hiltViewModel()
-                    val id = entry.arguments?.getInt("tagId")
+                    val args = entry.toRoute<Screen.AddEditTag>()
+                    val id = args.tagId
 
-                    LaunchedEffect(id) { vm.loadTag(id) }
+                    LaunchedEffect(id) {
+                        vm.loadTag(id)
+                    }
 
                     AddEditTagScreen(
                         tagId = id,

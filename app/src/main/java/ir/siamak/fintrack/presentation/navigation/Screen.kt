@@ -132,7 +132,11 @@ sealed class Screen {
 
     @Serializable object Tags : Screen()
 
+    /**
+     * صفحه افزودن یا ویرایش تگ.
+     *
+     * @property tagId شناسه تگ برای ویرایش، یا null برای ثبت جدید
+     */
     @Serializable
-    data class AddEditTag(val tagId: Int? = null) : Screen()
-
+    data class AddEditTag(val tagId: Long? = null) : Screen()
 }

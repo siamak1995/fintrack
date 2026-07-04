@@ -3,7 +3,7 @@ package ir.siamak.fintrack.presentation.baseinfo.tags.add_edit_tag
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ir.siamak.fintrack.domain.model.Tag
+import ir.siamak.fintrack.data.model.Tag
 import ir.siamak.fintrack.domain.repository.TagRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +16,7 @@ data class AddEditTagState(
 
 sealed class AddEditTagEvent {
     data class NameChanged(val name: String) : AddEditTagEvent()
-    object Save : AddEditTagEvent()
+    data object Save : AddEditTagEvent()
 }
 
 @HiltViewModel
@@ -27,34 +27,35 @@ class AddEditTagViewModel @Inject constructor(
     private val _state = MutableStateFlow(AddEditTagState())
     val state = _state.asStateFlow()
 
-    private var currentId: Int? = null
+    private var currentId: Long? = null
 
-    fun loadTag(id: Int?) {
+    fun loadTag(id: Long?) {
         if (id == null) return
         currentId = id
 
         viewModelScope.launch {
-            val tag = tagRepository.getTagById(id)
+            val tag = tagRepository.getTagById(id) ?: return@launch
             _state.value = _state.value.copy(name = tag.name)
         }
     }
 
     fun onEvent(event: AddEditTagEvent) {
-        when(event) {
+        when (event) {
             is AddEditTagEvent.NameChanged -> {
                 _state.value = _state.value.copy(name = event.name)
             }
+
             AddEditTagEvent.Save -> {
                 viewModelScope.launch {
+                    val trimmedName = state.value.name.trim()
+                    if (trimmedName.isBlank()) return@launch
+
                     val tag = Tag(
-                        id = currentId ?: 0,
-                        name = state.value.name
+                        id = currentId ?: 0L,
+                        name = trimmedName
                     )
 
-                    if (currentId == null)
-                        tagRepository.insertTag(tag)
-                    else
-                        tagRepository.updateTag(tag)
+                    tagRepository.insertTag(tag)
                 }
             }
         }

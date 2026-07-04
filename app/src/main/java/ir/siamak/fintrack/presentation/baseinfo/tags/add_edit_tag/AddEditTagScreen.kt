@@ -9,7 +9,7 @@ import ir.siamak.fintrack.presentation.components.FTTopBar
 
 @Composable
 fun AddEditTagScreen(
-    tagId: Int?,
+    tagId: Long?,
     viewModel: AddEditTagViewModel,
     onBack: () -> Unit
 ) {
@@ -19,7 +19,6 @@ fun AddEditTagScreen(
         topBar = {
             FTTopBar(
                 title = if (tagId == null) "افزودن تگ" else "ویرایش تگ",
-                onBack = onBack
             )
         }
     ) { padding ->
