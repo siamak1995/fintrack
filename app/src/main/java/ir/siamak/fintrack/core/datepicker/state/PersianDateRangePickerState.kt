@@ -9,16 +9,16 @@ import ir.siamak.fintrack.core.datepicker.model.PersianDateRange
 import ir.siamak.fintrack.core.datepicker.model.PersianMonth
 
 /**
- * State holder for range-based Persian calendar selection.
+ * State holder for Persian date range selection.
  */
 class PersianDateRangePickerState(
-    initialRange: PersianDateRange = PersianDateRange(),
-    initialDisplayedMonth: PersianMonth? = initialRange.start?.toPersianMonth()
+    initialSelectedRange: PersianDateRange = PersianDateRange(),
+    initialDisplayedMonth: PersianMonth? = initialSelectedRange.start?.toPersianMonth()
         ?: JalaliCalendarEngine.currentMonth(),
     val minDate: PersianDate? = null,
     val maxDate: PersianDate? = null
 ) {
-    var selectedRange by mutableStateOf(initialRange.normalized())
+    var selectedRange by mutableStateOf(initialSelectedRange)
         private set
 
     var displayedMonth by mutableStateOf(
@@ -29,30 +29,25 @@ class PersianDateRangePickerState(
     fun onDateSelected(date: PersianDate) {
         if (!isSelectable(date)) return
 
-        val current = selectedRange
+        val start = selectedRange.start
+        val end = selectedRange.end
 
         selectedRange = when {
-            current.start == null -> {
+            start == null || (start != null && end != null) -> {
                 PersianDateRange(start = date, end = null)
             }
-
-            current.start != null && current.end == null -> {
-                if (date < current.start) {
-                    PersianDateRange(start = date, end = current.start)
-                } else {
-                    PersianDateRange(start = current.start, end = date)
-                }
+            date < start -> {
+                PersianDateRange(start = date, end = start)
             }
-
             else -> {
-                PersianDateRange(start = date, end = null)
+                PersianDateRange(start = start, end = date)
             }
         }
 
         displayedMonth = date.toPersianMonth()
     }
 
-    fun setDisplayedMonth(month: PersianMonth) {
+    fun updateDisplayedMonth(month: PersianMonth) {
         displayedMonth = month
     }
 
@@ -69,27 +64,26 @@ class PersianDateRangePickerState(
     }
 
     fun setSelection(range: PersianDateRange) {
-        val normalized = range.normalized()
+        val start = range.start
+        val end = range.end
 
-        val startValid = normalized.start == null || isSelectable(normalized.start)
-        val endValid = normalized.end == null || isSelectable(normalized.end)
+        if (start != null && !isSelectable(start)) return
+        if (end != null && !isSelectable(end)) return
 
-        if (!startValid || !endValid) return
+        selectedRange = range
 
-        selectedRange = normalized
-        normalized.start?.let { start ->
-            displayedMonth = start.toPersianMonth()
-        }
+        displayedMonth = start?.toPersianMonth()
+            ?: initialMonthFallback()
     }
 
     fun isSelected(date: PersianDate): Boolean {
-        return date == selectedRange.start || date == selectedRange.end
+        return selectedRange.start == date || selectedRange.end == date
     }
 
     fun isInRange(date: PersianDate): Boolean {
-        val start = selectedRange.start ?: return false
-        val end = selectedRange.end ?: return false
-        return date >= start && date <= end
+        val start = selectedRange.start
+        val end = selectedRange.end
+        return start != null && end != null && date >= start && date <= end
     }
 
     fun isSelectable(date: PersianDate): Boolean {
@@ -99,5 +93,9 @@ class PersianDateRangePickerState(
         val afterMax = maxDate?.let { date > it } == true
 
         return !beforeMin && !afterMax
+    }
+
+    private fun initialMonthFallback(): PersianMonth {
+        return JalaliCalendarEngine.currentMonth()
     }
 }
