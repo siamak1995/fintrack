@@ -48,7 +48,7 @@ fun rememberPersianDateRangePickerState(
         maxDate
     ) {
         PersianDateRangePickerState(
-            initialRange = initialRange,
+            initialSelectedRange = initialRange,
             initialDisplayedMonth = initialDisplayedMonth,
             minDate = minDate,
             maxDate = maxDate

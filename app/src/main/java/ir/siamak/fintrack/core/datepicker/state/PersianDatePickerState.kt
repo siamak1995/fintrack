@@ -31,7 +31,7 @@ class PersianDatePickerState(
         displayedMonth = date.toPersianMonth()
     }
 
-    fun setDisplayedMonth(month: PersianMonth) {
+    fun updateDisplayedMonth(month: PersianMonth) {
         displayedMonth = month
     }
 
