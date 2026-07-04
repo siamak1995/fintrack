@@ -2,6 +2,7 @@ package ir.siamak.fintrack.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import ir.siamak.fintrack.data.model.TransactionType
 
 @Entity(tableName = "tags")
 data class TagEntity(
@@ -10,5 +11,5 @@ data class TagEntity(
     val name: String,
     val color: Long? = null,
     val workspaceId: Long? = null,
-    val allowedType: String
+    val allowedType: TransactionType
 )

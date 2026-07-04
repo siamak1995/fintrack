@@ -18,7 +18,7 @@ fun Tag.toEntity(): TagEntity {
         id = id,
         name = name,
         color = color,
-        allowedType = allowedType,
+        allowedType = allowedType
 
     )
 }

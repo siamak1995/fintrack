@@ -5,5 +5,5 @@ data class Tag(
     val name: String,
     val color: Long? = null,
     val workspaceId: Long? = null,
-    val allowedType: String
+    val allowedType: TransactionType
 )
