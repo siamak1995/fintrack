@@ -1,5 +1,6 @@
 package ir.siamak.fintrack.presentation.report.pages.member
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,16 +10,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -28,22 +35,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ir.siamak.fintrack.core.datepicker.components.PersianDateRangePickerDialog
 import ir.siamak.fintrack.core.datepicker.model.PersianDate
+import ir.siamak.fintrack.core.datepicker.model.PersianDateRange
+import ir.siamak.fintrack.core.datepicker.state.rememberPersianDateRangePickerState
 
-/**
- * Member report screen.
- *
- * این صفحه گزارش اعضا را نمایش می‌دهد.
- * بازه زمانی اختیاری است و اگر توسط کاربر انتخاب نشود،
- * سیستم باید گزارش را از ابتدای داده‌ها تا امروز محاسبه کند.
- *
- * @param uiState وضعیت صفحه
- * @param onBackClick بازگشت
- * @param onSelectDateRangeClick باز کردن انتخاب‌گر بازه تاریخ
- * @param onClearDateRangeClick حذف فیلتر تاریخ
- * @param onDismissDatePicker بستن انتخاب‌گر
- * @param onConfirmDateRange تایید بازه انتخابی
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemberReportScreen(
@@ -54,18 +50,38 @@ fun MemberReportScreen(
     onDismissDatePicker: () -> Unit,
     onConfirmDateRange: (PersianDate?, PersianDate?) -> Unit,
 ) {
+    val datePickerState = rememberPersianDateRangePickerState(
+        initialRange = PersianDateRange(
+            start = uiState.selectedFromDate,
+            end = uiState.selectedToDate
+        )
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "گزارش اعضا")
+                    Column {
+                        Text(
+                            text = "گزارش اعضا",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "درآمد و هزینه هر عضو",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 },
                 navigationIcon = {
                     TextButton(onClick = onBackClick) {
                         Text(text = "بازگشت")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors()
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { innerPadding ->
@@ -93,6 +109,9 @@ fun MemberReportScreen(
                     ) {
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
+                        }
+
+                        item {
                             DateRangeFilterCard(
                                 fromDate = uiState.selectedFromDate,
                                 toDate = uiState.selectedToDate,
@@ -102,11 +121,7 @@ fun MemberReportScreen(
                         }
 
                         item {
-                            Text(
-                                text = "گزارش درآمد و هزینه به تفکیک اعضا",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
+                            SummaryHeader(count = uiState.items.size)
                         }
 
                         if (uiState.items.isEmpty()) {
@@ -129,23 +144,41 @@ fun MemberReportScreen(
                 }
             }
 
+
             if (uiState.isDatePickerVisible) {
-                /**
-                 * اینجا PersianDateRangePicker واقعی پروژه را قرار بده.
-                 *
-                 * مثال:
-                 *
-                 * PersianDateRangePickerDialog(
-                 *     initialFromDate = uiState.selectedFromDate,
-                 *     initialToDate = uiState.selectedToDate,
-                 *     onDismiss = onDismissDatePicker,
-                 *     onConfirm = { from, to ->
-                 *         onConfirmDateRange(from, to)
-                 *     }
-                 * )
-                 */
+                PersianDateRangePickerDialog(
+                    visible = true,
+                    state = datePickerState,
+                    onDismissRequest = onDismissDatePicker,
+                    onConfirmClick = {
+                        // استخراج تاریخ‌های شروع و پایان از استیت تقویم
+                        val start = datePickerState.selectedRange.start
+                        val end = datePickerState.selectedRange.end
+
+                        // ارسال به ViewModel
+                        onConfirmDateRange(start, end)
+                    }
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun SummaryHeader(count: Int) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = "گزارش درآمد و هزینه به تفکیک اعضا",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "تعداد اعضای دارای تراکنش: $count",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -158,22 +191,31 @@ private fun DateRangeFilterCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors()
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "بازه تاریخ",
+                text = "فیلتر بازه زمانی",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
-            Text(
-                text = buildDateRangeText(fromDate, toDate),
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Text(
+                    text = buildDateRangeText(fromDate, toDate),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -183,9 +225,14 @@ private fun DateRangeFilterCard(
                 }
 
                 if (fromDate != null || toDate != null) {
-                    TextButton(onClick = onClearDateRangeClick) {
-                        Text(text = "حذف فیلتر")
-                    }
+                    FilterChip(
+                        selected = true,
+                        onClick = onClearDateRangeClick,
+                        label = {
+                            Text("حذف فیلتر")
+                        },
+                        colors = FilterChipDefaults.filterChipColors()
+                    )
                 }
             }
         }
@@ -196,19 +243,38 @@ private fun DateRangeFilterCard(
 private fun MemberReportCard(
     item: MemberReportUiModel
 ) {
+    val balancePresentation = item.toBalancePresentation()
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors()
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Text(
-                text = item.memberName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape
+                        )
+                )
+
+                Text(
+                    text = item.memberName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
             HorizontalDivider()
 
@@ -223,8 +289,8 @@ private fun MemberReportCard(
             )
 
             ReportRow(
-                title = "خالص",
-                value = item.balance.toAmountText()
+                title = balancePresentation.title,
+                value = balancePresentation.value.toAmountText()
             )
 
             ReportRow(
@@ -242,11 +308,13 @@ private fun ReportRow(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Text(
@@ -288,7 +356,10 @@ private fun ErrorContent(
 private fun EmptyContent() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors()
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Box(
             modifier = Modifier
@@ -304,14 +375,46 @@ private fun EmptyContent() {
     }
 }
 
+private data class BalancePresentation(
+    val title: String,
+    val value: Long
+)
+
+private fun MemberReportUiModel.toBalancePresentation(): BalancePresentation {
+    return when {
+        totalIncome > totalExpense -> BalancePresentation(
+            title = "میزان سوددهی",
+            value = totalIncome - totalExpense
+        )
+
+        totalExpense > totalIncome -> BalancePresentation(
+            title = "میزان هزینه بیش از درآمد",
+            value = totalExpense - totalIncome
+        )
+
+        else -> BalancePresentation(
+            title = "تراز مالی",
+            value = 0L
+        )
+    }
+}
+
 private fun buildDateRangeText(
     fromDate: PersianDate?,
     toDate: PersianDate?,
 ): String {
-    return if (fromDate != null && toDate != null) {
-        "${fromDate.toDisplayText()} تا ${toDate.toDisplayText()}"
-    } else {
-        "از ابتدای داده‌ها تا امروز"
+    return when {
+        fromDate != null && toDate != null ->
+            "${fromDate.toDisplayText()} تا ${toDate.toDisplayText()}"
+
+        fromDate != null ->
+            "از ${fromDate.toDisplayText()} تا امروز"
+
+        toDate != null ->
+            "از ابتدای داده‌ها تا ${toDate.toDisplayText()}"
+
+        else ->
+            "از ابتدای داده‌ها تا امروز"
     }
 }
 
