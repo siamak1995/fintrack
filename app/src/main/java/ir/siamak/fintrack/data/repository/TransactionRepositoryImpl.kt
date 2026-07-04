@@ -1,6 +1,7 @@
 package ir.siamak.fintrack.data.repository
 
 import ir.siamak.fintrack.data.local.dao.FinTrackDao
+import ir.siamak.fintrack.data.local.entity.TransactionEntity
 import ir.siamak.fintrack.data.mapper.toEntity
 import ir.siamak.fintrack.data.mapper.toModel
 import ir.siamak.fintrack.data.model.Transaction
@@ -40,4 +41,21 @@ class TransactionRepositoryImpl @Inject constructor(
     override suspend fun insert(transaction: Transaction) {
         insertTransaction(transaction)
     }
+
+    override suspend fun getTransactionsByDateRange(fromDate: Long?, toDate: Long?): List<Transaction> {
+        // گرفتن تمام تراکنش‌ها از DAO (تبدیل Flow به لیست یا استفاده از کوئری مستقیم)
+        // راه بهینه‌تر این است که یک کوئری در FinTrackDao برای بازه زمانی بنویسی
+        // فعلاً فرض می‌کنیم کل لیست را می‌گیریم و فیلتر می‌کنیم (یا کوئری DAO را اضافه می‌کنی)
+        return dao.getAllTransactionsSync().filter {
+            val date = it.date
+            val startMatch = fromDate == null || date >= fromDate
+            val endMatch = toDate == null || date <= toDate
+            startMatch && endMatch
+        }.map { it.toModel() } // تبدیل Entity به Domain Model
+    }
+
+    override suspend fun getAllTransactionsSync(): List<Transaction> {
+        return dao.getAllTransactionsSync().map { it.toModel() }
+    }
+
 }
