@@ -1,18 +1,8 @@
 package ir.siamak.fintrack.presentation.report.pages.filtered
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -20,27 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -141,9 +112,7 @@ fun FilteredReportScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         item {
-                            val totalSum = uiState.transactions.sumOf {
-                                if (it.transaction.type == TransactionType.EXPENSE) -it.transaction.amount else it.transaction.amount
-                            }.toLong()
+                            val totalSum = uiState.transactions.sumOf { it.signedAmount }
 
                             SummaryCard(
                                 count = uiState.transactions.size,
@@ -163,7 +132,7 @@ fun FilteredReportScreen(
                         } else {
                             items(
                                 items = uiState.transactions,
-                                key = { it.transaction.id }
+                                key = { it.id }
                             ) { item ->
                                 TransactionResultItem(item = item)
                             }
@@ -408,82 +377,118 @@ private fun SummaryCard(count: Int, totalSum: Long) {
 }
 
 @Composable
-private fun TransactionResultItem(item: FilteredTransactionResult) {
-    val tx = item.transaction
-    val typeColor = when (tx.type) {
-        TransactionType.INCOME -> Color(0xFF2E7D32)
-        TransactionType.EXPENSE -> Color(0xFFC62828)
-        TransactionType.TRANSFER -> Color(0xFF1565C0)
-    }
-
-    val typeLabel = when (tx.type) {
-        TransactionType.INCOME -> "واریز"
-        TransactionType.EXPENSE -> "برداشت"
-        TransactionType.TRANSFER -> "انتقال"
-    }
-
+fun TransactionResultItem(
+    item: FilteredReportUiModel,
+    modifier: Modifier = Modifier
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        )
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // ردیف اول: عنوان دسته بندی/تراکنش و مبلغ
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .background(color = typeColor.copy(alpha = 0.15f), shape = RoundedCornerShape(8.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(text = typeLabel, style = MaterialTheme.typography.labelSmall, color = typeColor, fontWeight = FontWeight.Bold)
-                    }
-
-                    Text(text = tx.categoryName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                }
-
                 Text(
-                    text = tx.amount.toLong().toAmountText(),
+                    text = item.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = typeColor
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = item.amountText,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = item.amountColor,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
-            if (tx.note.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(text = tx.note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // برچسب حساب و عضو
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    LabelIndicator(name = item.walletName, colorHex = item.walletColor)
-                    LabelIndicator(name = item.memberName, colorHex = item.memberColor)
-                }
-
+            // توضیحات (در صورت وجود)
+            if (!item.note.isNullOrBlank()) {
                 Text(
-                    text = tx.date.toPersianDateString(),
-                    style = MaterialTheme.typography.labelSmall,
+                    text = item.note,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+            // ردیف دوم: اطلاعات برچسب‌ها (کیف پول، عضو، تاریخ و نوع تراکنش)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // بخش چپ: کیف پول و عضو
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // برچسب کیف پول
+                    Surface(
+                        color = item.walletColor.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = item.walletName,
+                            color = item.walletColor,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+
+                    // برچسب عضو
+                    Surface(
+                        color = item.memberColor.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = item.memberName,
+                            color = item.memberColor,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                // بخش راست: تاریخ و نوع تراکنش
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = item.dateText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // برچسب نوع تراکنش (واریز/برداشت/انتقال)
+                    Surface(
+                        color = item.typeColor.copy(alpha = 0.1f),
+                        shape = CircleShape
+                    ) {
+                        Text(
+                            text = item.typeLabel,
+                            color = item.typeColor,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        )
+                    }
+                }
             }
         }
     }
 }
+
 
 @Composable
 private fun LabelIndicator(name: String, colorHex: String) {
