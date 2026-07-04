@@ -75,7 +75,4 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 //    برای آیکون
     implementation("androidx.compose.material:material-icons-extended")
-//برای تاریخ شمسی
-    implementation("com.razaghimahdi:compose-persian-date-picker:1.1.2")
-
 }
