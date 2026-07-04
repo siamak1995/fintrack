@@ -8,6 +8,9 @@ sealed class AddEditTransactionEvent {
     data class TypeChanged(val type: TransactionType) : AddEditTransactionEvent()
     data class CategorySelected(val categoryName: String) : AddEditTransactionEvent()
     data class WalletSelected(val walletId: Long) : AddEditTransactionEvent()
+
+    data class MemberSelected(val memberId: Long) : AddEditTransactionEvent()
+
     data class EnteredNote(val value: String) : AddEditTransactionEvent()
     object SaveTransaction : AddEditTransactionEvent()
 

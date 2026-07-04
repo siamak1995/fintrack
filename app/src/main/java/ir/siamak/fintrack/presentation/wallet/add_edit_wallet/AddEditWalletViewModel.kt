@@ -49,7 +49,6 @@ class AddEditWalletViewModel @Inject constructor(
                     balanceRaw = clean,
                     balance = formatAmount(clean)
                 )
-//                _state.update { it.copy(balance = event.value) }
             }
 
             is AddEditWalletEvent.LoadWallet -> {

@@ -32,6 +32,13 @@ class InsertTransactionUseCase @Inject constructor(
             walletRepository.getById(transaction.walletId)
                 ?: throw IllegalArgumentException("کیف پول پیدا نشد.")
 
+        if (
+            transaction.type == TransactionType.EXPENSE &&
+            wallet.balance < transaction.amount
+        ) {
+            throw IllegalStateException("Insufficient balance")
+        }
+        
         val newBalance = when (transaction.type) {
 
             TransactionType.INCOME ->
@@ -46,11 +53,9 @@ class InsertTransactionUseCase @Inject constructor(
         }
 
         walletRepository.update(
-
             wallet.copy(
                 balance = newBalance
             )
-
         )
 
         transactionRepository.insert(transaction)
