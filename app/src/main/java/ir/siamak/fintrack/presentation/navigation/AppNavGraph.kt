@@ -31,6 +31,7 @@ import ir.siamak.fintrack.presentation.report.pages.filtered.FilteredReportScree
 import ir.siamak.fintrack.presentation.report.pages.history.HistoryReportScreen
 import ir.siamak.fintrack.presentation.report.pages.member.MemberReportRoute
 import ir.siamak.fintrack.presentation.report.pages.visual.VisualReportScreen
+import ir.siamak.fintrack.presentation.report.pages.wallet.WalletReportRoute
 import ir.siamak.fintrack.presentation.report.pages.wallet.WalletReportScreen
 import ir.siamak.fintrack.presentation.transaction.add_edit_transaction.AddEditTransactionScreen
 import ir.siamak.fintrack.presentation.wallet.add_edit_wallet.AddEditWalletScreen
@@ -209,7 +210,7 @@ fun AppNavGraph(navController: NavHostController) {
                 }
 
                 composable<Screen.WalletReport> {
-                    WalletReportScreen(
+                    WalletReportRoute(
                         onBackClick = { navController.popBackStack() }
                     )
                 }
