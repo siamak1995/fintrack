@@ -26,6 +26,7 @@ import ir.siamak.fintrack.domain.usecase.member.MemberUseCases
 import ir.siamak.fintrack.domain.usecase.member.UpdateMemberUseCase
 import ir.siamak.fintrack.domain.usecase.transaction.DeleteTransactionUseCase
 import ir.siamak.fintrack.domain.usecase.transaction.GetAllTransactionsUseCase
+import ir.siamak.fintrack.domain.usecase.transaction.GetTransactionByIdUseCase
 import ir.siamak.fintrack.domain.usecase.transaction.GetTransactionsByWalletUseCase
 import ir.siamak.fintrack.domain.usecase.transaction.InsertTransactionUseCase
 import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases
@@ -85,12 +86,13 @@ object UseCaseModule {
         return TransactionUseCases(
             getAllTransactions = GetAllTransactionsUseCase(transactionRepository),
             getTransactionsByWallet = GetTransactionsByWalletUseCase(transactionRepository),
-            // پاس دادن هر دو ریپازیتوری به سازنده UseCase
+            getTransactionById = GetTransactionByIdUseCase(transactionRepository),
             insertTransaction = InsertTransactionUseCase(transactionRepository, walletRepository),
             updateTransaction = UpdateTransactionUseCase(transactionRepository),
             deleteTransaction = DeleteTransactionUseCase(transactionRepository)
         )
     }
+
 
     @Provides
     fun provideMemberUseCases(

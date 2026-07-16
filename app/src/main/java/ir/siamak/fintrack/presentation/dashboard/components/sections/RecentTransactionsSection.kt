@@ -30,14 +30,14 @@ fun RecentTransactionsSection(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
 
-            transactions.take(5).forEach { transaction ->
+            transactions.take(3).forEach { transaction ->
 
                 TransactionItem(transaction)
 
             }
         }
 
-        if (transactions.size > 5 && onShowAll != null) {
+        if (transactions.size > 3 && onShowAll != null) {
 
             TextButton(onClick = onShowAll) {
                 Text("مشاهده همه")

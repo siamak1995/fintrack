@@ -36,11 +36,12 @@ import ir.siamak.fintrack.presentation.dashboard.navigation.DashboardRoute
 import ir.siamak.fintrack.presentation.landing.LandingScreen
 import ir.siamak.fintrack.presentation.report.navigation.ReportsRoute
 import ir.siamak.fintrack.presentation.report.pages.filtered.FilteredReportRoute
-import ir.siamak.fintrack.presentation.report.pages.transactionsHistory.HistoryReportScreen
 import ir.siamak.fintrack.presentation.report.pages.member.MemberReportRoute
+import ir.siamak.fintrack.presentation.report.pages.transactionsHistory.HistoryReportRoute
 import ir.siamak.fintrack.presentation.report.pages.visual.VisualReportScreen
 import ir.siamak.fintrack.presentation.report.pages.wallet.WalletReportRoute
 import ir.siamak.fintrack.presentation.transaction.add_edit_transaction.AddEditTransactionScreen
+import ir.siamak.fintrack.presentation.transaction.navigation.TransactionListRoute
 
 
 /**
@@ -59,7 +60,7 @@ fun AppNavGraph(navController: NavHostController) {
     val currentBottomScreen = when {
         currentDestination?.hasRoute<Screen.Dashboard>() == true -> Screen.Dashboard
         currentDestination?.hasRoute<Screen.BaseInfo>() == true -> Screen.BaseInfo
-        currentDestination?.hasRoute<Screen.AddEditTransaction>() == true -> Screen.AddEditTransaction()
+        currentDestination?.hasRoute<Screen.Transactions>() == true -> Screen.Transactions
         currentDestination?.hasRoute<Screen.Reports>() == true -> Screen.Reports
         else -> null
     }
@@ -256,7 +257,7 @@ fun AppNavGraph(navController: NavHostController) {
                 }
 
                 composable<Screen.HistoryReport> {
-                    HistoryReportScreen(
+                    HistoryReportRoute(
                         onBackClick = { navController.popBackStack() }
                     )
                 }
@@ -283,8 +284,21 @@ fun AppNavGraph(navController: NavHostController) {
                 /**
                  * صفحه افزودن یا ویرایش تراکنش.
                  */
-                composable<Screen.AddEditTransaction> {
+                composable<Screen.AddEditTransaction> { backStackEntry ->
+                    val args = backStackEntry.toRoute<Screen.AddEditTransaction>()
+
                     AddEditTransactionScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                composable<Screen.Transactions> {
+                    TransactionListRoute(
+                        onAddTransactionClick = {
+                            navController.navigate(Screen.AddEditTransaction())
+                        },
+                        onEditTransactionClick = { transactionId ->
+                            navController.navigate(Screen.AddEditTransaction(transactionId))
+                        },
                         onBack = { navController.popBackStack() }
                     )
                 }

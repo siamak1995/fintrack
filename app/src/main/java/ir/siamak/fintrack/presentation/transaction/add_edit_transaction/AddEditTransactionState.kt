@@ -6,20 +6,78 @@ import ir.siamak.fintrack.data.model.TransactionType
 import ir.siamak.fintrack.data.model.Wallet
 
 /**
- * وضعیت فیلدهای صفحه افزودن تراکنش.
+ * وضعیت کامل صفحه ثبت/ویرایش تراکنش.
  */
 data class AddEditTransactionState(
+
+    /**
+     * اگر null باشد یعنی در حالت ثبت جدید هستیم.
+     * اگر مقدار داشته باشد یعنی صفحه در حالت ویرایش است.
+     */
+    val currentTransactionId: Long? = null,
+
+    /**
+     * مقدار خام مبلغ بدون فرمت نمایشی.
+     */
     val amountRaw: String = "",
+
+    /**
+     * مبلغ فرمت‌شده برای نمایش در UI.
+     */
     val amount: String = "",
-    val type: TransactionType = TransactionType.EXPENSE, // پیش‌فرض روی هزینه
+
+    /**
+     * نوع تراکنش.
+     */
+    val type: TransactionType = TransactionType.EXPENSE,
+
+    /**
+     * نام دسته‌بندی انتخاب‌شده.
+     */
     val selectedCategoryName: String = "سایر",
+
+    /**
+     * شناسه حساب مبدا.
+     */
     val selectedWalletId: Long? = null,
+
+    /**
+     * شناسه عضو انتخاب‌شده.
+     */
     val selectedMemberId: Long? = null,
+
+    /**
+     * شناسه حساب مقصد برای انتقال.
+     */
     val selectedToWalletId: Long? = null,
+
+    /**
+     * یادداشت تراکنش.
+     */
     val note: String = "",
-    val wallets: List<Wallet> = emptyList(),// برای نمایش لیست حساب‌ها
-    val members: List<Member> = emptyList(),//برای نمایش لیست اعضا
+
+    /**
+     * لیست حساب‌ها برای نمایش در UI.
+     */
+    val wallets: List<Wallet> = emptyList(),
+
+    /**
+     * لیست اعضا برای نمایش در UI.
+     */
+    val members: List<Member> = emptyList(),
+
+    /**
+     * لیست تگ‌ها برای نمایش در UI.
+     */
     val tags: List<Tag> = emptyList(),
+
+    /**
+     * شناسه تگ‌های انتخاب‌شده.
+     */
     val selectedTagIds: List<Long> = emptyList(),
+
+    /**
+     * وضعیت بارگذاری صفحه.
+     */
     val isLoading: Boolean = false
 )

@@ -27,6 +27,11 @@ class TransactionRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getTransactionById(id: Long): Transaction? {
+        return dao.getTransactionById(id)?.toModel()
+    }
+
+
     override suspend fun insertTransaction(transaction: Transaction): Long {
         return dao.insertTransaction(transaction.toEntity())
     }
@@ -67,5 +72,4 @@ class TransactionRepositoryImpl @Inject constructor(
     override suspend fun getAllTransactionsSync(): List<Transaction> {
         return dao.getAllTransactionsSync().map { it.toModel() }
     }
-
 }
