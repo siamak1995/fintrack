@@ -19,14 +19,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * ViewModel for transaction list screen.
- *
- * This ViewModel:
- * - loads transactions, members, wallets and tags
- * - stores current filter state
- * - applies in-memory filtering for MVP
- */
 @HiltViewModel
 class TransactionListViewModel @Inject constructor(
     private val transactionUseCases: TransactionUseCases,
@@ -42,71 +34,41 @@ class TransactionListViewModel @Inject constructor(
         observeScreenData()
     }
 
-    /**
-     * Handles UI events.
-     */
     fun onEvent(event: TransactionListEvent) {
         when (event) {
-            is TransactionListEvent.OnMemberFilterSelected -> {
+            is TransactionListEvent.OnApplyFilterClicked -> {
                 _state.update { current ->
-                    val updatedFilter = current.filter.copy(selectedMemberId = event.memberId)
                     current.copy(
-                        filter = updatedFilter,
-                        filteredTransactions = applyFilters(current.allTransactions, updatedFilter)
-                    )
-                }
-            }
-
-            is TransactionListEvent.OnWalletFilterSelected -> {
-                _state.update { current ->
-                    val updatedFilter = current.filter.copy(selectedWalletId = event.walletId)
-                    current.copy(
-                        filter = updatedFilter,
-                        filteredTransactions = applyFilters(current.allTransactions, updatedFilter)
-                    )
-                }
-            }
-
-            is TransactionListEvent.OnTagFilterToggled -> {
-                _state.update { current ->
-                    val updatedTagIds = current.filter.selectedTagIds.toMutableSet().apply {
-                        if (contains(event.tagId)) remove(event.tagId) else add(event.tagId)
-                    }
-
-                    val updatedFilter = current.filter.copy(selectedTagIds = updatedTagIds)
-
-                    current.copy(
-                        filter = updatedFilter,
-                        filteredTransactions = applyFilters(current.allTransactions, updatedFilter)
-                    )
-                }
-            }
-
-            TransactionListEvent.OnAllTagsSelected -> {
-                _state.update { current ->
-                    val updatedFilter = current.filter.copy(selectedTagIds = emptySet())
-                    current.copy(
-                        filter = updatedFilter,
-                        filteredTransactions = applyFilters(current.allTransactions, updatedFilter)
+                        filter = event.filter,
+                        filteredTransactions = applyFilters(
+                            transactions = current.allTransactions,
+                            filter = event.filter
+                        )
                     )
                 }
             }
 
             TransactionListEvent.OnClearFiltersClicked -> {
+                val clearedFilter = TransactionListFilter()
+
                 _state.update { current ->
-                    val updatedFilter = TransactionListFilter()
                     current.copy(
-                        filter = updatedFilter,
-                        filteredTransactions = applyFilters(current.allTransactions, updatedFilter)
+                        filter = clearedFilter,
+                        filteredTransactions = applyFilters(
+                            transactions = current.allTransactions,
+                            filter = clearedFilter
+                        )
                     )
                 }
             }
+
+            is TransactionListEvent.OnMemberFilterSelected -> Unit
+            is TransactionListEvent.OnWalletFilterSelected -> Unit
+            is TransactionListEvent.OnTagFilterToggled -> Unit
+            TransactionListEvent.OnAllTagsSelected -> Unit
         }
     }
 
-    /**
-     * Observes all screen data streams and updates state.
-     */
     private fun observeScreenData() {
         viewModelScope.launch {
             combine(
@@ -123,13 +85,16 @@ class TransactionListViewModel @Inject constructor(
                 )
             }.collect { data ->
                 _state.update { current ->
-                    val filtered = applyFilters(data.transactions, current.filter)
+                    val filteredTransactions = applyFilters(
+                        transactions = data.transactions,
+                        filter = current.filter
+                    )
 
                     current.copy(
                         isLoading = false,
                         errorMessage = null,
                         allTransactions = data.transactions,
-                        filteredTransactions = filtered,
+                        filteredTransactions = filteredTransactions,
                         members = data.members,
                         wallets = data.wallets,
                         tags = data.tags
@@ -139,9 +104,6 @@ class TransactionListViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Applies current filters to the source transaction list.
-     */
     private fun applyFilters(
         transactions: List<Transaction>,
         filter: TransactionListFilter
@@ -160,19 +122,16 @@ class TransactionListViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Aggregated data required by the screen.
-     */
-    private data class ScreenData(
-        val transactions: List<Transaction>,
-        val members: List<Member>,
-        val wallets: List<Wallet>,
-        val tags: List<Tag>
-    )
     fun deleteTransaction(transaction: Transaction) {
         viewModelScope.launch {
             transactionUseCases.deleteTransaction(transaction)
         }
     }
 
+    private data class ScreenData(
+        val transactions: List<Transaction>,
+        val members: List<Member>,
+        val wallets: List<Wallet>,
+        val tags: List<Tag>
+    )
 }

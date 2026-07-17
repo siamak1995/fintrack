@@ -31,4 +31,9 @@ sealed interface TransactionListEvent {
      * Clears all filters.
      */
     data object OnClearFiltersClicked : TransactionListEvent
+
+    data class OnApplyFilterClicked(
+        val filter: TransactionListFilter
+    ) : TransactionListEvent
+
 }

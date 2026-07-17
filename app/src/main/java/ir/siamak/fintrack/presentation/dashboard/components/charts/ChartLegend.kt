@@ -1,7 +1,11 @@
 package ir.siamak.fintrack.presentation.dashboard.components.charts
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,39 +17,24 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ChartLegend(
-
     title: String,
-
     value: Float,
-
     color: Color
-
 ) {
-
     Row(
-
         verticalAlignment = Alignment.CenterVertically
-
     ) {
-
         Box(
-
             modifier = Modifier
                 .size(12.dp)
-                .background(color, CircleShape)
-
+                .background(color = color, shape = CircleShape)
         )
 
-        Spacer(Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         Text(
-
-            "$title (${value.toInt()}%)",
-
+            text = "$title (${value.toInt()}%)",
             style = MaterialTheme.typography.bodyMedium
-
         )
-
     }
-
 }

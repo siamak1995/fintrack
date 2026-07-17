@@ -1,7 +1,6 @@
 package ir.siamak.fintrack.presentation.dashboard.components.sections
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
@@ -14,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.presentation.dashboard.components.SectionHeader
-import ir.siamak.fintrack.presentation.dashboard.components.cards.WalletCard
+import ir.siamak.fintrack.presentation.baseinfo.wallet.card.WalletCard
 
 @Composable
 fun WalletSection(

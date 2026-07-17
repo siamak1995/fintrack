@@ -1,9 +1,11 @@
 package ir.siamak.fintrack.presentation.transaction
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +16,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -21,16 +24,26 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import ir.siamak.fintrack.core.datepicker.calendar.JalaliDateConverter
+import ir.siamak.fintrack.core.datepicker.calendar.PersianCalendarFormatter
+import ir.siamak.fintrack.data.model.Member
 import ir.siamak.fintrack.data.model.Transaction
-import java.text.SimpleDateFormat
-import java.util.Date
+import ir.siamak.fintrack.data.model.Wallet
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.time.Instant
+import java.time.ZoneId
 import java.util.Locale
+import kotlin.math.roundToLong
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionList(
     transactions: List<Transaction>,
+    membersById: Map<Long, Member>,
+    walletsById: Map<Long, Wallet>,
     onEditTransaction: (Long) -> Unit,
     onDeleteTransaction: (Transaction) -> Unit
 ) {
@@ -84,6 +97,8 @@ fun TransactionList(
                 ) {
                     TransactionItemCard(
                         transaction = transaction,
+                        memberName = membersById[transaction.memberId]?.name ?: "عضو نامشخص",
+                        walletName = walletsById[transaction.walletId]?.name ?: "حساب نامشخص",
                         onClick = { onEditTransaction(transaction.id) }
                     )
                 }
@@ -125,8 +140,15 @@ fun TransactionSwipeBackground(
 @Composable
 fun TransactionItemCard(
     transaction: Transaction,
+    memberName: String,
+    walletName: String,
     onClick: () -> Unit
 ) {
+    val tagsText = transaction.tags
+        .map { it.name }
+        .filter { it.isNotBlank() }
+        .joinToString("، ")
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -137,22 +159,42 @@ fun TransactionItemCard(
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = transaction.note?.takeIf { it.isNotBlank() } ?: "بدون توضیحات",
+                text = transaction.note.takeIf { it.isNotBlank() } ?: transaction.categoryName,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
-                text = "مبلغ: ${transaction.amount}",
+                text = formatAmount(transaction.amount),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Text(
+                text = "عضو: $memberName",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
-                text = formatDateHeader(transaction.date),
+                text = "حساب: $walletName",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            if (tagsText.isNotBlank()) {
+                Text(
+                    text = "تگ‌ها: $tagsText",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Text(
+                text = formatTransactionDate(transaction.date),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -160,66 +202,37 @@ fun TransactionItemCard(
     }
 }
 
-@Composable
-fun TransactionListEmptyState(
-    title: String,
-    description: String
-) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
+private fun formatAmount(amount: Double): String {
+    val formatter = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US))
+    val rounded = amount.roundToLong()
+    return "${formatter.format(rounded).toPersianDigits()} تومان"
 }
 
-@Composable
-fun TransactionListErrorState(
-    message: String,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "خطا در بارگذاری",
-                style = MaterialTheme.typography.titleMedium
-            )
+private fun String.toPersianDigits(): String {
+    val englishDigits = "0123456789"
+    val persianDigits = "۰۱۲۳۴۵۶۷۸۹"
 
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
+    return map { char ->
+        val index = englishDigits.indexOf(char)
+        if (index >= 0) persianDigits[index] else char
+    }.joinToString("")
 }
+
+private fun timestampToPersianDate(timestamp: Long) = runCatching {
+    val localDate = Instant
+        .ofEpochMilli(timestamp)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+
+    JalaliDateConverter.fromGregorian(localDate)
+}.getOrNull()
 
 private fun formatDateHeader(timestamp: Long): String {
-    return try {
-        SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date(timestamp))
-    } catch (_: Exception) {
-        "-"
-    }
+    val date = timestampToPersianDate(timestamp) ?: return "-"
+    return PersianCalendarFormatter.formatFullDate(date)
+}
+
+private fun formatTransactionDate(timestamp: Long): String {
+    val date = timestampToPersianDate(timestamp) ?: return "-"
+    return PersianCalendarFormatter.formatDate(date)
 }

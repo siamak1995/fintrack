@@ -135,14 +135,18 @@ fun AppNavGraph(navController: NavHostController) {
                             navController.navigate(Screen.Members)
                         },
                         //@TODO - phase-2
-//                        onInstallmentClick = {
-//                            navController.navigate(Screen.Installments)
-//                        },
+//        onInstallmentClick = {
+//            navController.navigate(Screen.Installments)
+//        },
                         onTagClick = {
                             navController.navigate(Screen.Tags)
+                        },
+                        onSettingsClick = {
+                            navController.navigate(Screen.Settings)
                         }
                     )
                 }
+
                 /**
                  * صفحه لیست حساب‌ها.
                  */

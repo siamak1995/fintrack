@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -20,136 +22,70 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DashboardDonutChart(
-
     spending: Float,
-
     saving: Float
-
 ) {
-
-    val animation = remember {
-
-        Animatable(0f)
-
-    }
+    val animation = remember { Animatable(0f) }
 
     LaunchedEffect(spending, saving) {
-
         animation.animateTo(
-
-            1f,
-
-            tween(900)
-
+            targetValue = 1f,
+            animationSpec = tween(900)
         )
-
     }
 
     Box(
-
-        contentAlignment = Alignment.Center,
-
-        modifier = Modifier
-            .fillMaxWidth()
-
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
     ) {
-
         Canvas(
-
             modifier = Modifier.size(210.dp)
-
         ) {
-
             val stroke = 30f
 
             drawArc(
-
-                color = Color(0xffE5E7EB),
-
+                color = Color(0xFFE5E7EB),
                 startAngle = 0f,
-
                 sweepAngle = 360f,
-
                 useCenter = false,
-
                 topLeft = Offset.Zero,
-
                 size = Size(size.width, size.height),
-
                 style = Stroke(
-
                     width = stroke,
-
                     cap = StrokeCap.Round
-
                 )
-
             )
 
             drawArc(
-
-                color = Color(0xffEF4444),
-
+                color = Color(0xFFEF4444),
                 startAngle = -90f,
-
-                sweepAngle =
-
-                    spending * 3.6f * animation.value,
-
+                sweepAngle = spending * 3.6f * animation.value,
                 useCenter = false,
-
                 topLeft = Offset.Zero,
-
                 size = Size(size.width, size.height),
-
                 style = Stroke(
-
                     width = stroke,
-
                     cap = StrokeCap.Round
-
                 )
-
             )
 
             drawArc(
-
-                color = Color(0xff22C55E),
-
-                startAngle =
-
-                    -90f + spending * 3.6f * animation.value,
-
-                sweepAngle =
-
-                    saving * 3.6f * animation.value,
-
+                color = Color(0xFF22C55E),
+                startAngle = -90f + (spending * 3.6f * animation.value),
+                sweepAngle = saving * 3.6f * animation.value,
                 useCenter = false,
-
                 topLeft = Offset.Zero,
-
                 size = Size(size.width, size.height),
-
                 style = Stroke(
-
                     width = stroke,
-
                     cap = StrokeCap.Round
-
                 )
-
             )
-
         }
 
         Text(
-
-            "${saving.toInt()}%",
-
+            text = "${saving.toInt()}%",
             style = MaterialTheme.typography.headlineMedium
-
         )
-
     }
-
 }

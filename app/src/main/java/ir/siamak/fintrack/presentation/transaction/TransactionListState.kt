@@ -6,7 +6,7 @@ import ir.siamak.fintrack.data.model.Transaction
 import ir.siamak.fintrack.data.model.Wallet
 
 /**
- * UI state for transaction list screen.
+ * UI state for the transaction list screen.
  */
 data class TransactionListState(
     val isLoading: Boolean = false,

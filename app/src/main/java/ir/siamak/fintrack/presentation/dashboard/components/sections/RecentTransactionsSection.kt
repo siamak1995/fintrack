@@ -23,11 +23,11 @@ fun RecentTransactionsSection(
             return
         }
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            transactions.take(5).forEach {
+            transactions.take(3).forEach {
                 TransactionItem(transaction = it)
             }
         }
-        if (transactions.size > 5) {
+        if (transactions.size > 3) {
             TextButton(onClick = onShowAll) {
                 Text("مشاهده همه")
             }
