@@ -26,9 +26,6 @@ import ir.siamak.fintrack.presentation.settings.sections.GeneralSection
 import ir.siamak.fintrack.presentation.settings.sections.NotificationSection
 import ir.siamak.fintrack.presentation.settings.sections.SecuritySection
 
-/**
- * محتوای صفحه تنظیمات.
- */
 @Composable
 fun SettingsScreen(
     state: SettingsState,
@@ -51,15 +48,16 @@ fun SettingsScreen(
         floatingActionButton = {
             if (state.hasChanges) {
                 ExtendedFloatingActionButton(
+                    text = { Text("ذخیره تنظیمات") },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Save,
+                            contentDescription = null
+                        )
+                    },
                     onClick = { onEvent(SettingsEvent.Save) },
                     expanded = true
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Save,
-                        contentDescription = null
-                    )
-                    Text("ذخیره تنظیمات")
-                }
+                )
             }
         }
     ) { padding ->
@@ -124,15 +122,16 @@ fun SettingsScreen(
 
             item {
                 ExtendedFloatingActionButton(
+                    text = { Text("بازنشانی به پیش‌فرض") },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Restore,
+                            contentDescription = null
+                        )
+                    },
                     onClick = { onEvent(SettingsEvent.Reset) },
                     expanded = true
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Restore,
-                        contentDescription = null
-                    )
-                    Text("بازنشانی به پیش‌فرض")
-                }
+                )
             }
         }
     }
