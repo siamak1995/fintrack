@@ -3,8 +3,19 @@ package ir.siamak.fintrack.presentation.settings
 import ir.siamak.fintrack.data.model.Currency
 import ir.siamak.fintrack.presentation.theme.ThemeMode
 
+/**
+ * وضعیت UI صفحه تنظیمات.
+ *
+ * این state شامل:
+ * - مقادیر فعلی قابل نمایش در فرم
+ * - وضعیت ذخیره‌سازی
+ * - پرچم وجود تغییرات
+ * - پیام‌های موقت UI
+ */
 data class SettingsState(
     val isLoading: Boolean = false,
+    val isSaving: Boolean = false,
+    val hasChanges: Boolean = false,
     val theme: ThemeMode = ThemeMode.SYSTEM,
     val currency: Currency = Currency.TOMAN,
     val language: AppLanguage = AppLanguage.PERSIAN,
@@ -16,6 +27,7 @@ data class SettingsState(
     val budgetReminder: Boolean = true,
     val dynamicColor: Boolean = true,
     val firstDayOfWeek: FirstDayOfWeek = FirstDayOfWeek.SATURDAY,
-    val appVersion: String = "1.0.0",
+    val appVersion: String = "1.1.0",
+    val message: String? = null,
     val error: String? = null
 )

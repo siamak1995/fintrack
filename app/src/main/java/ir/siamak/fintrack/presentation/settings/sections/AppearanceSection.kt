@@ -3,6 +3,7 @@ package ir.siamak.fintrack.presentation.settings.sections
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Currency
 import ir.siamak.fintrack.presentation.settings.AppLanguage
+import ir.siamak.fintrack.presentation.settings.toDisplayName
 import ir.siamak.fintrack.presentation.theme.ThemeMode
 
 @Composable
@@ -42,7 +44,7 @@ fun AppearanceSection(
 
         ThemeMode.entries.forEach { item ->
             SectionRadioRow(
-                title = item.name,
+                title = item.toDisplayName(),
                 selected = theme == item,
                 onClick = { onThemeChanged(item) }
             )
@@ -56,17 +58,17 @@ fun AppearanceSection(
 
         EnumDropdownField(
             title = "واحد پول",
-            selectedText = currency.name,
+            selectedText = currency.toDisplayName(),
             options = Currency.entries,
-            optionLabel = { it.name },
+            optionLabel = { it.toDisplayName() },
             onSelected = onCurrencyChanged
         )
 
         EnumDropdownField(
             title = "زبان",
-            selectedText = language.name,
+            selectedText = language.toDisplayName(),
             options = AppLanguage.entries,
-            optionLabel = { it.name },
+            optionLabel = { it.toDisplayName() },
             onSelected = onLanguageChanged
         )
     }
@@ -83,9 +85,7 @@ private fun <T> EnumDropdownField(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleSmall
@@ -113,9 +113,7 @@ private fun <T> EnumDropdownField(
             ) {
                 options.forEach { item ->
                     DropdownMenuItem(
-                        text = {
-                            Text(optionLabel(item))
-                        },
+                        text = { Text(optionLabel(item)) },
                         onClick = {
                             onSelected(item)
                             expanded = false
@@ -132,23 +130,18 @@ private fun SectionCard(
     title: String,
     content: @Composable () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                content()
-            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium
+            )
+            content()
         }
     }
 }
