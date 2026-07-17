@@ -57,7 +57,6 @@ import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.presentation.components.FTTopBar
 import ir.siamak.fintrack.presentation.transaction.TransactionList
 import ir.siamak.fintrack.presentation.transaction.TransactionListEmptyState
-import ir.siamak.fintrack.presentation.transaction.TransactionListErrorState
 import ir.siamak.fintrack.presentation.transaction.TransactionListEvent
 import ir.siamak.fintrack.presentation.transaction.TransactionListFilter
 import ir.siamak.fintrack.presentation.transaction.TransactionListState
@@ -133,9 +132,10 @@ fun TransactionListRoute(
             }
 
             errorMessage != null && state.allTransactions.isEmpty() -> {
-                TransactionListErrorState(
-                    message = errorMessage,
-                    modifier = Modifier.padding(innerPadding)
+                TransactionListEmptyState(
+                    modifier = Modifier.padding(innerPadding),
+                    title = "خطا در بارگذاری تراکنش‌ها",
+                    description = errorMessage
                 )
             }
 
@@ -162,6 +162,9 @@ private fun TransactionListContent(
 ) {
     var isFilterExpanded by rememberSaveable { mutableStateOf(false) }
     var draftFilter by remember(state.filter) { mutableStateOf(state.filter) }
+    val membersById = remember(state.members) { state.members.associateBy { it.id } }
+    val walletsById = remember(state.wallets) { state.wallets.associateBy { it.id } }
+
 
     LaunchedEffect(isFilterExpanded, state.filter) {
         if (isFilterExpanded) {
@@ -233,6 +236,8 @@ private fun TransactionListContent(
             else -> {
                 TransactionList(
                     transactions = state.filteredTransactions,
+                    membersById = membersById,
+                    walletsById = walletsById,
                     onEditTransaction = onEditTransaction,
                     onDeleteTransaction = onDeleteTransaction
                 )

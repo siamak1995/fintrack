@@ -54,13 +54,6 @@ fun FinancialSummarySection(
         )
 
         SummaryCard(
-            title="موجودی",
-            amount=totalBalance,
-            icon=Icons.Default.Savings,
-            iconBackground=Color(0xFF7C3AED)
-        )
-
-        SummaryCard(
             title="درآمد ماه",
             amount=income,
             icon=Icons.Default.TrendingUp,
