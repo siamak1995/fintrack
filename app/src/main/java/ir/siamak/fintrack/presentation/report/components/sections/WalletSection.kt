@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import ir.siamak.fintrack.domain.report.WalletReportItem
 import ir.siamak.fintrack.presentation.dashboard.EmptySectionText
-import ir.siamak.fintrack.presentation.dashboard.SectionHeader
+import ir.siamak.fintrack.presentation.dashboard.components.SectionHeader
 import ir.siamak.fintrack.presentation.report.components.WalletReportCard
 
 @Composable

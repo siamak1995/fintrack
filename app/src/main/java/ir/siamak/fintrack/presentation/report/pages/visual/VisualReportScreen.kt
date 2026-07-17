@@ -45,7 +45,7 @@ import ir.siamak.fintrack.core.datepicker.components.PersianDateRangePickerDialo
 import ir.siamak.fintrack.core.datepicker.model.PersianDateRange
 import ir.siamak.fintrack.core.datepicker.state.rememberPersianDateRangePickerState
 import ir.siamak.fintrack.presentation.components.FTCard
-import ir.siamak.fintrack.presentation.dashboard.SectionHeader
+import ir.siamak.fintrack.presentation.dashboard.components.SectionHeader
 import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)

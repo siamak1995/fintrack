@@ -9,36 +9,25 @@ import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Transaction
 import ir.siamak.fintrack.domain.dashboard.items.TransactionItem
 import ir.siamak.fintrack.presentation.dashboard.EmptySectionText
-import ir.siamak.fintrack.presentation.dashboard.SectionHeader
+import ir.siamak.fintrack.presentation.dashboard.components.SectionHeader
 
 @Composable
 fun RecentTransactionsSection(
     transactions: List<Transaction>,
-    onShowAll: (() -> Unit)? = null
+    onShowAll: () -> Unit = {}
 ) {
-
     Column {
-
         SectionHeader("آخرین تراکنش‌ها")
-
         if (transactions.isEmpty()) {
             EmptySectionText("هنوز تراکنشی ثبت نشده است.")
             return
         }
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-
-            transactions.take(3).forEach { transaction ->
-
-                TransactionItem(transaction)
-
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            transactions.take(5).forEach {
+                TransactionItem(transaction = it)
             }
         }
-
-        if (transactions.size > 3 && onShowAll != null) {
-
+        if (transactions.size > 5) {
             TextButton(onClick = onShowAll) {
                 Text("مشاهده همه")
             }

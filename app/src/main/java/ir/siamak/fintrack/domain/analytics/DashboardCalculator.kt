@@ -9,72 +9,29 @@ import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.domain.dashboard.DashboardChart
 import ir.siamak.fintrack.domain.dashboard.DashboardMoney
 import ir.siamak.fintrack.domain.dashboard.DashboardStatistics
+import ir.siamak.fintrack.presentation.dashboard.FinancialHealth
 import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
+import javax.inject.Inject
 
 /**
- * مسئول تمام محاسبات داشبورد.
+ * مسئول تمام محاسبات داشبورد
  *
- * این کلاس هیچ وابستگی به UI ندارد و فقط محاسبات Domain را انجام می‌دهد.
+ * هیچ وابستگی به UI ندارد.
+ * تمام Business Logic داشبورد در این کلاس قرار می‌گیرد.
  */
-class DashboardCalculator {
+class DashboardCalculator @Inject constructor() {
 
-    fun income(transactions: List<Transaction>): Double =
-        transactions.filter { it.type == TransactionType.INCOME }
-            .sumOf { it.amount }
-
-    fun expense(transactions: List<Transaction>): Double =
-        transactions.filter { it.type == TransactionType.EXPENSE }
-            .sumOf { it.amount }
-
-    fun balance(transactions: List<Transaction>): Double =
-        income(transactions) - expense(transactions)
-
-    fun saving(transactions: List<Transaction>): Double =
-        balance(transactions)
-
-    fun recentTransactions(
-        transactions: List<Transaction>,
-        count: Int = 5
-    ): List<Transaction> =
-        transactions.sortedByDescending { it.date }
-            .take(count)
-
-    fun insight(transactions: List<Transaction>): String {
-        val saving = saving(transactions)
-
-        return when {
-            transactions.isEmpty() ->
-                "هنوز تراکنشی ثبت نشده است."
-
-            saving > 0 ->
-                "عملکرد مالی این ماه مثبت است."
-
-            saving == 0.0 ->
-                "درآمد و هزینه برابر است."
-
-            else ->
-                "هزینه‌ها از درآمد بیشتر شده‌اند."
-        }
-    }
-
-    fun todayIncome(transactions: List<Transaction>): Double =
-        transactions.filter {
-            it.type == TransactionType.INCOME && it.date.isToday()
-        }.sumOf { it.amount }
-
-    fun todayExpense(transactions: List<Transaction>): Double =
-        transactions.filter {
-            it.type == TransactionType.EXPENSE && it.date.isToday()
-        }.sumOf { it.amount }
-
-    fun calculateMoney(
+    fun calculateMonthlyMoney(
         wallets: List<Wallet>,
         transactions: List<Transaction>
     ): DashboardMoney {
-        val income = income(transactions)
-        val expense = expense(transactions)
+
+        val monthly = transactions.filter { it.isCurrentMonth() }
+
+        val income = monthlyIncome(monthly)
+        val expense = monthlyExpense(monthly)
         val balance = income - expense
 
         return DashboardMoney(
@@ -83,23 +40,19 @@ class DashboardCalculator {
             saving = balance,
             balance = balance,
             walletBalance = wallets.sumOf { it.balance },
-            todayIncome = todayIncome(transactions),
-            todayExpense = todayExpense(transactions)
+            todayIncome = todayIncome(monthly),
+            todayExpense = todayExpense(monthly)
         )
     }
 
-    fun spendingPercent(transactions: List<Transaction>): Float =
-        calculateChart(transactions).spendingPercent
+    fun calculateChart(
+        transactions: List<Transaction>
+    ): DashboardChart {
 
-    fun savingPercent(transactions: List<Transaction>): Float =
-        calculateChart(transactions).savingPercent
+        val monthly = transactions.filter { it.isCurrentMonth() }
 
-    fun calculateChart(transactions: List<Transaction>): DashboardChart {
-        val monthlyTransactions = transactions.filter { it.isInCurrentMonth() }
-
-        val income = income(monthlyTransactions)
-        val expense = expense(monthlyTransactions)
-        val saving = (income - expense).coerceAtLeast(0.0)
+        val income = monthlyIncome(monthly)
+        val expense = monthlyExpense(monthly)
 
         if (income <= 0.0) {
             return DashboardChart(
@@ -108,46 +61,16 @@ class DashboardCalculator {
             )
         }
 
+        val total = income + expense
+
         return DashboardChart(
-            spendingPercent = ( (expense * 100) / (expense + income) )
-                .coerceIn(0.0, 100.0)
+            spendingPercent = ((expense * 100) / total)
+                .coerceIn(0.0,100.0)
                 .toFloat(),
-            savingPercent = ( (income * 100) / (expense + income) )
-                .coerceIn(0.0, 100.0)
+            savingPercent = ((income * 100) / total)
+                .coerceIn(0.0,100.0)
                 .toFloat()
         )
-    }
-
-    fun calculateMonthlyMoney(
-        wallets: List<Wallet>,
-        transactions: List<Transaction>
-    ): DashboardMoney {
-        val monthlyTransactions = transactions.filter { it.isInCurrentMonth() }
-
-        val monthlyIncome = income(monthlyTransactions)
-        val monthlyExpense = expense(monthlyTransactions)
-        val monthlyBalance = monthlyIncome - monthlyExpense
-
-        return DashboardMoney(
-            income = monthlyIncome,
-            expense = monthlyExpense,
-            saving = monthlyBalance,
-            balance = monthlyBalance,
-            walletBalance = wallets.sumOf { it.balance },
-            todayIncome = todayIncome(monthlyTransactions),
-            todayExpense = todayExpense(monthlyTransactions)
-        )
-    }
-
-    private fun Transaction.isInCurrentMonth(): Boolean {
-        val txDate = Instant.ofEpochMilli(date)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
-
-        val currentMonth = YearMonth.now()
-        val txMonth = YearMonth.from(txDate)
-
-        return txMonth == currentMonth
     }
 
     fun calculateStatistics(
@@ -155,10 +78,177 @@ class DashboardCalculator {
         members: List<Member>,
         installments: List<Installment>,
         transactions: List<Transaction>
-    ) = DashboardStatistics(
-        walletCount = wallets.size,
-        transactionCount = transactions.size,
-        memberCount = members.size,
-        installmentCount = installments.size
-    )
+    ): DashboardStatistics {
+
+        return DashboardStatistics(
+            walletCount = wallets.size,
+            transactionCount = transactions.size,
+            memberCount = members.size,
+            installmentCount = installments.size
+        )
+    }
+
+    fun recentTransactions(
+        transactions: List<Transaction>,
+        count: Int = 5
+    ): List<Transaction> {
+
+        return transactions
+            .sortedByDescending { it.date }
+            .take(count)
+    }
+
+    fun upcomingInstallments(
+        installments: List<Installment>,
+        count: Int = 3
+    ): List<Installment> {
+
+        return installments
+            .filter { !it.isPaid }
+            .sortedBy { it.dueDate }
+            .take(count)
+    }
+
+    fun generateInsight(
+        transactions: List<Transaction>,
+        installments: List<Installment>
+    ): String {
+
+        if (transactions.isEmpty())
+            return "اولین تراکنش خود را ثبت کنید."
+
+        val monthly = transactions.filter { it.isCurrentMonth() }
+
+        val income = monthlyIncome(monthly)
+        val expense = monthlyExpense(monthly)
+        val balance = income - expense
+        val upcoming = upcomingInstallments(installments).size
+
+        return when {
+
+            balance > 0 && upcoming == 0 ->
+                "وضعیت مالی شما عالی است و هیچ قسط نزدیکی ندارید."
+
+            balance > 0 ->
+                "وضعیت مالی مناسب است اما $upcoming قسط پیش رو دارید."
+
+            balance == 0.0 ->
+                "درآمد و هزینه این ماه برابر است."
+
+            else ->
+                "هزینه‌های این ماه از درآمد بیشتر شده است."
+        }
+    }
+
+    fun financialHealth(
+        transactions: List<Transaction>
+    ): FinancialHealth {
+
+        val chart = calculateChart(transactions)
+
+        return when {
+
+            chart.savingPercent >= 70f ->
+                FinancialHealth.EXCELLENT
+
+            chart.savingPercent >= 50f ->
+                FinancialHealth.GOOD
+
+            chart.spendingPercent < 70f ->
+                FinancialHealth.WARNING
+
+            else ->
+                FinancialHealth.DANGER
+        }
+    }
+
+    fun biggestExpense(
+        transactions: List<Transaction>
+    ): Transaction? {
+
+        return transactions
+            .filter {
+                it.type == TransactionType.EXPENSE &&
+                        it.isCurrentMonth()
+            }
+            .maxByOrNull {
+                it.amount
+            }
+    }
+
+    fun averageDailyExpense(
+        transactions: List<Transaction>
+    ): Double {
+
+        val expenses = transactions.filter {
+            it.type == TransactionType.EXPENSE &&
+                    it.isCurrentMonth()
+        }
+
+        if (expenses.isEmpty())
+            return 0.0
+
+        val days = expenses
+            .map {
+                Instant.ofEpochMilli(it.date)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+            }
+            .distinct()
+            .size
+
+        return expenses.sumOf { it.amount } / days
+    }
+
+    fun monthlyIncome(
+        transactions: List<Transaction>
+    ): Double {
+
+        return transactions
+            .filter { it.type == TransactionType.INCOME }
+            .sumOf { it.amount }
+    }
+
+    fun monthlyExpense(
+        transactions: List<Transaction>
+    ): Double {
+
+        return transactions
+            .filter { it.type == TransactionType.EXPENSE }
+            .sumOf { it.amount }
+    }
+
+    fun todayIncome(
+        transactions: List<Transaction>
+    ): Double {
+
+        return transactions
+            .filter {
+                it.type == TransactionType.INCOME &&
+                        it.date.isToday()
+            }
+            .sumOf { it.amount }
+    }
+
+    fun todayExpense(
+        transactions: List<Transaction>
+    ): Double {
+
+        return transactions
+            .filter {
+                it.type == TransactionType.EXPENSE &&
+                        it.date.isToday()
+            }
+            .sumOf { it.amount }
+    }
+
+    private fun Transaction.isCurrentMonth(): Boolean {
+
+        val localDate = Instant
+            .ofEpochMilli(date)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+
+        return YearMonth.from(localDate) == YearMonth.now()
+    }
 }

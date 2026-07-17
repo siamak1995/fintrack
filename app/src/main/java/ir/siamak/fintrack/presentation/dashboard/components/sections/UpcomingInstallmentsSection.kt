@@ -9,34 +9,26 @@ import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Installment
 import ir.siamak.fintrack.domain.dashboard.items.InstallmentItem
 import ir.siamak.fintrack.presentation.dashboard.EmptySectionText
-import ir.siamak.fintrack.presentation.dashboard.SectionHeader
+import ir.siamak.fintrack.presentation.dashboard.components.SectionHeader
+
 
 @Composable
 fun UpcomingInstallmentsSection(
     installments: List<Installment>,
-    onShowAll: (() -> Unit)? = null
+    onShowAll: () -> Unit = {}
 ) {
-
     Column {
-
         SectionHeader("اقساط پیش رو")
-
         if (installments.isEmpty()) {
-            EmptySectionText("قسطی ثبت نشده است.")
+            EmptySectionText("قسطی برای پرداخت وجود ندارد.")
             return
         }
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-
-            installments.take(3).forEach { installment ->
-                InstallmentItem(installment)
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            installments.take(3).forEach {
+                InstallmentItem(installment = it)
             }
         }
-
-        if (installments.size > 3 && onShowAll != null) {
-
+        if (installments.size > 3) {
             TextButton(onClick = onShowAll) {
                 Text("مشاهده همه")
             }

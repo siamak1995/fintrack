@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,71 +30,217 @@ import ir.siamak.fintrack.presentation.dashboard.components.sections.WalletSecti
 @Composable
 fun DashboardScreen(
     state: DashboardState,
-) {
+    onAction:(DashboardUiAction)->Unit={}
+){
 
-    Scaffold() { padding ->
+    Scaffold(
 
-        when {
+        floatingActionButton={
 
-            state.isLoading -> {
+            ExtendedFloatingActionButton(
+
+                onClick={
+                    onAction(DashboardUiAction.AddTransaction)
+                },
+
+                icon={
+                    Icon(
+                        Icons.Default.Add,
+                        null
+                    )
+                },
+
+                text={
+                    Text("ثبت تراکنش")
+                }
+
+            )
+
+        }
+
+    ){padding->
+
+        when{
+
+            state.isLoading->{
                 DashboardLoading()
                 return@Scaffold
             }
 
-            state.error != null -> {
-                DashboardError(state.error!!)
+            state.error!=null->{
+                DashboardError(state.error)
                 return@Scaffold
             }
 
-            state.wallets.isEmpty()
-                    && state.transactions.isEmpty()
-                    && state.members.isEmpty()
-                    && state.installments.isEmpty() -> {
+            state.wallets.isEmpty() &&
+                    state.transactions.isEmpty() &&
+                    state.members.isEmpty()->{
 
-                DashboardEmpty("هنوز اطلاعاتی ثبت نشده است.")
+                DashboardEmpty(
+                    message="هنوز اطلاعاتی ثبت نشده است."
+                )
+
                 return@Scaffold
             }
+
         }
 
         LazyColumn(
-            modifier = Modifier
+
+            modifier=Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
 
-            item {
-                GreetingSection(state.userName, state.insight)
+            contentPadding=PaddingValues(16.dp),
+
+            verticalArrangement=Arrangement.spacedBy(18.dp)
+
+        ){
+
+            item{
+                GreetingSection(
+                    userName=state.userName,
+                    insight=state.insight
+                )
             }
 
-            item {
+            item{
+
                 FinancialSummarySection(
-                    totalBalance = state.totalBalance,
-                    income = state.monthlyIncome,
-                    expense = state.monthlyExpense,
-                    walletBalance = state.walletBalance
+                    totalBalance=state.totalBalance,
+                    walletBalance=state.walletBalance,
+                    income=state.monthlyIncome,
+                    expense=state.monthlyExpense,
+                    saving=state.saving,
+                    todayIncome=state.todayIncome,
+                    todayExpense=state.todayExpense
                 )
+
             }
 
-            item {
+            item{
+
                 ChartSection(
-                    spending = state.spendingPercent,
-                    saving = state.savingPercent
+                    spending=state.spendingPercent,
+                    saving=state.savingPercent,
+                    health=state.financialHealth
                 )
+
             }
 
-            item { InsightSection(state.insight) }
-
-
-            item {
-                RecentTransactionsSection(state.recentTransactions)
-            }
-//@TODO - phase-2
-//            item {
-//                UpcomingInstallmentsSection(state.installments)
+//            item{
+//
+//                StatisticsSection(
+//                    walletCount=state.walletCount,
+//                    transactionCount=state.transactionCount,
+//                    memberCount=state.memberCount,
+//                    installmentCount=state.installmentCount
+//                )
+//
 //            }
 
+            item{
+
+                QuickActionsSection(
+                    onWalletClick={
+                        onAction(DashboardUiAction.AddWallet)
+                    },
+                    onTransactionClick={
+                        onAction(DashboardUiAction.AddTransaction)
+                    },
+                    onMemberClick={
+                        onAction(DashboardUiAction.OpenMembers)
+                    },
+                    onInstallmentClick={
+                        onAction(DashboardUiAction.OpenInstallments)
+                    },
+                    onReportClick={
+                        onAction(DashboardUiAction.OpenReports)
+                    }
+                )
+
+            }
+
+            if(state.wallets.isNotEmpty()){
+
+                item{
+
+                    WalletSection(
+                        wallets=state.wallets,
+                        onWalletClick={
+                            onAction(DashboardUiAction.EditWallet(it))
+                        },
+                        onAddWallet={
+                            onAction(DashboardUiAction.AddWallet)
+                        }
+                    )
+
+                }
+
+            }
+
+            if(state.members.isNotEmpty()){
+
+                item{
+
+                    MemberSection(
+
+                        members=state.members,
+
+                        onMembersClick={
+                            onAction(
+                                DashboardUiAction.OpenMembers
+                            )
+                        }
+
+                    )
+
+                }
+
+            }
+
+            item{
+
+                InsightSection(
+
+                    insight=state.insight
+
+                )
+
+            }
+
+            item{
+
+                RecentTransactionsSection(
+
+                    transactions=state.recentTransactions
+
+                )
+
+            }
+
+            if(state.upcomingInstallments.isNotEmpty()){
+
+                item{
+
+                    UpcomingInstallmentsSection(
+
+                        installments=state.upcomingInstallments,
+
+                        onShowAll={
+                            onAction(
+                                DashboardUiAction.OpenInstallments
+                            )
+                        }
+
+                    )
+
+                }
+
+            }
+
         }
+
     }
+
 }

@@ -18,23 +18,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.presentation.components.FTCard
 
-/**
- * هدر هر سکشن داشبورد.
- */
-@Composable
-fun SectionHeader(title: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp),
-        horizontalArrangement = Arrangement.Start
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium
-        )
-    }
-}
 
 /**
  * متن خالی بودن هر سکشن.

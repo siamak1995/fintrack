@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.presentation.components.FTCard
-import ir.siamak.fintrack.presentation.dashboard.SectionHeader
+import ir.siamak.fintrack.presentation.dashboard.components.SectionHeader
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

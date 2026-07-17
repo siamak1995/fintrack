@@ -6,75 +6,57 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Wallet
-import ir.siamak.fintrack.domain.dashboard.items.WalletItem
+import ir.siamak.fintrack.presentation.dashboard.components.SectionHeader
+import ir.siamak.fintrack.presentation.dashboard.components.cards.WalletCard
 
 @Composable
 fun WalletSection(
+    wallets:List<Wallet>,
+    onWalletClick:(Long)->Unit,
+    onAddWallet:()->Unit
+){
 
-    wallets: List<Wallet>,
+    SectionHeader(
+        title="کیف پول‌ها",
+        icon=Icons.Default.AccountBalanceWallet
+    )
 
-    onWalletClick: (Long) -> Unit,
+    if(wallets.isEmpty()){
 
-    onAddWalletClick: () -> Unit
-
-) {
-
-    Column {
-
-        Text(
-
-            text = "حساب‌ها",
-
-            style = MaterialTheme.typography.titleLarge,
-
-            modifier = Modifier.padding(bottom = 12.dp)
-
-        )
-
-        if (wallets.isEmpty()) {
-
-            TextButton(
-
-                onClick = onAddWalletClick
-
-            ) {
-
-                Text("اولین حساب را ایجاد کن")
-
-            }
-
-            return
-
+        TextButton(
+            onClick=onAddWallet
+        ){
+            androidx.compose.material3.Text("ایجاد اولین کیف پول")
         }
 
-        LazyRow(
+        return
+    }
 
-            modifier = Modifier.fillMaxWidth(),
+    LazyRow(
+        modifier=Modifier
+            .fillMaxWidth()
+            .padding(top=12.dp),
+        horizontalArrangement=Arrangement.spacedBy(16.dp)
+    ){
 
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        items(
+            items=wallets,
+            key={it.id}
+        ){
 
-        ) {
-
-            items(wallets) { wallet ->
-
-                WalletItem(
-
-                    wallet = wallet
-
-                ) {
-
-                    onWalletClick(wallet.id)
-
+            WalletCard(
+                wallet=it,
+                onClick={
+                    onWalletClick(it.id)
                 }
-
-            }
+            )
 
         }
 
