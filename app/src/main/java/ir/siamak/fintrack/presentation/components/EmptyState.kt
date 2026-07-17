@@ -9,7 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import ir.siamak.fintrack.presentation.theme.AppTheme
+import ir.siamak.fintrack.presentation.theme.ThemeMode
 
 @Composable
 fun EmptyState(
@@ -20,9 +20,9 @@ fun EmptyState(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(AppTheme.spacing.large),
+            .padding(ThemeMode.spacing.large),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.small)
+        verticalArrangement = Arrangement.spacedBy(ThemeMode.spacing.small)
     ) {
         Text(
             text = title,

@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import ir.siamak.fintrack.presentation.theme.AppTheme
+import ir.siamak.fintrack.presentation.theme.ThemeMode
 
 /**
  * نوار بالای ساده و reusable برای صفحات اپلیکیشن.
@@ -40,12 +40,12 @@ fun FTTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = AppTheme.spacing.small),
+            .padding(vertical = ThemeMode.spacing.small),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         androidx.compose.foundation.layout.Column(
-            verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.extraSmall)
+            verticalArrangement = Arrangement.spacedBy(ThemeMode.spacing.extraSmall)
         ) {
             Text(
                 text = title,

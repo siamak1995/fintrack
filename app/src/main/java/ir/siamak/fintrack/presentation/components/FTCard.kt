@@ -8,7 +8,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import ir.siamak.fintrack.presentation.theme.AppTheme
+import ir.siamak.fintrack.presentation.theme.ThemeMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +26,7 @@ fun FTCard(
                 containerColor = MaterialTheme.colorScheme.surface
             ),
             elevation = CardDefaults.cardElevation(
-                defaultElevation = AppTheme.dimens.cardElevation
+                defaultElevation = ThemeMode.dimens.cardElevation
             ),
             content = content
         )
@@ -38,7 +38,7 @@ fun FTCard(
                 containerColor = MaterialTheme.colorScheme.surface
             ),
             elevation = CardDefaults.cardElevation(
-                defaultElevation = AppTheme.dimens.cardElevation
+                defaultElevation = ThemeMode.dimens.cardElevation
             ),
             content = content
         )

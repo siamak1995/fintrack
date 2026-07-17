@@ -10,7 +10,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import ir.siamak.fintrack.presentation.theme.AppTheme
+import ir.siamak.fintrack.presentation.theme.ThemeMode
 
 /**
  * یک کارت ساده برای نمایش آمارهای عددی یا متنی (بدون فرمت مالی).
@@ -33,8 +33,8 @@ fun StatCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(AppTheme.spacing.medium),
-            verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.extraSmall)
+                .padding(ThemeMode.spacing.medium),
+            verticalArrangement = Arrangement.spacedBy(ThemeMode.spacing.extraSmall)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
@@ -51,7 +51,7 @@ fun StatCard(
                         modifier = Modifier.size(18.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(AppTheme.spacing.small))
+                Spacer(modifier = Modifier.width(ThemeMode.spacing.small))
                 Text(
                     text = title,
                     style = MaterialTheme.typography.labelMedium,
