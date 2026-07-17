@@ -1,10 +1,11 @@
-package ir.siamak.fintrack.presentation.settings
+package ir.siamak.fintrack.domain.settings
 
 import ir.siamak.fintrack.data.model.Currency
+import ir.siamak.fintrack.presentation.settings.AppLanguage
+import ir.siamak.fintrack.presentation.settings.FirstDayOfWeek
 import ir.siamak.fintrack.presentation.theme.ThemeMode
 
-data class SettingsState(
-    val isLoading: Boolean = false,
+data class AppSettings(
     val theme: ThemeMode = ThemeMode.SYSTEM,
     val currency: Currency = Currency.TOMAN,
     val language: AppLanguage = AppLanguage.PERSIAN,
@@ -15,7 +16,5 @@ data class SettingsState(
     val dailyReminder: Boolean = false,
     val budgetReminder: Boolean = true,
     val dynamicColor: Boolean = true,
-    val firstDayOfWeek: FirstDayOfWeek = FirstDayOfWeek.SATURDAY,
-    val appVersion: String = "1.0.0",
-    val error: String? = null
+    val firstDayOfWeek: FirstDayOfWeek = FirstDayOfWeek.SATURDAY
 )

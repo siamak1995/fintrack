@@ -10,15 +10,18 @@ import ir.siamak.fintrack.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import kotlin.collections.map
 
 class TransactionRepositoryImpl @Inject constructor(
     private val dao: TransactionDao
 ) : TransactionRepository {
 
+
     override fun getAllTransactions(): Flow<List<Transaction>> {
-        return dao.getAllTransactions().map { transactions ->
-            transactions.map { it.toModel() }
-        }
+        return dao.getAllTransactionsWithTags()
+            .map { relations ->
+                relations.map { relation -> relation.toModel() }
+            }
     }
 
     override fun getTransactionsByWallet(walletId: Long): Flow<List<Transaction>> {
@@ -72,4 +75,6 @@ class TransactionRepositoryImpl @Inject constructor(
     override suspend fun getAllTransactionsSync(): List<Transaction> {
         return dao.getAllTransactionsSync().map { it.toModel() }
     }
+
+
 }

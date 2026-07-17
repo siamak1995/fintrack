@@ -123,4 +123,15 @@ interface TransactionDao {
     @Transaction
     @Query("SELECT * FROM transactions ORDER BY date DESC LIMIT :limit")
     fun getRecentTransactionsWithTags(limit: Int): Flow<List<TransactionWithTags>>
+
+
+    /**
+     * Returns all transactions with their resolved tags ordered by newest date first.
+     *
+     * This is the source used by transaction list filtering because tag-based filtering
+     * requires full transaction-tag relations to be loaded.
+     */
+    @Transaction
+    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    fun getAllTransactionsWithTags(): Flow<List<TransactionWithTags>>
 }

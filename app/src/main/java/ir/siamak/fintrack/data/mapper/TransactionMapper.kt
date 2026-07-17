@@ -6,6 +6,9 @@ import ir.siamak.fintrack.data.local.entity.TransactionWithTags
 import ir.siamak.fintrack.data.model.Tag
 import ir.siamak.fintrack.data.model.Transaction
 
+/**
+ * Maps transaction entity to app transaction model without tags.
+ */
 fun TransactionEntity.toModel(): Transaction {
     return Transaction(
         id = id,
@@ -20,6 +23,9 @@ fun TransactionEntity.toModel(): Transaction {
     )
 }
 
+/**
+ * Maps transaction with tags relation to app transaction model.
+ */
 fun TransactionWithTags.toModel(): Transaction {
     return Transaction(
         id = transaction.id,
@@ -35,6 +41,9 @@ fun TransactionWithTags.toModel(): Transaction {
     )
 }
 
+/**
+ * Maps tag entity to app tag model.
+ */
 fun TagEntity.toModel(): Tag {
     return Tag(
         id = id,
@@ -45,6 +54,9 @@ fun TagEntity.toModel(): Tag {
     )
 }
 
+/**
+ * Maps transaction model to local transaction entity.
+ */
 fun Transaction.toEntity(): TransactionEntity {
     return TransactionEntity(
         id = id,

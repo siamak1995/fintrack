@@ -38,6 +38,7 @@ import ir.siamak.fintrack.data.model.TransactionType
 import ir.siamak.fintrack.presentation.components.FTButton
 import ir.siamak.fintrack.presentation.components.FTTextField
 import ir.siamak.fintrack.presentation.components.FTTopBar
+import ir.siamak.fintrack.presentation.theme.AppTheme
 import ir.siamak.fintrack.presentation.theme.ThemeMode
 import kotlinx.coroutines.flow.collectLatest
 
@@ -101,9 +102,9 @@ fun AddEditTransactionScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(ThemeMode.spacing.medium)
+                .padding(AppTheme.spacing.medium)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(ThemeMode.spacing.medium)
+            verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.medium)
         ) {
             TransactionTypeSelector(
                 selectedType = state.type,

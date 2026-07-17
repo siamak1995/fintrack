@@ -1,7 +1,5 @@
 package ir.siamak.fintrack.presentation.transaction.navigation
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,31 +10,24 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDownward
-import androidx.compose.material.icons.outlined.ArrowUpward
-import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.SyncAlt
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FilterAltOff
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,38 +35,37 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ir.siamak.fintrack.data.model.Member
+import ir.siamak.fintrack.data.model.Tag
 import ir.siamak.fintrack.data.model.Transaction
-import ir.siamak.fintrack.data.model.TransactionType
-import ir.siamak.fintrack.presentation.components.FTButton
+import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.presentation.components.FTTopBar
+import ir.siamak.fintrack.presentation.transaction.TransactionList
+import ir.siamak.fintrack.presentation.transaction.TransactionListEmptyState
+import ir.siamak.fintrack.presentation.transaction.TransactionListErrorState
+import ir.siamak.fintrack.presentation.transaction.TransactionListEvent
+import ir.siamak.fintrack.presentation.transaction.TransactionListState
 import ir.siamak.fintrack.presentation.transaction.TransactionListViewModel
-import java.math.BigDecimal
-import java.text.DecimalFormat
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @Composable
 fun TransactionListRoute(
-    onAddTransactionClick: () -> Unit,
-    onEditTransactionClick: (Long) -> Unit,
     onBack: () -> Unit,
+    onAddTransaction: () -> Unit,
+    onEditTransaction: (Long) -> Unit,
     viewModel: TransactionListViewModel = hiltViewModel()
 ) {
-    val state = viewModel.state.value
+    val state by viewModel.state.collectAsStateWithLifecycle()
     var pendingDelete by remember { mutableStateOf<Transaction?>(null) }
-
-    val groupedTransactions = remember(state.transactions) {
-        state.transactions.groupBy { formatDateHeader(it.date) }
-    }
+    val errorMessage = state.errorMessage
 
     if (pendingDelete != null) {
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
+            title = { Text("حذف تراکنش") },
+            text = { Text("آیا از حذف این تراکنش مطمئن هستید؟") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -87,369 +77,277 @@ fun TransactionListRoute(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) {
+                TextButton(
+                    onClick = { pendingDelete = null }
+                ) {
                     Text("انصراف")
                 }
-            },
-            title = { Text("حذف تراکنش") },
-            text = { Text("آیا از حذف این تراکنش مطمئن هستید؟") }
+            }
         )
     }
 
     Scaffold(
         topBar = {
-            FTTopBar(title = "تراکنش‌ها")
+            FTTopBar(
+                title = "تراکنش‌ها",
+                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                onNavigationClick = onBack
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onAddTransaction,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "افزودن تراکنش"
+                    )
+                },
+                text = { Text("تراکنش جدید") }
+            )
         }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            FTButton(
-                text = "ثبت تراکنش جدید",
-                onClick = onAddTransactionClick,
-                modifier = Modifier.fillMaxWidth()
+    ) { innerPadding ->
+        when {
+            state.isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            errorMessage != null && state.allTransactions.isEmpty() -> {
+                TransactionListErrorState(
+                    message = errorMessage,
+                    modifier = Modifier.padding(innerPadding)
+                )
+            }
+
+            else -> {
+                TransactionListContent(
+                    state = state,
+                    innerPadding = innerPadding,
+                    onEvent = viewModel::onEvent,
+                    onEditTransaction = onEditTransaction,
+                    onDeleteTransaction = { pendingDelete = it }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TransactionListContent(
+    state: TransactionListState,
+    innerPadding: PaddingValues,
+    onEvent: (TransactionListEvent) -> Unit,
+    onEditTransaction: (Long) -> Unit,
+    onDeleteTransaction: (Transaction) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+    ) {
+        FilterSection(
+            selectedMemberId = state.filter.selectedMemberId,
+            selectedWalletId = state.filter.selectedWalletId,
+            selectedTagIds = state.filter.selectedTagIds,
+            members = state.members,
+            wallets = state.wallets,
+            tags = state.tags,
+            onMemberSelected = {
+                onEvent(TransactionListEvent.OnMemberFilterSelected(it))
+            },
+            onWalletSelected = {
+                onEvent(TransactionListEvent.OnWalletFilterSelected(it))
+            },
+            onTagToggled = { tagId ->
+                onEvent(TransactionListEvent.OnTagFilterToggled(tagId))
+            },
+            onAllTagsSelected = {
+                onEvent(TransactionListEvent.OnAllTagsSelected)
+            },
+            onClearFilters = {
+                onEvent(TransactionListEvent.OnClearFiltersClicked)
+            },
+            hasActiveFilters = state.filter.hasActiveFilters
+        )
+
+        FilterSummary(
+            filteredCount = state.filteredCount,
+            hasActiveFilters = state.filter.hasActiveFilters
+        )
+
+        when {
+            state.isCompletelyEmpty -> {
+                TransactionListEmptyState(
+                    title = "هنوز تراکنشی ثبت نشده است",
+                    description = "برای شروع، اولین تراکنش خود را ثبت کنید."
+                )
+            }
+
+            state.isFilteredEmpty -> {
+                TransactionListEmptyState(
+                    title = "تراکنشی با فیلترهای انتخاب‌شده پیدا نشد",
+                    description = "فیلترها را تغییر دهید یا پاک کنید."
+                )
+            }
+
+            else -> {
+                TransactionList(
+                    transactions = state.filteredTransactions,
+                    onEditTransaction = onEditTransaction,
+                    onDeleteTransaction = onDeleteTransaction
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun FilterSection(
+    selectedMemberId: Long?,
+    selectedWalletId: Long?,
+    selectedTagIds: Set<Long>,
+    members: List<Member>,
+    wallets: List<Wallet>,
+    tags: List<Tag>,
+    onMemberSelected: (Long?) -> Unit,
+    onWalletSelected: (Long?) -> Unit,
+    onTagToggled: (Long) -> Unit,
+    onAllTagsSelected: () -> Unit,
+    onClearFilters: () -> Unit,
+    hasActiveFilters: Boolean
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "فیلترها",
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = "اعضا",
+                style = MaterialTheme.typography.labelLarge
             )
 
-            if (state.transactions.isEmpty()) {
-                Text(
-                    text = "هنوز تراکنشی ثبت نشده است",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    groupedTransactions.forEach { (dateHeader, transactions) ->
-                        item(key = "header_$dateHeader") {
-                            DateHeader(title = dateHeader)
-                        }
-
-                        items(
-                            items = transactions,
-                            key = { it.id }
-                        ) { transaction ->
-                            SwipeableTransactionItem(
-                                transaction = transaction,
-                                onEditClick = { onEditTransactionClick(transaction.id) },
-                                onDeleteClick = { pendingDelete = transaction }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DateHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SwipeableTransactionItem(
-    transaction: Transaction,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
-) {
-    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-
-    // در RTL:
-    // کشیدن به راست = EndToStart از نظر Compose
-    // کشیدن به چپ = StartToEnd از نظر Compose
-    val editAction = if (isRtl) {
-        SwipeToDismissBoxValue.StartToEnd
-    } else {
-        SwipeToDismissBoxValue.EndToStart
-    }
-
-    val deleteAction = if (isRtl) {
-        SwipeToDismissBoxValue.EndToStart
-    } else {
-        SwipeToDismissBoxValue.StartToEnd
-    }
-
-    val dismissState = rememberSwipeToDismissBoxState(
-        positionalThreshold = { it * 0.3f },
-        confirmValueChange = { value ->
-            when {
-                value == editAction -> {
-                    onEditClick()
-                    false
-                }
-                value == deleteAction -> {
-                    onDeleteClick()
-                    false
-                }
-                else -> false
-            }
-        }
-    )
-
-    SwipeToDismissBox(
-        state = dismissState,
-        backgroundContent = {
-            val direction = dismissState.dismissDirection
-
-            val isEditDirection = if (isRtl) {
-                direction == SwipeToDismissBoxValue.EndToStart
-            } else {
-                direction == SwipeToDismissBoxValue.StartToEnd
-            }
-
-            val isDeleteDirection = if (isRtl) {
-                direction == SwipeToDismissBoxValue.StartToEnd
-            } else {
-                direction == SwipeToDismissBoxValue.EndToStart
-            }
-
-            val backgroundColor = when {
-                isEditDirection -> MaterialTheme.colorScheme.primaryContainer
-                isDeleteDirection -> MaterialTheme.colorScheme.errorContainer
-                else -> MaterialTheme.colorScheme.surface
-            }
-
-            val alignment = when {
-                isEditDirection -> Alignment.CenterStart
-                isDeleteDirection -> Alignment.CenterEnd
-                else -> Alignment.Center
-            }
-
-            val icon = when {
-                isEditDirection -> Icons.Outlined.Edit
-                isDeleteDirection -> Icons.Outlined.DeleteOutline
-                else -> null
-            }
-
-            val tint = when {
-                isEditDirection -> MaterialTheme.colorScheme.onPrimaryContainer
-                isDeleteDirection -> MaterialTheme.colorScheme.onErrorContainer
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(backgroundColor, RoundedCornerShape(24.dp))
-                    .padding(horizontal = 20.dp),
-                contentAlignment = alignment
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                if (icon != null) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = tint
+                FilterChip(
+                    selected = selectedMemberId == null,
+                    onClick = { onMemberSelected(null) },
+                    label = { Text("همه") }
+                )
+
+                members.forEach { member ->
+                    FilterChip(
+                        selected = selectedMemberId == member.id,
+                        onClick = { onMemberSelected(member.id) },
+                        label = { Text(member.name) }
                     )
                 }
             }
         }
+
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = "حساب‌ها",
+                style = MaterialTheme.typography.labelLarge
+            )
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = selectedWalletId == null,
+                    onClick = { onWalletSelected(null) },
+                    label = { Text("همه") }
+                )
+
+                wallets.forEach { wallet ->
+                    FilterChip(
+                        selected = selectedWalletId == wallet.id,
+                        onClick = { onWalletSelected(wallet.id) },
+                        label = { Text(wallet.name) }
+                    )
+                }
+            }
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = "تگ‌ها",
+                style = MaterialTheme.typography.labelLarge
+            )
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = selectedTagIds.isEmpty(),
+                    onClick = onAllTagsSelected,
+                    label = { Text("همه") }
+                )
+
+                tags.forEach { tag ->
+                    FilterChip(
+                        selected = selectedTagIds.contains(tag.id),
+                        onClick = { onTagToggled(tag.id) },
+                        label = { Text(tag.name) }
+                    )
+                }
+            }
+        }
+
+        if (hasActiveFilters) {
+            AssistChip(
+                onClick = onClearFilters,
+                label = { Text("پاک کردن فیلترها") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.FilterAltOff,
+                        contentDescription = "پاک کردن فیلترها",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            )
+        }
+
+        HorizontalDivider()
+    }
+}
+
+@Composable
+private fun FilterSummary(
+    filteredCount: Int,
+    hasActiveFilters: Boolean
+) {
+    if (!hasActiveFilters) return
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        TransactionListItem(
-            transaction = transaction,
-            onEditClick = onEditClick,
-            onDeleteClick = onDeleteClick
+        Text(
+            text = "$filteredCount نتیجه پیدا شد",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
-
-
-
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun TransactionListItem(
-    transaction: Transaction,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
-) {
-    val (typeLabel, typeColor, typeIcon, amountPrefix) = when (transaction.type) {
-        TransactionType.EXPENSE -> {
-            Quadruple(
-                "هزینه",
-                MaterialTheme.colorScheme.error,
-                Icons.Outlined.ArrowUpward,
-                "-"
-            )
-        }
-        TransactionType.INCOME -> {
-            Quadruple(
-                "درآمد",
-                MaterialTheme.colorScheme.primary,
-                Icons.Outlined.ArrowDownward,
-                "+"
-            )
-        }
-        TransactionType.TRANSFER -> {
-            Quadruple(
-                "انتقال",
-                MaterialTheme.colorScheme.tertiary,
-                Icons.Outlined.SyncAlt,
-                ""
-            )
-        }
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.38f)
-        ),
-        border = BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = typeColor.copy(alpha = 0.12f)
-                    ) {
-                        Icon(
-                            imageVector = typeIcon,
-                            contentDescription = typeLabel,
-                            tint = typeColor,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                    }
-
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = transaction.categoryName.ifBlank { "سایر" },
-                            style = MaterialTheme.typography.titleMedium
-                        )
-
-                        Text(
-                            text = typeLabel,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = typeColor
-                        )
-                    }
-                }
-
-                Text(
-                    text = if (amountPrefix.isBlank()) {
-                        formatAmountForFa(transaction.amount)
-                    } else {
-                        "$amountPrefix ${formatAmountForFa(transaction.amount)}"
-                    },
-                    style = MaterialTheme.typography.titleLarge,
-                    color = typeColor
-                )
-            }
-
-            if (transaction.note.isNotBlank()) {
-                Text(
-                    text = transaction.note,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            if (transaction.tags.isNotEmpty()) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    transaction.tags.forEach { tag ->
-                        SuggestionChip(
-                            onClick = {},
-                            enabled = false,
-                            label = { Text(tag.name) }
-                        )
-                    }
-                }
-            }
-
-//            Row(
-//                modifier = Modifier.fillMaxWidth(),
-//                horizontalArrangement = Arrangement.End,
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                IconButton(onClick = onEditClick) {
-//                    Icon(
-//                        imageVector = Icons.Outlined.Edit,
-//                        contentDescription = "ویرایش"
-//                    )
-//                }
-//
-//                IconButton(onClick = onDeleteClick) {
-//                    Icon(
-//                        imageVector = Icons.Outlined.DeleteOutline,
-//                        contentDescription = "حذف",
-//                        tint = MaterialTheme.colorScheme.error
-//                    )
-//                }
-//            }
-        }
-    }
-}
-
-private fun formatDateHeader(timestamp: Long): String {
-    val formatter = SimpleDateFormat("yyyy/MM/dd", Locale("fa"))
-    return formatter.format(Date(timestamp)).toPersianDigits()
-}
-
-private fun formatAmountForFa(amount: Double): String {
-    val normalized = BigDecimal.valueOf(amount).stripTrailingZeros()
-    val pattern = if (normalized.scale() <= 0) "#,###" else "#,###.##"
-    val formatter = DecimalFormat(pattern)
-    return formatter.format(normalized).toPersianDigits()
-}
-
-private fun String.toPersianDigits(): String {
-    return buildString(length) {
-        for (char in this@toPersianDigits) {
-            append(
-                when (char) {
-                    '0' -> '۰'
-                    '1' -> '۱'
-                    '2' -> '۲'
-                    '3' -> '۳'
-                    '4' -> '۴'
-                    '5' -> '۵'
-                    '6' -> '۶'
-                    '7' -> '۷'
-                    '8' -> '۸'
-                    '9' -> '۹'
-                    else -> char
-                }
-            )
-        }
-    }
-}
-
-private data class Quadruple<A, B, C, D>(
-    val first: A,
-    val second: B,
-    val third: C,
-    val fourth: D
-)

@@ -277,9 +277,15 @@ fun AppNavGraph(navController: NavHostController) {
                 /**
                  * صفحه تنظیمات.
                  */
+                /**
+                 * صفحه تنظیمات.
+                 */
                 composable<Screen.Settings> {
-                    PlaceholderScreen(title = "تنظیمات")
+                    ir.siamak.fintrack.presentation.settings.navigation.SettingsRoute(
+                        onBackClick = { navController.popBackStack() }
+                    )
                 }
+
 
                 /**
                  * صفحه افزودن یا ویرایش تراکنش.
@@ -293,15 +299,16 @@ fun AppNavGraph(navController: NavHostController) {
                 }
                 composable<Screen.Transactions> {
                     TransactionListRoute(
-                        onAddTransactionClick = {
+                        onBack = { navController.popBackStack() },
+                        onAddTransaction = {
                             navController.navigate(Screen.AddEditTransaction())
                         },
-                        onEditTransactionClick = { transactionId ->
+                        onEditTransaction = { transactionId ->
                             navController.navigate(Screen.AddEditTransaction(transactionId))
-                        },
-                        onBack = { navController.popBackStack() }
+                        }
                     )
                 }
+
                 /**
                  * صفحه اعضا.
                  */

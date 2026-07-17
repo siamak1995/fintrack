@@ -10,6 +10,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import ir.siamak.fintrack.presentation.theme.AppTheme
 import ir.siamak.fintrack.presentation.theme.ThemeMode
 
 /**
@@ -33,8 +34,8 @@ fun StatCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(ThemeMode.spacing.medium),
-            verticalArrangement = Arrangement.spacedBy(ThemeMode.spacing.extraSmall)
+                .padding(AppTheme.spacing.medium),
+            verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.extraSmall)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
@@ -51,7 +52,7 @@ fun StatCard(
                         modifier = Modifier.size(18.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(ThemeMode.spacing.small))
+                Spacer(modifier = Modifier.width(AppTheme.spacing.small))
                 Text(
                     text = title,
                     style = MaterialTheme.typography.labelMedium,

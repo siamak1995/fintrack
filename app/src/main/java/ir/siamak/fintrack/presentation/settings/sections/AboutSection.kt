@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.settings.components
+package ir.siamak.fintrack.presentation.settings.sections
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,9 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SettingsGroup(
-    title: String,
-    content: @Composable () -> Unit
+fun AboutSection(
+    version: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -23,10 +22,14 @@ fun SettingsGroup(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = title,
+                text = "درباره برنامه",
                 style = MaterialTheme.typography.titleMedium
             )
-            content()
+
+            Text(
+                text = "نسخه برنامه: $version",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
