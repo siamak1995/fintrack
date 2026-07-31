@@ -1,5 +1,7 @@
 package ir.siamak.fintrack.presentation.transaction
 
+import ir.siamak.fintrack.data.model.TransactionType
+
 /**
  * User actions for transaction list screen.
  */
@@ -36,5 +38,6 @@ sealed interface TransactionListEvent {
         val filter: TransactionListFilter
     ) : TransactionListEvent
 
+    data class OnTypeFilterChanged(val type: TransactionType?) : TransactionListEvent
 
 }

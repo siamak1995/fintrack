@@ -52,6 +52,9 @@ class TransactionListViewModel @Inject constructor(
                     )
                 }
             }
+            is TransactionListEvent.OnTypeFilterChanged -> {
+                onTransactionTypeChanged(event.type)
+            }
 
             TransactionListEvent.OnClearFiltersClicked -> {
                 val newFilter = TransactionListFilter()

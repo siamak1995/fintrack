@@ -10,6 +10,7 @@ import ir.siamak.fintrack.data.model.Wallet
  */
 data class AddEditTransactionState(
 
+    val filteredTags: List<Tag> = emptyList(),
     /**
      * اگر null باشد یعنی در حالت ثبت جدید هستیم.
      * اگر مقدار داشته باشد یعنی صفحه در حالت ویرایش است.

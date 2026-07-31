@@ -14,11 +14,19 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButton
@@ -26,10 +34,12 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -39,22 +49,12 @@ import ir.siamak.fintrack.presentation.components.FTButton
 import ir.siamak.fintrack.presentation.components.FTTextField
 import ir.siamak.fintrack.presentation.components.FTTopBar
 import ir.siamak.fintrack.presentation.theme.AppTheme
-import ir.siamak.fintrack.presentation.theme.ThemeMode
 import kotlinx.coroutines.flow.collectLatest
 
 /**
- * صفحه ثبت یا ویرایش تراکنش.
- *
- * این صفحه فرم کامل تراکنش را نمایش می‌دهد و با توجه به وجود
- * `currentTransactionId` بین حالت ثبت و ویرایش سوییچ می‌کند.
- *
- * ویژگی‌ها:
- * - نمایش عنوان پویا برای ثبت/ویرایش
- * - پشتیبانی از سه نوع تراکنش: هزینه، درآمد، انتقال
- * - نمایش و انتخاب حساب، عضو و تگ
- * - نمایش دکمه حذف فقط در حالت ویرایش
+ * صفحه بازطراحی‌شده ثبت یا ویرایش تراکنش.
  */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditTransactionScreen(
     onBack: () -> Unit,
@@ -106,6 +106,7 @@ fun AddEditTransactionScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.medium)
         ) {
+            // ۱. انتخابگر نوع تراکنش
             TransactionTypeSelector(
                 selectedType = state.type,
                 onTypeSelected = {
@@ -113,101 +114,155 @@ fun AddEditTransactionScreen(
                 }
             )
 
-            FTTextField(
-                value = state.amount,
-                onValueChange = {
-                    viewModel.onEvent(AddEditTransactionEvent.EnteredAmount(it))
-                },
-                label = "مبلغ (تومان)",
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            // ۲. کارت فیلدهای مالی و اصلی
+            OutlinedCard(
                 modifier = Modifier.fillMaxWidth()
-            )
-
-            SectionTitle(
-                text = if (state.type == TransactionType.TRANSFER) {
-                    "از حساب (مبدا)"
-                } else {
-                    "انتخاب حساب"
-                }
-            )
-
-            if (state.wallets.isEmpty()) {
-                HintText(text = "ابتدا یک حساب در بخش حساب‌ها بسازید", isError = true)
-            } else {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(AppTheme.spacing.medium)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.medium)
                 ) {
-                    state.wallets.forEach { wallet ->
-                        FilterChip(
-                            selected = state.selectedWalletId == wallet.id,
-                            onClick = {
-                                viewModel.onEvent(AddEditTransactionEvent.WalletSelected(wallet.id))
-                            },
-                            label = { Text(wallet.name) }
-                        )
-                    }
-                }
-            }
+                    FTTextField(
+                        value = state.amount,
+                        onValueChange = {
+                            viewModel.onEvent(AddEditTransactionEvent.EnteredAmount(it))
+                        },
+                        label = "مبلغ (تومان)",
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-            if (state.type == TransactionType.TRANSFER) {
-                SectionTitle(text = "به حساب (مقصد)")
+                    // فیلد انتخاب حساب مبدا (کشویی)
+                    if (state.wallets.isEmpty()) {
+                        HintText(text = "ابتدا یک حساب در بخش حساب‌ها بسازید", isError = true)
+                    } else {
+                        val selectedWalletName = state.wallets.firstOrNull { it.id == state.selectedWalletId }?.name ?: "انتخاب حساب مبدا"
+                        var walletDropdownExpanded by remember { mutableStateOf(false) }
 
-                if (state.wallets.isEmpty()) {
-                    HintText(text = "حسابی برای انتخاب وجود ندارد", isError = true)
-                } else {
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        state.wallets.forEach { wallet ->
-                            FilterChip(
-                                selected = state.selectedToWalletId == wallet.id,
-                                onClick = {
-                                    viewModel.onEvent(AddEditTransactionEvent.ToWalletSelected(wallet.id))
-                                },
-                                label = { Text(wallet.name) }
+                        ExposedDropdownMenuBox(
+                            expanded = walletDropdownExpanded,
+                            onExpandedChange = { walletDropdownExpanded = it }
+                        ) {
+                            OutlinedTextField(
+                                value = selectedWalletName,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text(if (state.type == TransactionType.TRANSFER) "از حساب (مبدا)" else "انتخاب حساب") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = walletDropdownExpanded) },
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth()
                             )
+                            ExposedDropdownMenu(
+                                expanded = walletDropdownExpanded,
+                                onDismissRequest = { walletDropdownExpanded = false }
+                            ) {
+                                state.wallets.forEach { wallet ->
+                                    DropdownMenuItem(
+                                        text = { Text(wallet.name) },
+                                        onClick = {
+                                            viewModel.onEvent(AddEditTransactionEvent.WalletSelected(wallet.id))
+                                            walletDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // فیلد انتخاب حساب مقصد (کشویی - مخصوص حالت انتقال)
+                    if (state.type == TransactionType.TRANSFER) {
+                        if (state.wallets.isEmpty()) {
+                            HintText(text = "حسابی برای انتخاب وجود ندارد", isError = true)
+                        } else {
+                            val selectedToWalletName = state.wallets.firstOrNull { it.id == state.selectedToWalletId }?.name ?: "انتخاب حساب مقصد"
+                            var toWalletDropdownExpanded by remember { mutableStateOf(false) }
+
+                            ExposedDropdownMenuBox(
+                                expanded = toWalletDropdownExpanded,
+                                onExpandedChange = { toWalletDropdownExpanded = it }
+                            ) {
+                                OutlinedTextField(
+                                    value = selectedToWalletName,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("به حساب (مقصد)") },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = toWalletDropdownExpanded) },
+                                    modifier = Modifier
+                                        .menuAnchor()
+                                        .fillMaxWidth()
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = toWalletDropdownExpanded,
+                                    onDismissRequest = { toWalletDropdownExpanded = false }
+                                ) {
+                                    state.wallets.forEach { wallet ->
+                                        DropdownMenuItem(
+                                            text = { Text(wallet.name) },
+                                            onClick = {
+                                                viewModel.onEvent(AddEditTransactionEvent.ToWalletSelected(wallet.id))
+                                                toWalletDropdownExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // فیلد انتخاب عضو (کشویی)
+                    if (state.members.isEmpty()) {
+                        HintText(text = "ابتدا یک عضو در بخش اعضا بسازید", isError = true)
+                    } else {
+                        val selectedMemberName = state.members.firstOrNull { it.id == state.selectedMemberId }?.name ?: "انتخاب عضو"
+                        var memberDropdownExpanded by remember { mutableStateOf(false) }
+
+                        ExposedDropdownMenuBox(
+                            expanded = memberDropdownExpanded,
+                            onExpandedChange = { memberDropdownExpanded = it }
+                        ) {
+                            OutlinedTextField(
+                                value = selectedMemberName,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("انتخاب عضو") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = memberDropdownExpanded) },
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = memberDropdownExpanded,
+                                onDismissRequest = { memberDropdownExpanded = false }
+                            ) {
+                                state.members.forEach { member ->
+                                    DropdownMenuItem(
+                                        text = { Text(member.name) },
+                                        onClick = {
+                                            viewModel.onEvent(AddEditTransactionEvent.MemberSelected(member.id))
+                                            memberDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            SectionTitle(text = "انتخاب عضو")
-
-            if (state.members.isEmpty()) {
-                HintText(text = "ابتدا یک عضو در بخش اعضا بسازید", isError = true)
-            } else {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    state.members.forEach { member ->
-                        FilterChip(
-                            selected = state.selectedMemberId == member.id,
-                            onClick = {
-                                viewModel.onEvent(AddEditTransactionEvent.MemberSelected(member.id))
-                            },
-                            label = { Text(member.name) }
-                        )
-                    }
-                }
-            }
-
+            // ۳. بخش تگ‌ها (فیلترشده بر اساس نوع تراکنش)
             SectionTitle(text = "تگ‌ها")
-
-            if (state.tags.isEmpty()) {
-                HintText(text = "هنوز تگی ساخته نشده است")
+            if (state.filteredTags.isEmpty()) {
+                HintText(text = "تگ مناسبی برای این نوع تراکنش تعریف نشده است")
             } else {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    state.tags.forEach { tag ->
+                    state.filteredTags.forEach { tag ->
                         FilterChip(
                             selected = tag.id in state.selectedTagIds,
                             onClick = {
@@ -221,12 +276,13 @@ fun AddEditTransactionScreen(
 
             if (state.type != TransactionType.TRANSFER) {
                 Text(
-                    text = "دسته‌بندی ذخیره‌شده: ${state.selectedCategoryName}",
+                    text = "دسته‌بندی خودکار: ${state.selectedCategoryName}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
+            // ۴. فیلد یادداشت تراکنش
             FTTextField(
                 value = state.note,
                 onValueChange = {
@@ -236,8 +292,9 @@ fun AddEditTransactionScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.weight(1f, fill = true))
+            Spacer(modifier = Modifier.weight(1f))
 
+            // ۵. دکمه‌های عملیات پایین فرم
             FTButton(
                 text = if (isEditMode) "ذخیره تغییرات" else "ذخیره تراکنش",
                 onClick = {
@@ -267,21 +324,16 @@ fun AddEditTransactionScreen(
     }
 }
 
-/**
- * تیتر کوچک هر سکشن فرم.
- */
 @Composable
 private fun SectionTitle(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.padding(horizontal = 4.dp)
     )
 }
 
-/**
- * متن راهنما یا خطا برای وضعیت‌های خالی.
- */
 @Composable
 private fun HintText(
     text: String,
@@ -294,13 +346,12 @@ private fun HintText(
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         },
-        style = MaterialTheme.typography.bodySmall
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.padding(horizontal = 4.dp)
     )
 }
 
-/**
- * انتخابگر نوع تراکنش.
- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TransactionTypeSelector(

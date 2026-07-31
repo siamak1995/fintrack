@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.siamak.fintrack.core.extensions.formatAmount
 import ir.siamak.fintrack.core.extensions.persianToEnglishDigits
+import ir.siamak.fintrack.core.extensions.toPersianDigits
 import ir.siamak.fintrack.data.model.Tag
 import ir.siamak.fintrack.data.model.Transaction
 import ir.siamak.fintrack.data.model.TransactionType
@@ -23,19 +24,6 @@ import javax.inject.Inject
 
 /**
  * ویومدل صفحه ثبت و ویرایش تراکنش.
- *
- * مسئولیت‌ها:
- * - بارگذاری داده‌های اولیه مانند حساب‌ها، اعضا و تگ‌ها
- * - بارگذاری تراکنش در حالت ویرایش
- * - نگهداری state فرم
- * - اعتبارسنجی و ذخیره/ویرایش/حذف تراکنش
- * - همگام‌سازی دسته‌بندی نمایشی با تگ انتخاب‌شده در UI فعلی
- *
- * نکته:
- * در UI فعلی، کاربر دسته‌بندی جداگانه انتخاب نمی‌کند و فقط تگ‌ها را می‌بیند.
- * بنابراین برای جلوگیری از ذخیره شدن مقدار پیش‌فرض "سایر"، دسته‌بندی را
- * از اولین تگ انتخاب‌شده استخراج می‌کنیم؛ مگر در حالت انتقال که دسته‌بندی
- * همیشه "انتقال" است.
  */
 @HiltViewModel
 class AddEditTransactionViewModel @Inject constructor(
@@ -66,22 +54,28 @@ class AddEditTransactionViewModel @Inject constructor(
         }
     }
 
-
-
-    /**
-     * واکشی تگ‌ها و قرار دادن آن‌ها در state.
-     */
     private fun loadTags() {
         viewModelScope.launch {
             tagRepository.getAllTags().collect { tagsList ->
-                _state.value = _state.value.copy(tags = tagsList)
+                val currentType = _state.value.type
+                val filteredTags = tagsList.filterAllowedFor(currentType)
+
+                val allowedIds = filteredTags.map { it.id }.toSet()
+                val validSelectedTagIds = _state.value.selectedTagIds.filter { it in allowedIds }
+
+                _state.value = _state.value.copy(
+                    tags = tagsList,
+                    filteredTags = filteredTags,
+                    selectedTagIds = validSelectedTagIds,
+                    selectedCategoryName = resolveCategoryForType(
+                        type = currentType,
+                        tagIds = validSelectedTagIds
+                    )
+                )
             }
         }
     }
 
-    /**
-     * واکشی اعضا و تعیین مقدار پیش‌فرض در حالت ثبت.
-     */
     private fun loadMembers() {
         viewModelScope.launch {
             memberUseCases.getAllMembers().collect { members ->
@@ -97,9 +91,6 @@ class AddEditTransactionViewModel @Inject constructor(
         }
     }
 
-    /**
-     * واکشی حساب‌ها و تعیین مقدار پیش‌فرض در حالت ثبت.
-     */
     private fun loadWallets() {
         viewModelScope.launch {
             walletUseCases.getAllWallets().collect { wallets ->
@@ -115,19 +106,8 @@ class AddEditTransactionViewModel @Inject constructor(
         }
     }
 
-    /**
-     * بارگذاری تراکنش موجود برای ویرایش.
-     *
-     * این متد علاوه بر پر کردن فرم، تگ‌های انتخاب‌شده و مبلغ خام/نمایشی را
-     * نیز بازیابی می‌کند.
-     */
     private suspend fun loadTransaction(transactionId: Long) {
         val transaction = transactionUseCases.getTransactionById(transactionId) ?: return
-
-        handleTypeChange(
-            type = transaction.type,
-            clearSelectedTags = false
-        )
 
         val rawAmount = BigDecimal.valueOf(transaction.amount)
             .stripTrailingZeros()
@@ -145,14 +125,11 @@ class AddEditTransactionViewModel @Inject constructor(
             note = transaction.note,
             selectedTagIds = transaction.tags.map { it.id }
         )
+
+        // فیلتر کردن تگ‌ها بعد از بارگذاری اطلاعات تراکنش جهت همگام‌سازی تگ‌های انتخابی
+        filterTagsForType(transaction.type, clearInvalidSelected = false)
     }
 
-
-
-
-    /**
-     * پردازش رویدادهای UI.
-     */
     fun onEvent(event: AddEditTransactionEvent) {
         when (event) {
             is AddEditTransactionEvent.EnteredAmount -> handleAmountChange(event.value)
@@ -178,16 +155,6 @@ class AddEditTransactionViewModel @Inject constructor(
         }
     }
 
-    /**
-     * مدیریت تغییر مبلغ ورودی.
-     *
-     * ورودی کاربر:
-     * - از ارقام فارسی/انگلیسی پشتیبانی می‌کند
-     * - ویرگول‌ها را حذف می‌کند
-     * - فقط رقم نگه می‌دارد
-     *
-     * سپس مقدار خام و مقدار فرمت‌شده نمایشی به‌روزرسانی می‌شوند.
-     */
     private fun handleAmountChange(value: String) {
         val clean = value
             .persianToEnglishDigits()
@@ -200,75 +167,69 @@ class AddEditTransactionViewModel @Inject constructor(
         )
     }
 
-    /**
-     * مدیریت تغییر نوع تراکنش.
-     *
-     * در حالت انتقال:
-     * - دسته‌بندی همیشه "انتقال" است
-     * - حساب مقصد مجاز است
-     *
-     * در حالت غیرانتقال:
-     * - حساب مقصد پاک می‌شود
-     * - اگر قبلاً "انتقال" بوده، دسته‌بندی از روی اولین تگ انتخابی یا "سایر" بازسازی می‌شود
-     */
-    private fun handleTypeChange(
-        type: TransactionType,
-        clearSelectedTags: Boolean = true
-    ) {
-        val nextCategory = if (type == TransactionType.TRANSFER) {
-            "انتقال"
-        } else if (_state.value.type == TransactionType.TRANSFER) {
-            resolveCategoryFromTagIds(_state.value.selectedTagIds)
-        } else {
-            _state.value.selectedCategoryName
-        }
+    private fun handleTypeChange(type: TransactionType) {
+        val filteredTags = _state.value.tags.filterAllowedFor(type)
+        val allowedIds = filteredTags.map { it.id }.toSet()
+        val validSelectedTagIds = _state.value.selectedTagIds.filter { it in allowedIds }
 
         _state.value = _state.value.copy(
             type = type,
-            selectedCategoryName = nextCategory,
+            filteredTags = filteredTags,
+            selectedTagIds = validSelectedTagIds,
             selectedToWalletId = if (type == TransactionType.TRANSFER) {
                 _state.value.selectedToWalletId
             } else {
                 null
             },
-            selectedTagIds = if (clearSelectedTags) emptyList() else _state.value.selectedTagIds
+            selectedCategoryName = resolveCategoryForType(
+                type = type,
+                tagIds = validSelectedTagIds
+            )
         )
     }
 
-
-
-
-    /**
-     * انتخاب یا لغو انتخاب تگ.
-     *
-     * چون UI فعلی دسته‌بندی جداگانه ندارد، پس از هر تغییر تگ:
-     * - اگر نوع تراکنش انتقال نباشد
-     * - دسته‌بندی از اولین تگ انتخاب‌شده استخراج می‌شود
-     * - و اگر هیچ تگی انتخاب نباشد، "سایر" قرار می‌گیرد
-     */
-    private fun handleTagToggle(tagId: Long) {
-        val currentTags = _state.value.selectedTagIds
-        val updatedTags = if (tagId in currentTags) {
-            currentTags - tagId
+    private fun filterTagsForType(type: TransactionType, clearInvalidSelected: Boolean) {
+        val allTags = _state.value.tags
+        val filtered = allTags.filter { it.allowedType == null || it.allowedType == type }
+        val updatedTagIds = if (clearInvalidSelected) {
+            val allowedIds = filtered.map { it.id }.toSet()
+            _state.value.selectedTagIds.filter { it in allowedIds }
         } else {
-            currentTags + tagId
+            _state.value.selectedTagIds
         }
 
-        val nextCategory = if (_state.value.type  == TransactionType.TRANSFER) {
+        val nextCategory = if (type == TransactionType.TRANSFER) {
             "انتقال"
         } else {
-            resolveCategoryFromTagIds(updatedTags)
+            resolveCategoryFromTagIds(updatedTagIds)
         }
 
         _state.value = _state.value.copy(
-            selectedTagIds = updatedTags,
+            filteredTags = filtered,
+            selectedTagIds = updatedTagIds,
             selectedCategoryName = nextCategory
         )
     }
 
-    /**
-     * ذخیره یا ویرایش تراکنش با اعتبارسنجی کامل.
-     */
+    private fun handleTagToggle(tagId: Long) {
+        val isAllowed = _state.value.filteredTags.any { it.id == tagId }
+        if (!isAllowed) return
+
+        val updatedTagIds = if (tagId in _state.value.selectedTagIds) {
+            _state.value.selectedTagIds - tagId
+        } else {
+            _state.value.selectedTagIds + tagId
+        }
+
+        _state.value = _state.value.copy(
+            selectedTagIds = updatedTagIds,
+            selectedCategoryName = resolveCategoryForType(
+                type = _state.value.type,
+                tagIds = updatedTagIds
+            )
+        )
+    }
+
     private fun saveTransaction() {
         viewModelScope.launch {
             val amount = _state.value.amountRaw.toDoubleOrNull() ?: 0.0
@@ -346,9 +307,6 @@ class AddEditTransactionViewModel @Inject constructor(
         }
     }
 
-    /**
-     * حذف تراکنش جاری.
-     */
     private fun deleteTransaction() {
         viewModelScope.launch {
             val currentId = _state.value.currentTransactionId
@@ -372,18 +330,10 @@ class AddEditTransactionViewModel @Inject constructor(
         }
     }
 
-    /**
-     * استخراج دسته‌بندی از تگ‌های انتخاب‌شده فعلی.
-     */
     private fun resolveCategoryFromSelectedTags(): String {
         return resolveCategoryFromTagIds(_state.value.selectedTagIds)
     }
 
-    /**
-     * استخراج دسته‌بندی از روی اولین تگ انتخاب‌شده.
-     *
-     * اگر هیچ تگی انتخاب نشده باشد، مقدار پیش‌فرض "سایر" برمی‌گردد.
-     */
     private fun resolveCategoryFromTagIds(tagIds: List<Long>): String {
         return _state.value.tags
             .firstOrNull { it.id in tagIds }
@@ -392,34 +342,25 @@ class AddEditTransactionViewModel @Inject constructor(
             ?: "سایر"
     }
 
-    /**
-     * تبدیل ارقام انگلیسی رشته به فارسی برای نمایش در UI.
-     */
-    private fun String.toPersianDigits(): String {
-        return buildString(length) {
-            for (char in this@toPersianDigits) {
-                append(
-                    when (char) {
-                        '0' -> '۰'
-                        '1' -> '۱'
-                        '2' -> '۲'
-                        '3' -> '۳'
-                        '4' -> '۴'
-                        '5' -> '۵'
-                        '6' -> '۶'
-                        '7' -> '۷'
-                        '8' -> '۸'
-                        '9' -> '۹'
-                        else -> char
-                    }
-                )
-            }
+    private fun List<Tag>.filterAllowedFor(type: TransactionType): List<Tag> {
+        return filter { tag ->
+            tag.allowedType == null || tag.allowedType == type
         }
     }
 
-    /**
-     * رویدادهای یک‌بارمصرف UI.
-     */
+    private fun resolveCategoryForType(
+        type: TransactionType,
+        tagIds: List<Long>
+    ): String {
+        if (type == TransactionType.TRANSFER) return "انتقال"
+
+        return _state.value.tags
+            .firstOrNull { tag -> tag.id in tagIds }
+            ?.name
+            ?.takeIf { it.isNotBlank() }
+            ?: "سایر"
+    }
+
     sealed class UiEvent {
         data class ShowSnackbar(val message: String) : UiEvent()
         object SaveSuccess : UiEvent()
