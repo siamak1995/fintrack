@@ -55,27 +55,44 @@ private val DarkColors = darkColorScheme(
     onError = DarkOnError
 )
 
+/**
+ * تم اصلی برنامه FinTrack.
+ *
+ * این تم حالت روشن/تاریک و رنگ پویا را بر اساس تنظیمات ذخیره‌شده کاربر اعمال می‌کند.
+ */
 @Composable
 fun FinTrackTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    val systemDarkTheme = isSystemInDarkTheme()
+
+    val darkTheme = when (themeMode) {
+        ThemeMode.SYSTEM -> systemDarkTheme
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalView.current.context
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         darkTheme -> DarkColors
         else -> LightColors
     }
 
     val view = LocalView.current
+
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
+
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
         }
     }
 
@@ -92,7 +109,11 @@ fun FinTrackTheme(
     }
 }
 
+/**
+ * دسترسی متمرکز به مقادیر طراحی برنامه.
+ */
 object AppTheme {
+
     val spacing: Spacing
         @Composable
         get() = LocalSpacing.current

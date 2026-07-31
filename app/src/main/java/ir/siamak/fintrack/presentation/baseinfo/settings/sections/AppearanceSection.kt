@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.settings.sections
+package ir.siamak.fintrack.presentation.baseinfo.settings.sections
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,8 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Currency
-import ir.siamak.fintrack.presentation.settings.AppLanguage
-import ir.siamak.fintrack.presentation.settings.toDisplayName
+import ir.siamak.fintrack.presentation.baseinfo.settings.AppLanguage
+import ir.siamak.fintrack.presentation.baseinfo.settings.toDisplayName
 import ir.siamak.fintrack.presentation.theme.ThemeMode
 
 @Composable

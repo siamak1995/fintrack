@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.settings.components
+package ir.siamak.fintrack.presentation.baseinfo.settings.components
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text

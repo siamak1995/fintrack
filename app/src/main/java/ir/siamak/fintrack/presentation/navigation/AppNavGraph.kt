@@ -285,7 +285,7 @@ fun AppNavGraph(navController: NavHostController) {
                  * صفحه تنظیمات.
                  */
                 composable<Screen.Settings> {
-                    ir.siamak.fintrack.presentation.settings.navigation.SettingsRoute(
+                    ir.siamak.fintrack.presentation.baseinfo.settings.navigation.SettingsRoute(
                         onBackClick = { navController.popBackStack() }
                     )
                 }

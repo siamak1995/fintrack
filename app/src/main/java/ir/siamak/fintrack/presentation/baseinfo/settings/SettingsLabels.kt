@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.settings
+package ir.siamak.fintrack.presentation.baseinfo.settings
 
 import ir.siamak.fintrack.data.model.Currency
 import ir.siamak.fintrack.presentation.theme.ThemeMode

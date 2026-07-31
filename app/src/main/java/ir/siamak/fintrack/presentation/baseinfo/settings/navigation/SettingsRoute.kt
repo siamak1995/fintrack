@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.settings.navigation
+package ir.siamak.fintrack.presentation.baseinfo.settings.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,8 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ir.siamak.fintrack.presentation.settings.SettingsScreen
-import ir.siamak.fintrack.presentation.settings.SettingsViewModel
+import ir.siamak.fintrack.presentation.baseinfo.settings.SettingsScreen
+import ir.siamak.fintrack.presentation.baseinfo.settings.SettingsViewModel
 
 /**
  * Route صفحه تنظیمات.

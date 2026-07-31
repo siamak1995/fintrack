@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.settings
+package ir.siamak.fintrack.presentation.baseinfo.settings
 
 sealed interface SettingsUiAction {
     data object OpenBackup : SettingsUiAction

@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.settings
+package ir.siamak.fintrack.presentation.baseinfo.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,11 +20,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import ir.siamak.fintrack.presentation.settings.sections.AboutSection
-import ir.siamak.fintrack.presentation.settings.sections.AppearanceSection
-import ir.siamak.fintrack.presentation.settings.sections.GeneralSection
-import ir.siamak.fintrack.presentation.settings.sections.NotificationSection
-import ir.siamak.fintrack.presentation.settings.sections.SecuritySection
+import ir.siamak.fintrack.presentation.baseinfo.settings.sections.AboutSection
+import ir.siamak.fintrack.presentation.baseinfo.settings.sections.AppearanceSection
+import ir.siamak.fintrack.presentation.baseinfo.settings.sections.GeneralSection
+import ir.siamak.fintrack.presentation.baseinfo.settings.sections.NotificationSection
+import ir.siamak.fintrack.presentation.baseinfo.settings.sections.SecuritySection
 
 @Composable
 fun SettingsScreen(

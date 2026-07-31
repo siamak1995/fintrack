@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.settings.sections
+package ir.siamak.fintrack.presentation.baseinfo.settings.sections
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,8 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AboutSection(
-    version: String
+fun SecuritySection(
+    biometricEnabled: Boolean,
+    pinEnabled: Boolean,
+    onBiometricChanged: (Boolean) -> Unit,
+    onPinChanged: (Boolean) -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -23,13 +26,20 @@ fun AboutSection(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "درباره برنامه",
+                text = "امنیت",
                 style = MaterialTheme.typography.titleMedium
             )
 
-            Text(
-                text = "نسخه برنامه: $version",
-                style = MaterialTheme.typography.bodyMedium
+            SectionSwitchRow(
+                title = "ورود با اثر انگشت",
+                checked = biometricEnabled,
+                onCheckedChange = onBiometricChanged
+            )
+
+            SectionSwitchRow(
+                title = "قفل با PIN",
+                checked = pinEnabled,
+                onCheckedChange = onPinChanged
             )
         }
     }

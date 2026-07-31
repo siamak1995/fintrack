@@ -1,8 +1,8 @@
 package ir.siamak.fintrack.domain.settings
 
 import ir.siamak.fintrack.data.model.Currency
-import ir.siamak.fintrack.presentation.settings.AppLanguage
-import ir.siamak.fintrack.presentation.settings.FirstDayOfWeek
+import ir.siamak.fintrack.presentation.baseinfo.settings.AppLanguage
+import ir.siamak.fintrack.presentation.baseinfo.settings.FirstDayOfWeek
 import ir.siamak.fintrack.presentation.theme.ThemeMode
 
 data class AppSettings(

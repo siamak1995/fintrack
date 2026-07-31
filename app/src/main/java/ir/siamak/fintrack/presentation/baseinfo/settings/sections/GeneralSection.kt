@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.settings.sections
+package ir.siamak.fintrack.presentation.baseinfo.settings.sections
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,8 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import ir.siamak.fintrack.presentation.settings.FirstDayOfWeek
-import ir.siamak.fintrack.presentation.settings.toDisplayName
+import ir.siamak.fintrack.presentation.baseinfo.settings.FirstDayOfWeek
+import ir.siamak.fintrack.presentation.baseinfo.settings.toDisplayName
 
 @Composable
 fun GeneralSection(

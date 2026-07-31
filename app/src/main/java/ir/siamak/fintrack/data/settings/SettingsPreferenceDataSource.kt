@@ -9,9 +9,10 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import ir.siamak.fintrack.data.model.Currency
 import ir.siamak.fintrack.domain.settings.AppSettings
-import ir.siamak.fintrack.presentation.settings.AppLanguage
-import ir.siamak.fintrack.presentation.settings.FirstDayOfWeek
+import ir.siamak.fintrack.presentation.baseinfo.settings.AppLanguage
+import ir.siamak.fintrack.presentation.baseinfo.settings.FirstDayOfWeek
 import ir.siamak.fintrack.presentation.theme.ThemeMode
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -20,10 +21,7 @@ import javax.inject.Singleton
 private val Context.settingsDataStore by preferencesDataStore(name = "app_settings")
 
 /**
- * منبع داده تنظیمات مبتنی بر DataStore.
- *
- * این کلاس تنظیمات را به‌صورت پایدار در حافظه دائمی ذخیره می‌کند
- * تا بعد از بسته شدن برنامه نیز باقی بمانند.
+ * منبع داده تنظیمات برنامه بر پایه DataStore Preferences.
  */
 @Singleton
 class SettingsPreferenceDataSource @Inject constructor(
@@ -44,10 +42,14 @@ class SettingsPreferenceDataSource @Inject constructor(
         val firstDayOfWeek = stringPreferencesKey("first_day_of_week")
     }
 
+    fun observeSettings(): Flow<AppSettings> {
+        return context.settingsDataStore.data.map { prefs ->
+            prefs.toAppSettings()
+        }
+    }
+
     suspend fun getSettings(): AppSettings {
-        return context.settingsDataStore.data
-            .map { prefs -> prefs.toAppSettings() }
-            .first()
+        return observeSettings().first()
     }
 
     suspend fun saveSettings(newSettings: AppSettings) {

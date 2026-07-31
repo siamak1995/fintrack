@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.settings
+package ir.siamak.fintrack.presentation.baseinfo.settings
 
 /**
  * زبان برنامه

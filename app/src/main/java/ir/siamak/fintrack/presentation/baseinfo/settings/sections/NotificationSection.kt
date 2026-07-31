@@ -1,4 +1,4 @@
-package ir.siamak.fintrack.presentation.settings.sections
+package ir.siamak.fintrack.presentation.baseinfo.settings.sections
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

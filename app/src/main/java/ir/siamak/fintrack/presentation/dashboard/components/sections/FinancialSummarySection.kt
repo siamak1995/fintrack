@@ -54,6 +54,14 @@ fun FinancialSummarySection(
         )
 
         SummaryCard(
+            title="پس‌انداز",
+            amount=saving,
+            icon=Icons.Default.Savings,
+            iconBackground=Color(0xFF10B981),
+            amountColor=Color(0xFF10B981)
+        )
+
+        SummaryCard(
             title="درآمد ماه",
             amount=income,
             icon=Icons.Default.TrendingUp,
@@ -69,13 +77,6 @@ fun FinancialSummarySection(
             amountColor=ErrorRed
         )
 
-        SummaryCard(
-            title="پس‌انداز",
-            amount=saving,
-            icon=Icons.Default.Savings,
-            iconBackground=Color(0xFF10B981),
-            amountColor=Color(0xFF10B981)
-        )
 
         SummaryCard(
             title="درآمد امروز",
