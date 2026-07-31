@@ -3,30 +3,31 @@ package ir.siamak.fintrack.presentation.baseinfo.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import ir.siamak.fintrack.domain.security.usecase.ClearPinUseCase
+import ir.siamak.fintrack.domain.security.usecase.ObserveSecuritySettingsUseCase
+import ir.siamak.fintrack.domain.security.usecase.SetBiometricEnabledUseCase
 import ir.siamak.fintrack.domain.settings.AppSettings
 import ir.siamak.fintrack.domain.settings.GetSettingsUseCase
 import ir.siamak.fintrack.domain.settings.ResetSettingsUseCase
 import ir.siamak.fintrack.domain.settings.SaveSettingsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * ViewModel صفحه تنظیمات.
- *
- * رفتار:
- * - هنگام ورود، تنظیمات ذخیره‌شده را load می‌کند
- * - تغییرات را ابتدا در state نگه می‌دارد
- * - فقط با رویداد Save آن‌ها را persist می‌کند
- * - Reset تنظیمات را به پیش‌فرض برمی‌گرداند و ذخیره می‌کند
+ * ViewModel صفحه تنظیمات با یکپارچه‌سازی امنیت و تنظیمات عمومی.
  */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val getSettingsUseCase: GetSettingsUseCase,
     private val saveSettingsUseCase: SaveSettingsUseCase,
-    private val resetSettingsUseCase: ResetSettingsUseCase
+    private val resetSettingsUseCase: ResetSettingsUseCase,
+    private val observeSecuritySettingsUseCase: ObserveSecuritySettingsUseCase,
+    private val clearPinUseCase: ClearPinUseCase,
+    private val setBiometricEnabledUseCase: SetBiometricEnabledUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -47,14 +48,54 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.ChangeTheme -> updateDraft { copy(theme = event.theme) }
             is SettingsEvent.ChangeCurrency -> updateDraft { copy(currency = event.currency) }
             is SettingsEvent.ChangeLanguage -> updateDraft { copy(language = event.language) }
-            is SettingsEvent.ToggleBiometric -> updateDraft { copy(biometricEnabled = event.enabled) }
-            is SettingsEvent.TogglePin -> updateDraft { copy(pinEnabled = event.enabled) }
+            is SettingsEvent.ToggleDynamicColor -> updateDraft { copy(dynamicColor = event.enabled) }
+            is SettingsEvent.ChangeFirstDay -> updateDraft { copy(firstDayOfWeek = event.day) }
+
             is SettingsEvent.ToggleNotification -> updateDraft { copy(notificationEnabled = event.enabled) }
             is SettingsEvent.ToggleInstallmentReminder -> updateDraft { copy(installmentReminder = event.enabled) }
             is SettingsEvent.ToggleDailyReminder -> updateDraft { copy(dailyReminder = event.enabled) }
             is SettingsEvent.ToggleBudgetReminder -> updateDraft { copy(budgetReminder = event.enabled) }
-            is SettingsEvent.ToggleDynamicColor -> updateDraft { copy(dynamicColor = event.enabled) }
-            is SettingsEvent.ChangeFirstDay -> updateDraft { copy(firstDayOfWeek = event.day) }
+
+            // مدیریت پین
+            is SettingsEvent.TogglePin -> {
+                if (event.enabled) {
+                    // درخواست باز کردن دیالوگ پین
+                    _state.update { it.copy(showPinSetup = true) }
+                } else {
+                    // غیرفعال‌سازی پین و بیومتریک از دیتابیس/دیتاستور امنیت
+                    viewModelScope.launch {
+                        clearPinUseCase()
+                        _state.update { it.copy(pinEnabled = false, biometricEnabled = false) }
+                        // همگام‌سازی با فایل تنظیمات عمومی
+                        saveGeneralSettingsWithSecurity(pin = false, biometric = false)
+                    }
+                }
+            }
+            SettingsEvent.PinSetupDismissed -> {
+                _state.update { it.copy(showPinSetup = false) }
+            }
+            SettingsEvent.PinSetupSuccess -> {
+                _state.update { it.copy(showPinSetup = false, pinEnabled = true) }
+                viewModelScope.launch {
+                    saveGeneralSettingsWithSecurity(pin = true, biometric = _state.value.biometricEnabled)
+                }
+            }
+
+            // مدیریت بیومتریک
+            is SettingsEvent.ToggleBiometric -> {
+                if (!_state.value.pinEnabled) {
+                    _state.update { it.copy(error = "برای استفاده از اثر انگشت، ابتدا باید قفل PIN را فعال کنید") }
+                } else {
+                    viewModelScope.launch {
+                        setBiometricEnabledUseCase(event.enabled)
+                        _state.update { it.copy(biometricEnabled = event.enabled) }
+                        saveGeneralSettingsWithSecurity(pin = true, biometric = event.enabled)
+                    }
+                }
+            }
+            is SettingsEvent.SetBiometricHardwareAvailable -> {
+                _state.update { it.copy(isBiometricHardwareAvailable = event.available) }
+            }
         }
     }
 
@@ -63,8 +104,10 @@ class SettingsViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, error = null) }
 
             runCatching {
-                getSettingsUseCase()
-            }.onSuccess { settings ->
+                val settings = getSettingsUseCase()
+                // خواندن آخرین وضعیت واقعی امنیت از ماژول امنیت
+                val security = observeSecuritySettingsUseCase().first()
+
                 persistedSettings = settings
                 _state.update {
                     it.copy(
@@ -73,8 +116,8 @@ class SettingsViewModel @Inject constructor(
                         theme = settings.theme,
                         currency = settings.currency,
                         language = settings.language,
-                        biometricEnabled = settings.biometricEnabled,
-                        pinEnabled = settings.pinEnabled,
+                        biometricEnabled = security.isBiometricEnabled,
+                        pinEnabled = security.isPinEnabled,
                         notificationEnabled = settings.notificationEnabled,
                         installmentReminder = settings.installmentReminder,
                         dailyReminder = settings.dailyReminder,
@@ -98,14 +141,7 @@ class SettingsViewModel @Inject constructor(
     private fun save() {
         viewModelScope.launch {
             val draft = stateToSettings(_state.value)
-
-            _state.update {
-                it.copy(
-                    isSaving = true,
-                    error = null,
-                    message = null
-                )
-            }
+            _state.update { it.copy(isSaving = true, error = null, message = null) }
 
             runCatching {
                 saveSettingsUseCase(draft)
@@ -129,18 +165,24 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    private suspend fun saveGeneralSettingsWithSecurity(pin: Boolean, biometric: Boolean) {
+        val updatedGeneralSettings = stateToSettings(_state.value).copy(
+            pinEnabled = pin,
+            biometricEnabled = biometric
+        )
+        runCatching {
+            saveSettingsUseCase(updatedGeneralSettings)
+            persistedSettings = updatedGeneralSettings
+        }
+    }
+
     private fun reset() {
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isSaving = true,
-                    error = null,
-                    message = null
-                )
-            }
+            _state.update { it.copy(isSaving = true, error = null, message = null) }
 
             runCatching {
                 resetSettingsUseCase()
+                clearPinUseCase() // ریست کردن تنظیمات امنیت فیزیکی
                 getSettingsUseCase()
             }.onSuccess { defaults ->
                 persistedSettings = defaults
@@ -151,8 +193,8 @@ class SettingsViewModel @Inject constructor(
                         theme = defaults.theme,
                         currency = defaults.currency,
                         language = defaults.language,
-                        biometricEnabled = defaults.biometricEnabled,
-                        pinEnabled = defaults.pinEnabled,
+                        biometricEnabled = false,
+                        pinEnabled = false,
                         notificationEnabled = defaults.notificationEnabled,
                         installmentReminder = defaults.installmentReminder,
                         dailyReminder = defaults.dailyReminder,

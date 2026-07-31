@@ -11,13 +11,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * بخش تنظیمات امنیتی برنامه شامل PIN و احراز هویت زیست‌سنجی.
+ */
 @Composable
 fun SecuritySection(
     biometricEnabled: Boolean,
     pinEnabled: Boolean,
+    isBiometricHardwareAvailable: Boolean,
     onBiometricChanged: (Boolean) -> Unit,
     onPinChanged: (Boolean) -> Unit
 ) {
+    val canUseBiometric = pinEnabled && isBiometricHardwareAvailable
+
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
@@ -31,15 +37,16 @@ fun SecuritySection(
             )
 
             SectionSwitchRow(
-                title = "ورود با اثر انگشت",
-                checked = biometricEnabled,
-                onCheckedChange = onBiometricChanged
-            )
-
-            SectionSwitchRow(
                 title = "قفل با PIN",
                 checked = pinEnabled,
                 onCheckedChange = onPinChanged
+            )
+
+            SectionSwitchRow(
+                title = "ورود با اثر انگشت",
+                checked = biometricEnabled && canUseBiometric,
+                enabled = canUseBiometric,
+                onCheckedChange = onBiometricChanged
             )
         }
     }

@@ -91,8 +91,13 @@ fun SettingsScreen(
                 SecuritySection(
                     biometricEnabled = state.biometricEnabled,
                     pinEnabled = state.pinEnabled,
-                    onBiometricChanged = { onEvent(SettingsEvent.ToggleBiometric(it)) },
-                    onPinChanged = { onEvent(SettingsEvent.TogglePin(it)) }
+                    isBiometricHardwareAvailable = state.isBiometricHardwareAvailable,
+                    onBiometricChanged = { enabled ->
+                        onEvent(SettingsEvent.ToggleBiometric(enabled))
+                    },
+                    onPinChanged = { enabled ->
+                        onEvent(SettingsEvent.TogglePin(enabled))
+                    }
                 )
             }
 

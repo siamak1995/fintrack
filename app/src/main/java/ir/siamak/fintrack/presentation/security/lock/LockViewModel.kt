@@ -29,7 +29,10 @@ class LockViewModel @Inject constructor(
         localState,
         observeSecuritySettingsUseCase()
     ) { state, settings ->
-        state.copy(canUseBiometric = settings.canUseBiometric)
+        state.copy(
+            shouldShowLockScreen = settings.shouldShowLockScreen && !state.isUnlocked,
+            canUseBiometric = settings.canUseBiometric
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

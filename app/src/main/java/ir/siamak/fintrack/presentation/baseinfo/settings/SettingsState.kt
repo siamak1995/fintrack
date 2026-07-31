@@ -5,12 +5,6 @@ import ir.siamak.fintrack.presentation.theme.ThemeMode
 
 /**
  * وضعیت UI صفحه تنظیمات.
- *
- * این state شامل:
- * - مقادیر فعلی قابل نمایش در فرم
- * - وضعیت ذخیره‌سازی
- * - پرچم وجود تغییرات
- * - پیام‌های موقت UI
  */
 data class SettingsState(
     val isLoading: Boolean = false,
@@ -29,5 +23,9 @@ data class SettingsState(
     val firstDayOfWeek: FirstDayOfWeek = FirstDayOfWeek.SATURDAY,
     val appVersion: String = "1.1.1",
     val message: String? = null,
-    val error: String? = null
+    val error: String? = null,
+
+    // فیلدهای کمکی امنیت
+    val showPinSetup: Boolean = false,
+    val isBiometricHardwareAvailable: Boolean = false
 )

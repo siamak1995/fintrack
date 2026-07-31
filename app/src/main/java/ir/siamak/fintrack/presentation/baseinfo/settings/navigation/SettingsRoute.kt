@@ -12,16 +12,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ir.siamak.fintrack.presentation.baseinfo.settings.SettingsEvent
 import ir.siamak.fintrack.presentation.baseinfo.settings.SettingsScreen
 import ir.siamak.fintrack.presentation.baseinfo.settings.SettingsViewModel
+import ir.siamak.fintrack.presentation.security.setup.PinSetupDialog
+import ir.siamak.fintrack.presentation.security.setup.PinSetupViewModel
+import ir.siamak.fintrack.security.BiometricAuthenticator
 
-/**
- * Route صفحه تنظیمات.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsRoute(
@@ -29,6 +32,14 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    // بررسی پشتیبانی دستگاه از سنسور اثرانگشت
+    LaunchedEffect(Unit) {
+        val authenticator = BiometricAuthenticator()
+        val isAvailable = authenticator.isBiometricAvailable(context)
+        viewModel.onEvent(SettingsEvent.SetBiometricHardwareAvailable(isAvailable))
+    }
 
     Scaffold(
         topBar = {
@@ -54,6 +65,19 @@ fun SettingsRoute(
                 state = state,
                 onEvent = viewModel::onEvent
             )
+
+            // نمایش دیالوگ راه‌اندازی پین در صورت نیاز
+            if (state.showPinSetup) {
+                val pinSetupViewModel: PinSetupViewModel = hiltViewModel()
+                val pinSetupState by pinSetupViewModel.state.collectAsStateWithLifecycle()
+
+                PinSetupDialog(
+                    state = pinSetupState,
+                    onEvent = pinSetupViewModel::onEvent,
+                    onDismiss = { viewModel.onEvent(SettingsEvent.PinSetupDismissed) },
+                    onSuccess = { viewModel.onEvent(SettingsEvent.PinSetupSuccess) }
+                )
+            }
         }
     }
 }
