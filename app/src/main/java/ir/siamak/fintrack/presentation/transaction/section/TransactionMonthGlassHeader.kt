@@ -30,20 +30,21 @@ fun TransactionMonthGlassHeader(
     monthKey: PersianMonthKey,
     count: Int,
     isExpanded: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val arrow = if (isExpanded) "⌄" else "‹"
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
-                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.50f),
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f)
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.42f),
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.36f)
                     )
                 )
             )
@@ -60,7 +61,7 @@ fun TransactionMonthGlassHeader(
             ) {
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(12.dp))
                         .background(
                             MaterialTheme.colorScheme.surface.copy(alpha = 0.62f)
                         )
@@ -89,7 +90,11 @@ fun TransactionMonthGlassHeader(
                     )
 
                     Text(
-                        text = if (isExpanded) "روزهای این ماه" else "برای مشاهده روزها باز کنید",
+                        text = if (isExpanded) {
+                            "روزهای این ماه"
+                        } else {
+                            "برای مشاهده روزها باز کنید"
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -97,7 +102,7 @@ fun TransactionMonthGlassHeader(
             }
 
             Surface(
-                shape = RoundedCornerShape(999.dp),
+                shape = RoundedCornerShape(50),
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.70f)
             ) {
                 Text(
@@ -115,3 +120,4 @@ fun TransactionMonthGlassHeader(
         }
     }
 }
+
