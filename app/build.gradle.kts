@@ -76,4 +76,6 @@ dependencies {
 //    برای آیکون
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+// اثر انگشت
+    implementation("androidx.biometric:biometric:1.1.0")
 }
