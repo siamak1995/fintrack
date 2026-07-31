@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.data.model.Currency
 import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.presentation.dashboard.parseColorSafely
+import java.text.DecimalFormat
 
 @Composable
 fun WalletCard(
@@ -34,7 +35,9 @@ fun WalletCard(
     onClick: () -> Unit
 ) {
     val color = parseColorSafely(wallet.color)
-    val balanceText: String = wallet.balance.toLong().toString().toPersianDigits()
+    // تغییر این بخش: استفاده از فرمت‌کننده برای جدا کردن ۳ رقم
+    val formattedBalance = DecimalFormat("#,###").format(wallet.balance.toLong())
+    val balanceText: String = formattedBalance.toPersianDigits()
     val currencyText: String = wallet.currency.toPersianLabel()
 
     Surface(
@@ -48,10 +51,7 @@ fun WalletCard(
             modifier = Modifier
                 .background(
                     Brush.linearGradient(
-                        listOf(
-                            color,
-                            color.copy(alpha = 0.70f)
-                        )
+                        listOf(color, color.copy(alpha = 0.70f))
                     )
                 )
                 .padding(horizontal = 14.dp, vertical = 12.dp)
@@ -66,57 +66,43 @@ fun WalletCard(
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
-
                 Icon(
                     imageVector = Icons.Default.CreditCard,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Text(
                 text = wallet.name,
                 color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.titleMedium
             )
-
             Spacer(modifier = Modifier.height(6.dp))
-
-            Row(
-                verticalAlignment = Alignment.Bottom
-            ) {
+            Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = balanceText,
                     color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.headlineSmall
                 )
-
                 Spacer(modifier = Modifier.width(6.dp))
-
                 Text(
                     text = currencyText,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.92f),
                     style = MaterialTheme.typography.titleSmall
                 )
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
+                Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "واحد پول",
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
                         style = MaterialTheme.typography.labelSmall
                     )
-
                     Text(
                         text = currencyText,
                         color = MaterialTheme.colorScheme.onPrimary,
@@ -124,9 +110,7 @@ fun WalletCard(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(10.dp))
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -162,6 +146,7 @@ private fun String.toPersianDigits(): String {
                     '7' -> '۷'
                     '8' -> '۸'
                     '9' -> '۹'
+                    ',' -> '،' // جایگزینی کامای انگلیسی با جداکننده فارسی در صورت نیاز
                     else -> char
                 }
             )

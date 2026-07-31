@@ -56,11 +56,11 @@ import ir.siamak.fintrack.data.model.Transaction
 import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.presentation.components.FTTopBar
 import ir.siamak.fintrack.presentation.transaction.TransactionList
-import ir.siamak.fintrack.presentation.transaction.TransactionListEmptyState
 import ir.siamak.fintrack.presentation.transaction.TransactionListEvent
 import ir.siamak.fintrack.presentation.transaction.TransactionListFilter
 import ir.siamak.fintrack.presentation.transaction.TransactionListState
 import ir.siamak.fintrack.presentation.transaction.TransactionListViewModel
+import ir.siamak.fintrack.presentation.transaction.section.TransactionListEmptyState
 
 @Composable
 fun TransactionListRoute(

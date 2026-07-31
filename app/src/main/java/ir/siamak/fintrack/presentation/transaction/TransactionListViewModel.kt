@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.siamak.fintrack.data.model.Member
 import ir.siamak.fintrack.data.model.Tag
 import ir.siamak.fintrack.data.model.Transaction
+import ir.siamak.fintrack.data.model.TransactionType
 import ir.siamak.fintrack.data.model.Wallet
 import ir.siamak.fintrack.domain.repository.TagRepository
 import ir.siamak.fintrack.domain.usecase.member.MemberUseCases
@@ -19,6 +20,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing transaction list screen state,
+ * filters, related base data, and available tags based on transaction type.
+ */
 @HiltViewModel
 class TransactionListViewModel @Inject constructor(
     private val transactionUseCases: TransactionUseCases,
@@ -49,23 +54,85 @@ class TransactionListViewModel @Inject constructor(
             }
 
             TransactionListEvent.OnClearFiltersClicked -> {
-                val clearedFilter = TransactionListFilter()
-
+                val newFilter = TransactionListFilter()
                 _state.update { current ->
                     current.copy(
-                        filter = clearedFilter,
+                        filter = newFilter,
                         filteredTransactions = applyFilters(
                             transactions = current.allTransactions,
-                            filter = clearedFilter
+                            filter = newFilter
                         )
                     )
                 }
             }
 
-            is TransactionListEvent.OnMemberFilterSelected -> Unit
-            is TransactionListEvent.OnWalletFilterSelected -> Unit
-            is TransactionListEvent.OnTagFilterToggled -> Unit
-            TransactionListEvent.OnAllTagsSelected -> Unit
+            is TransactionListEvent.OnMemberFilterSelected -> {
+                _state.update { current ->
+                    val updatedFilter = current.filter.copy(
+                        selectedMemberId = event.memberId
+                    )
+                    current.copy(
+                        filter = updatedFilter,
+                        filteredTransactions = applyFilters(
+                            transactions = current.allTransactions,
+                            filter = updatedFilter
+                        )
+                    )
+                }
+            }
+
+            is TransactionListEvent.OnWalletFilterSelected -> {
+                _state.update { current ->
+                    val updatedFilter = current.filter.copy(
+                        selectedWalletId = event.walletId
+                    )
+                    current.copy(
+                        filter = updatedFilter,
+                        filteredTransactions = applyFilters(
+                            transactions = current.allTransactions,
+                            filter = updatedFilter
+                        )
+                    )
+                }
+            }
+
+            is TransactionListEvent.OnTagFilterToggled -> {
+                _state.update { current ->
+                    val currentTagIds = current.filter.selectedTagIds
+                    val updatedTagIds = if (event.tagId in currentTagIds) {
+                        currentTagIds - event.tagId
+                    } else {
+                        currentTagIds + event.tagId
+                    }
+
+                    val updatedFilter = current.filter.copy(
+                        selectedTagIds = updatedTagIds
+                    )
+
+                    current.copy(
+                        filter = updatedFilter,
+                        filteredTransactions = applyFilters(
+                            transactions = current.allTransactions,
+                            filter = updatedFilter
+                        )
+                    )
+                }
+            }
+
+            TransactionListEvent.OnAllTagsSelected -> {
+                _state.update { current ->
+                    val updatedFilter = current.filter.copy(
+                        selectedTagIds = emptySet()
+                    )
+                    current.copy(
+                        filter = updatedFilter,
+                        filteredTransactions = applyFilters(
+                            transactions = current.allTransactions,
+                            filter = updatedFilter
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -85,6 +152,13 @@ class TransactionListViewModel @Inject constructor(
                 )
             }.collect { data ->
                 _state.update { current ->
+                    val selectedType = current.selectedTransactionType
+                    val availableTags = if (selectedType == null) {
+                        data.tags
+                    } else {
+                        data.tags.filter { it.allowedType == selectedType }
+                    }
+
                     val filteredTransactions = applyFilters(
                         transactions = data.transactions,
                         filter = current.filter
@@ -97,7 +171,8 @@ class TransactionListViewModel @Inject constructor(
                         filteredTransactions = filteredTransactions,
                         members = data.members,
                         wallets = data.wallets,
-                        tags = data.tags
+                        tags = data.tags,
+                        availableTags = availableTags
                     )
                 }
             }
@@ -109,22 +184,30 @@ class TransactionListViewModel @Inject constructor(
         filter: TransactionListFilter
     ): List<Transaction> {
         return transactions.filter { transaction ->
-            val memberMatches = filter.selectedMemberId == null ||
-                    transaction.memberId == filter.selectedMemberId
-
-            val walletMatches = filter.selectedWalletId == null ||
-                    transaction.walletId == filter.selectedWalletId
-
-            val tagMatches = filter.selectedTagIds.isEmpty() ||
-                    transaction.tags.any { tag -> tag.id in filter.selectedTagIds }
-
-            memberMatches && walletMatches && tagMatches
+            (filter.selectedMemberId == null || transaction.memberId == filter.selectedMemberId) &&
+                    (filter.selectedWalletId == null || transaction.walletId == filter.selectedWalletId) &&
+                    (filter.selectedTagIds.isEmpty() || transaction.tags.any { tag -> tag.id in filter.selectedTagIds })
         }
     }
 
     fun deleteTransaction(transaction: Transaction) {
         viewModelScope.launch {
             transactionUseCases.deleteTransaction(transaction)
+        }
+    }
+
+    fun onTransactionTypeChanged(newType: TransactionType?) {
+        _state.update { current ->
+            val filteredTags = if (newType == null) {
+                current.tags
+            } else {
+                current.tags.filter { it.allowedType == newType }
+            }
+
+            current.copy(
+                selectedTransactionType = newType,
+                availableTags = filteredTags
+            )
         }
     }
 

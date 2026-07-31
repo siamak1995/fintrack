@@ -3,6 +3,7 @@ package ir.siamak.fintrack.presentation.transaction
 import ir.siamak.fintrack.data.model.Member
 import ir.siamak.fintrack.data.model.Tag
 import ir.siamak.fintrack.data.model.Transaction
+import ir.siamak.fintrack.data.model.TransactionType
 import ir.siamak.fintrack.data.model.Wallet
 
 /**
@@ -16,6 +17,8 @@ data class TransactionListState(
     val members: List<Member> = emptyList(),
     val wallets: List<Wallet> = emptyList(),
     val tags: List<Tag> = emptyList(),
+    val availableTags: List<Tag> = emptyList(),
+    val selectedTransactionType: TransactionType? = null,
     val filter: TransactionListFilter = TransactionListFilter()
 ) {
     /**

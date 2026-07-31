@@ -25,3 +25,12 @@ fun String.persianToEnglishDigits(): String {
     return result
 }
 
+fun String.toPersianDigits(): String {
+    val englishDigits = "0123456789"
+    val persianDigits = "۰۱۲۳۴۵۶۷۸۹"
+
+    return map { char ->
+        val index = englishDigits.indexOf(char)
+        if (index >= 0) persianDigits[index] else char
+    }.joinToString("")
+}

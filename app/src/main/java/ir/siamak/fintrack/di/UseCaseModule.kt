@@ -88,8 +88,8 @@ object UseCaseModule {
             getTransactionsByWallet = GetTransactionsByWalletUseCase(transactionRepository),
             getTransactionById = GetTransactionByIdUseCase(transactionRepository),
             insertTransaction = InsertTransactionUseCase(transactionRepository, walletRepository),
-            updateTransaction = UpdateTransactionUseCase(transactionRepository),
-            deleteTransaction = DeleteTransactionUseCase(transactionRepository)
+            updateTransaction = UpdateTransactionUseCase(transactionRepository,walletRepository),
+            deleteTransaction = DeleteTransactionUseCase(transactionRepository,walletRepository),
         )
     }
 

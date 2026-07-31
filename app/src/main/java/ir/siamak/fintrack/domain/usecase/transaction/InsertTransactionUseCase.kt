@@ -62,6 +62,6 @@ class InsertTransactionUseCase @Inject constructor(
         }
 
         // ذخیره خود تراکنش در تاریخچه دیتابیس
-        transactionRepository.insert(transaction)
+        transactionRepository.insertTransaction(transaction)
     }
 }

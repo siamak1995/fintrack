@@ -11,22 +11,23 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ir.siamak.fintrack.presentation.baseinfo.tags.card.TagSwipeCard
 import ir.siamak.fintrack.presentation.components.FTTopBar
 
 @Composable
 fun TagListScreen(
-    viewModel: TagListViewModel,
     onBack: () -> Unit,
     onAddTag: () -> Unit,
-    onEditTag: (Long) -> Unit
+    onEditTag: (Long) -> Unit,
+    viewModel: TagListViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -39,26 +40,43 @@ fun TagListScreen(
                 onActionClick = onAddTag
             )
         }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            items(
-                items = state.tags,
-                key = { tag -> tag.id }
-            ) { tag ->
-                TagSwipeCard(
-                    tagId = tag.id,
-                    tagName = tag.name,
-                    onEditClick = { onEditTag(tag.id) },
-                    onDeleteClick = { viewModel.onEvent(TagListEvent.Delete(tag.id)) }
-                )
+    ) { paddingValues ->
+        TagListContent(
+            paddingValues = paddingValues,
+            state = state,
+            onEditTag = onEditTag,
+            onDeleteTag = { tagId ->
+                viewModel.onEvent(TagListEvent.Delete(tagId))
             }
+        )
+    }
+}
+
+@Composable
+private fun TagListContent(
+    paddingValues: PaddingValues,
+    state: TagListState,
+    onEditTag: (Long) -> Unit,
+    onDeleteTag: (Long) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        items(
+            items = state.tags,
+            key = { tag -> tag.id }
+        ) { tag ->
+            TagSwipeCard(
+                tag = tag,
+                onEditClick = { onEditTag(tag.id) },
+                onDeleteClick = { onDeleteTag(tag.id) },
+                onClick = { onEditTag(tag.id) }
+            )
         }
     }
 }

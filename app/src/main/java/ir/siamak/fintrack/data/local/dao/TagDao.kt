@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import ir.siamak.fintrack.data.local.entity.TagEntity
+import ir.siamak.fintrack.data.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -21,4 +22,7 @@ interface TagDao {
 
     @Query("DELETE FROM tags WHERE id = :id")
     suspend fun deleteTagById(id: Long)
+
+    @Query("SELECT * FROM tags WHERE allowedType = :type AND isDeleted = 0")
+    fun getTagsByType(type: TransactionType): Flow<List<TagEntity>>
 }

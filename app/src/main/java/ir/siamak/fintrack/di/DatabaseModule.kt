@@ -17,109 +17,419 @@ import ir.siamak.fintrack.data.local.dao.WalletDao
 import ir.siamak.fintrack.data.local.database.AppDatabase
 import javax.inject.Singleton
 
-/**
- * ماژول تزریق وابستگی مربوط به دیتابیس برنامه.
- *
- * وظیفه این ماژول:
- * - ساخت نمونه Singleton از [AppDatabase]
- *
- * این ماژول در سطح [SingletonComponent] نصب می‌شود، بنابراین
- * در کل طول عمر برنامه فقط یک نمونه از دیتابیس و DAO ساخته خواهد شد.
- */
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    val MIGRATION_1_4 = object : Migration(1, 4) {
+
+    /**
+     * Migration 1 -> 2
+     * اضافه شدن کیف پول مقصد برای انتقال بین حساب‌ها
+     */
+    val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(db: SupportSQLiteDatabase) {
 
-            // 1) transactions: اضافه شدن toWalletId (اگر نسخه 1 نداشت)
-            db.execSQL("ALTER TABLE transactions ADD COLUMN toWalletId INTEGER")
-            db.execSQL("CREATE INDEX IF NOT EXISTS index_transactions_toWalletId ON transactions(toWalletId)")
+            if (!columnExists(
+                    db,
+                    "transactions",
+                    "toWalletId"
+                )
+            ) {
+                db.execSQL(
+                    """
+                    ALTER TABLE transactions 
+                    ADD COLUMN toWalletId INTEGER
+                    """.trimIndent()
+                )
+            }
 
-            // 2) tags table
-            db.execSQL("""
-            CREATE TABLE IF NOT EXISTS tags (
-                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                name TEXT NOT NULL,
-                color INTEGER,
-                workspaceId INTEGER
+            db.execSQL(
+                """
+                CREATE INDEX IF NOT EXISTS 
+                index_transactions_toWalletId 
+                ON transactions(toWalletId)
+                """.trimIndent()
             )
-        """.trimIndent())
+        }
+    }
 
-            // 3) cross-ref table
-            db.execSQL("""
-            CREATE TABLE IF NOT EXISTS transaction_tags (
-                transactionId INTEGER NOT NULL,
-                tagId INTEGER NOT NULL,
-                PRIMARY KEY(transactionId, tagId),
-                FOREIGN KEY(transactionId) REFERENCES transactions(id) ON DELETE CASCADE,
-                FOREIGN KEY(tagId) REFERENCES tags(id) ON DELETE CASCADE
+
+    /**
+     * Migration 2 -> 3
+     * اضافه شدن Tag
+     */
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS tags(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    name TEXT NOT NULL,
+                    color INTEGER,
+                    workspaceId INTEGER
+                )
+                """.trimIndent()
             )
-        """.trimIndent())
 
-            db.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_tags_transactionId ON transaction_tags(transactionId)")
-            db.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_tags_tagId ON transaction_tags(tagId)")
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS transaction_tags(
+                    transactionId INTEGER NOT NULL,
+                    tagId INTEGER NOT NULL,
+
+                    PRIMARY KEY(transactionId,tagId),
+
+                    FOREIGN KEY(transactionId)
+                    REFERENCES transactions(id)
+                    ON DELETE CASCADE,
+
+                    FOREIGN KEY(tagId)
+                    REFERENCES tags(id)
+                    ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+
+
+            db.execSQL(
+                """
+                CREATE INDEX IF NOT EXISTS 
+                index_transaction_tags_transactionId
+                ON transaction_tags(transactionId)
+                """.trimIndent()
+            )
+
+
+            db.execSQL(
+                """
+                CREATE INDEX IF NOT EXISTS 
+                index_transaction_tags_tagId
+                ON transaction_tags(tagId)
+                """.trimIndent()
+            )
         }
     }
 
 
 
     /**
-     * ساخت و ارائه نمونه Singleton از دیتابیس اصلی برنامه با استفاده از Room.
-     *
-     * @param context کانتکست اپلیکیشن که توسط Hilt تزریق می‌شود.
-     * @return نمونه ساخته‌شده از [AppDatabase]
+     * Migration 3 -> 4
+     * اضافه شدن Relation ها و فیلدهای تکمیلی
      */
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+
+            // رزرو شده برای تغییرات ساختاری آینده
+        }
+    }
+
+
+
+    /**
+     * Migration 4 -> 5
+     * اضافه شدن Audit Field
+     */
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+
+
+            addAuditColumns(
+                db,
+                "transactions"
+            )
+
+
+            addAuditColumns(
+                db,
+                "tags"
+            )
+
+
+            addAuditColumns(
+                db,
+                "wallet"
+            )
+
+
+            addAuditColumns(
+                db,
+                "members"
+            )
+
+
+            addAuditColumns(
+                db,
+                "installment"
+            )
+        }
+    }
+
+
+
+    /**
+     * Migration 5 -> 6
+     * اضافه شدن Sync
+     */
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+
+        override fun migrate(db: SupportSQLiteDatabase) {
+
+
+            addColumnIfMissing(
+                db,
+                "transactions",
+                "syncState",
+                "TEXT NOT NULL DEFAULT 'LOCAL_ONLY'"
+            )
+
+
+            addColumnIfMissing(
+                db,
+                "transactions",
+                "serverId",
+                "INTEGER"
+            )
+
+
+            addColumnIfMissing(
+                db,
+                "tags",
+                "syncState",
+                "TEXT NOT NULL DEFAULT 'LOCAL_ONLY'"
+            )
+
+
+            addColumnIfMissing(
+                db,
+                "tags",
+                "serverId",
+                "INTEGER"
+            )
+
+
+            addColumnIfMissing(
+                db,
+                "wallet",
+                "syncState",
+                "TEXT NOT NULL DEFAULT 'LOCAL_ONLY'"
+            )
+
+
+            addColumnIfMissing(
+                db,
+                "wallet",
+                "serverId",
+                "INTEGER"
+            )
+
+        }
+    }
+
+
+
+    /**
+     * Migration 6 -> 7
+     * نسخه فعلی Sync + Audit
+     */
+    val MIGRATION_6_7 = object : Migration(6,7){
+
+        override fun migrate(db: SupportSQLiteDatabase) {
+
+
+            addColumnIfMissing(
+                db,
+                "installment",
+                "syncState",
+                "TEXT NOT NULL DEFAULT 'LOCAL_ONLY'"
+            )
+
+
+            addColumnIfMissing(
+                db,
+                "installment",
+                "serverId",
+                "INTEGER"
+            )
+
+
+        }
+    }
+
+
+
     @Provides
     @Singleton
-    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+    fun provideAppDatabase(
+        @ApplicationContext context: Context
+    ): AppDatabase {
+
+
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
             "fintrack_db"
         )
-            .addMigrations(MIGRATION_1_4)
-            .fallbackToDestructiveMigration()
+            .addMigrations(
+                MIGRATION_1_2,
+                MIGRATION_2_3,
+                MIGRATION_3_4,
+                MIGRATION_4_5,
+                MIGRATION_5_6,
+                MIGRATION_6_7
+            )
+            .fallbackToDestructiveMigrationOnDowngrade()
             .build()
+
     }
 
-    /**
-     * ارائه DAO اصلی برنامه از روی نمونه دیتابیس.
-     *
-     * @param database نمونه دیتابیس برنامه
-     * @return نمونه [MemberDao] برای انجام عملیات CRUD
-     */
-    @Provides
-    @Singleton
-    fun provideMemberDao(database: AppDatabase): MemberDao = database.memberDao()
 
-    /**
-     * ارائه DAO اصلی برنامه از روی نمونه دیتابیس.
-     *
-     * @param database نمونه دیتابیس برنامه
-     * @return نمونه [InstallmentDao] برای انجام عملیات CRUD
-     */
+
+
+
     @Provides
     @Singleton
-    fun provideInstallmentDao(database: AppDatabase): InstallmentDao = database.installmentDao()
+    fun provideMemberDao(
+        database: AppDatabase
+    ): MemberDao =
+        database.memberDao()
+
+
+
+    @Provides
+    @Singleton
+    fun provideInstallmentDao(
+        database: AppDatabase
+    ): InstallmentDao =
+        database.installmentDao()
+
+
 
     @Provides
     @Singleton
     fun provideWalletDao(
         database: AppDatabase
-    ): WalletDao = database.walletDao()
+    ): WalletDao =
+        database.walletDao()
+
 
 
     @Provides
     @Singleton
     fun provideTransactionDao(
         database: AppDatabase
-    ): TransactionDao = database.transactionDao()
+    ): TransactionDao =
+        database.transactionDao()
+
+
 
     @Provides
     @Singleton
     fun provideTagDao(
         database: AppDatabase
-    ): TagDao = database.tagDao()
+    ): TagDao =
+        database.tagDao()
+
+
+
+    private fun addAuditColumns(
+        db: SupportSQLiteDatabase,
+        table:String
+    ){
+
+        addColumnIfMissing(
+            db,
+            table,
+            "createdAt",
+            "INTEGER NOT NULL DEFAULT 0"
+        )
+
+
+        addColumnIfMissing(
+            db,
+            table,
+            "updatedAt",
+            "INTEGER NOT NULL DEFAULT 0"
+        )
+
+
+        addColumnIfMissing(
+            db,
+            table,
+            "isDeleted",
+            "INTEGER NOT NULL DEFAULT 0"
+        )
+
+
+        addColumnIfMissing(
+            db,
+            table,
+            "version",
+            "INTEGER NOT NULL DEFAULT 1"
+        )
+
+    }
+
+
+
+
+    private fun addColumnIfMissing(
+        db:SupportSQLiteDatabase,
+        table:String,
+        column:String,
+        definition:String
+    ){
+
+        if(!columnExists(db,table,column)){
+
+            db.execSQL(
+                """
+                ALTER TABLE $table
+                ADD COLUMN $column $definition
+                """.trimIndent()
+            )
+        }
+
+    }
+
+
+
+
+
+    private fun columnExists(
+        db:SupportSQLiteDatabase,
+        table:String,
+        column:String
+    ):Boolean{
+
+
+        val cursor =
+            db.query("PRAGMA table_info($table)")
+
+
+        while(cursor.moveToNext()){
+
+
+            val name =
+                cursor.getString(
+                    cursor.getColumnIndexOrThrow("name")
+                )
+
+
+            if(name == column){
+
+                cursor.close()
+                return true
+            }
+
+        }
+
+
+        cursor.close()
+
+        return false
+    }
+
 }

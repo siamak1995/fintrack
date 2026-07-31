@@ -14,3 +14,9 @@ data class Transaction(
     val note: String,
     val tags: List<Tag> = emptyList()
 )
+
+fun TransactionType.toPersian(): String = when(this) {
+    TransactionType.INCOME -> "درآمد"
+    TransactionType.EXPENSE -> "هزینه"
+    TransactionType.TRANSFER -> "انتقال"
+}

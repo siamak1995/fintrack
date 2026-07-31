@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,14 +29,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import ir.siamak.fintrack.data.model.Tag
+import ir.siamak.fintrack.data.model.TransactionType
 import ir.siamak.fintrack.presentation.theme.ErrorRed
 import ir.siamak.fintrack.presentation.theme.PrimaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagSwipeCard(
-    tagId: Long,
-    tagName: String,
+    tag: Tag,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onClick: () -> Unit = {}
@@ -49,12 +49,10 @@ fun TagSwipeCard(
                     onEditClick()
                     false
                 }
-
                 SwipeToDismissBoxValue.EndToStart -> {
                     onDeleteClick()
                     false
                 }
-
                 SwipeToDismissBoxValue.Settled -> false
             }
         }
@@ -67,7 +65,7 @@ fun TagSwipeCard(
         },
         content = {
             TagCard(
-                tagName = tagName,
+                tag = tag,
                 onClick = onClick
             )
         }
@@ -76,66 +74,63 @@ fun TagSwipeCard(
 
 @Composable
 fun TagCard(
-    tagName: String,
+    tag: Tag,
     onClick: () -> Unit
 ) {
+    val (typeColor, typeName) = when (tag.allowedType) {
+        TransactionType.INCOME -> Color(0xFF2E7D32) to "درآمد"
+        TransactionType.EXPENSE -> Color(0xFFC62828) to "هزینه"
+        TransactionType.TRANSFER -> Color(0xFF1565C0) to "انتقال"
+    }
+
     Surface(
         modifier = Modifier
-            .fillMaxWidth(0.88f)
+            .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.large,
         tonalElevation = 1.dp,
-        shadowElevation = 4.dp,
+        shadowElevation = 2.dp,
         color = MaterialTheme.colorScheme.surface
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(typeColor.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(MaterialTheme.shapes.small)
-                        .background(PrimaryBlue.copy(alpha = 0.12f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Label,
-                        contentDescription = null,
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(10.dp))
-
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = tagName,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Spacer(modifier = Modifier.height(2.dp))
-
-                    Text(
-                        text = "برچسب ثبت‌شده",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.Label,
+                    contentDescription = null,
+                    tint = typeColor,
+                    modifier = Modifier.size(22.dp)
+                )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
-            Text(
-                text = "برای مشاهده جزئیات لمس کنید",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = tag.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "برچسب $typeName",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = typeColor
+                )
+            }
+
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                modifier = Modifier.size(18.dp)
             )
         }
     }
@@ -146,6 +141,7 @@ private fun TagSwipeBackground(
     dismissValue: SwipeToDismissBoxValue
 ) {
     val isEdit = dismissValue == SwipeToDismissBoxValue.StartToEnd
+
     val backgroundColor = when (dismissValue) {
         SwipeToDismissBoxValue.StartToEnd -> PrimaryBlue.copy(alpha = 0.12f)
         SwipeToDismissBoxValue.EndToStart -> ErrorRed.copy(alpha = 0.12f)

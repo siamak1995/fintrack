@@ -9,7 +9,7 @@ fun TagEntity.toTag(): Tag {
         name = name,
         color = color,
         workspaceId = workspaceId,
-        allowedType=allowedType
+        allowedType = allowedType
     )
 }
 
@@ -18,7 +18,7 @@ fun Tag.toEntity(): TagEntity {
         id = id,
         name = name,
         color = color,
-        allowedType = allowedType
-
+        allowedType = allowedType,
+        updatedAt = System.currentTimeMillis()
     )
 }
