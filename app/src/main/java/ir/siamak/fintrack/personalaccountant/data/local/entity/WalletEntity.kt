@@ -1,6 +1,7 @@
 package ir.siamak.fintrack.personalaccountant.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import ir.siamak.fintrack.personalaccountant.data.local.audit.SyncState
 
@@ -11,7 +12,7 @@ import ir.siamak.fintrack.personalaccountant.data.local.audit.SyncState
  * @param balance موجودی فعلی
  * @param color کد رنگ برای نمایش گرافیکی در UI
  */
-@Entity(tableName = "wallet")
+@Entity(tableName = "wallet", indices = [Index("contextId")])
 data class WalletEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
@@ -56,6 +57,7 @@ data class WalletEntity(
      * کلاس پایه برای بک آپ.
      */
     val syncState: SyncState = SyncState.LOCAL_ONLY,
-    val serverId: Long? = null
+    val serverId: Long? = null,
+    val contextId: Long = AccountantContextIds.PERSONAL
 )
 

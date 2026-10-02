@@ -32,7 +32,8 @@ import ir.siamak.fintrack.personalaccountant.data.model.TransactionType
     indices = [
         Index("walletId"),
         Index("toWalletId"),
-        Index("memberId")
+        Index("memberId"),
+        Index("contextId")
     ]
 )
 data class TransactionEntity(
@@ -80,6 +81,7 @@ data class TransactionEntity(
      * کلاس پایه برای بک آپ.
      */
     val syncState: SyncState = SyncState.LOCAL_ONLY,
-    val serverId: Long? = null
+    val serverId: Long? = null,
+    val contextId: Long = AccountantContextIds.PERSONAL
 )
 

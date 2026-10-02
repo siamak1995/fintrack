@@ -10,6 +10,7 @@ import ir.siamak.fintrack.personalaccountant.data.local.dao.TagDao
 import ir.siamak.fintrack.personalaccountant.data.local.dao.TransactionDao
 import ir.siamak.fintrack.personalaccountant.data.local.dao.WalletDao
 import ir.siamak.fintrack.personalaccountant.data.local.entity.InstallmentEntity
+import ir.siamak.fintrack.personalaccountant.data.local.entity.AccountantContextEntity
 import ir.siamak.fintrack.personalaccountant.data.local.entity.MemberEntity
 import ir.siamak.fintrack.personalaccountant.data.local.entity.TagEntity
 import ir.siamak.fintrack.personalaccountant.data.local.entity.TransactionEntity
@@ -18,6 +19,7 @@ import ir.siamak.fintrack.personalaccountant.data.local.entity.WalletEntity
 
 @Database(
     entities = [
+        AccountantContextEntity::class,
         WalletEntity::class,
         TransactionEntity::class,
         InstallmentEntity::class,
@@ -25,7 +27,7 @@ import ir.siamak.fintrack.personalaccountant.data.local.entity.WalletEntity
         TagEntity::class,
         TransactionTagCrossRef::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

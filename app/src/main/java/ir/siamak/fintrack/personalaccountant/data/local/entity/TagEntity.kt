@@ -1,11 +1,12 @@
 package ir.siamak.fintrack.personalaccountant.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import ir.siamak.fintrack.personalaccountant.data.local.audit.SyncState
 import ir.siamak.fintrack.personalaccountant.data.model.TransactionType
 
-@Entity(tableName = "tags")
+@Entity(tableName = "tags", indices = [Index("contextId")])
 data class TagEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
@@ -49,6 +50,7 @@ data class TagEntity(
      * کلاس پایه برای بک آپ.
      */
     val syncState: SyncState = SyncState.LOCAL_ONLY,
-    val serverId: Long? = null
+    val serverId: Long? = null,
+    val contextId: Long = AccountantContextIds.PERSONAL
 )
 

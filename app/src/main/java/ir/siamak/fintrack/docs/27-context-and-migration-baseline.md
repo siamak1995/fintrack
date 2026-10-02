@@ -8,18 +8,18 @@
 
 | Database | Class | Declared version | Provider migrations | Schema export |
 | --- | --- | ---: | --- | --- |
-| Personal | `personalaccountant.data.local.database.AppDatabase` | 7 | `1->2` through `6->7` | enabled |
-| Store | `storeaccountant.data.local.StoreDatabase` | 1 | none | disabled |
+| Personal | `personalaccountant.data.local.database.AppDatabase` | 8 | `1->2` through `7->8` | enabled |
+| Store | `storeaccountant.data.local.StoreDatabase` | 1 | none | enabled |
 
-`AppDatabase` version 7 activates the existing `6->7` repair that adds legacy installment sync columns when missing. The generated schemas for versions 6 and 7 must remain committed. `StoreDatabase` has no published migration history, so its first schema change must start with a tested `1->2` migration.
+`AppDatabase` version 7 activates the existing `6->7` repair that adds legacy installment sync columns when missing. Version 8 introduces the context registry and non-null scoped columns. The generated schemas for versions 6, 7, and 8 must remain committed. `StoreDatabase` has no published migration history, so its first schema change must start with a tested `1->2` migration.
 
 ## Context migration plan
 
-1. Enable Room schema export and commit generated version-6 and version-1 schemas.
-2. Add a persistent context table and create a default personal context plus a default store context.
-3. Add non-null `contextId` columns with a legacy default context only after the context table migration can be executed atomically.
-4. Add scoped indexes and revise DAO queries to require `contextId`.
-5. Write MigrationTestHelper fixtures containing existing wallets, transactions, tags, members, installments, store records, sellers, products, materials, and sales.
-6. Validate migration data and foreign keys before updating navigation or enabling Context switching in UI.
+1. `accountant_contexts` is the durable registry; DataStore persists only the selected context id.
+2. Stable ids are Personal=`1` and Store=`2`; all v7 legacy personal records migrate to Personal.
+3. `Wallet`, `Transaction`, `Member`, `Tag`, and `Installment` have non-null `Long contextId` with default `1`; `TransactionTagCrossRef` is scoped through its parent records.
+4. Version `7->8` adds the registry, columns, and indexes atomically. Foreign keys are deferred to a later rebuild migration so this migration remains non-destructive.
+5. `StoreDatabase` is explicitly out of scope for `7->8` and remains version 1.
+6. DAO/repository query scoping follows this schema migration and is not changed by it.
 
 No destructive fallback is permitted for an upgrade path. Context selection is currently persisted in DataStore only; it does not yet alter Room queries.

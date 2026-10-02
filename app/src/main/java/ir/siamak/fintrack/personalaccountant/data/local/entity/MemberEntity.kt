@@ -1,10 +1,11 @@
 package ir.siamak.fintrack.personalaccountant.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import ir.siamak.fintrack.personalaccountant.data.local.audit.SyncState
 
-@Entity(tableName = "members")
+@Entity(tableName = "members", indices = [Index("contextId")])
 data class MemberEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val name: String,
@@ -47,6 +48,7 @@ data class MemberEntity(
      * کلاس پایه برای بک آپ.
      */
     val syncState: SyncState = SyncState.LOCAL_ONLY,
-    val serverId: Long? = null
+    val serverId: Long? = null,
+    val contextId: Long = AccountantContextIds.PERSONAL
 )
 

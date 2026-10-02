@@ -1,13 +1,14 @@
 package ir.siamak.fintrack.personalaccountant.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import ir.siamak.fintrack.personalaccountant.data.local.audit.SyncState
 
 /**
  * نمایش‌دهنده یک قسط یا تعهد مالی
  */
-@Entity(tableName = "installment")
+@Entity(tableName = "installment", indices = [Index("contextId")])
 data class InstallmentEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
@@ -52,6 +53,7 @@ data class InstallmentEntity(
      * کلاس پایه برای بک آپ.
      */
     val syncState: SyncState = SyncState.LOCAL_ONLY,
-    val serverId: Long? = null
+    val serverId: Long? = null,
+    val contextId: Long = AccountantContextIds.PERSONAL
 )
 
