@@ -11,3 +11,4 @@ import dagger.hilt.android.HiltAndroidApp
  */
 @HiltAndroidApp
 class FinTrackApplication : Application()
+

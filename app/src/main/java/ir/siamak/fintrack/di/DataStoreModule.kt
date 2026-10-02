@@ -30,3 +30,4 @@ object DataStoreModule {
         return context.finTrackDataStore
     }
 }
+

@@ -4,8 +4,8 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import ir.siamak.fintrack.data.settings.SettingsRepositoryImpl
-import ir.siamak.fintrack.domain.settings.SettingsRepository
+import ir.siamak.fintrack.personalaccountant.data.settings.SettingsRepositoryImpl
+import ir.siamak.fintrack.personalaccountant.domain.settings.SettingsRepository
 import javax.inject.Singleton
 
 @Module
@@ -18,3 +18,4 @@ abstract class SettingsModule {
         impl: SettingsRepositoryImpl
     ): SettingsRepository
 }
+

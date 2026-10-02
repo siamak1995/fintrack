@@ -4,39 +4,39 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import ir.siamak.fintrack.domain.analytics.DashboardCalculator
-import ir.siamak.fintrack.domain.analytics.DateRangeProvider
-import ir.siamak.fintrack.domain.analytics.InstallmentCalculator
-import ir.siamak.fintrack.domain.analytics.WalletCalculator
-import ir.siamak.fintrack.domain.repository.InstallmentRepository
-import ir.siamak.fintrack.domain.repository.MemberRepository
-import ir.siamak.fintrack.domain.repository.TransactionRepository
-import ir.siamak.fintrack.domain.repository.WalletRepository
-import ir.siamak.fintrack.domain.usecase.installments.InstallmentUseCases
-import ir.siamak.fintrack.domain.usecase.installments.DeleteInstallmentUseCase
-import ir.siamak.fintrack.domain.usecase.installments.GetAllInstallmentsUseCase
-import ir.siamak.fintrack.domain.usecase.installments.GetInstallmentByIdUseCase
-import ir.siamak.fintrack.domain.usecase.installments.InsertInstallmentUseCase
-import ir.siamak.fintrack.domain.usecase.installments.UpdateInstallmentUseCase
-import ir.siamak.fintrack.domain.usecase.member.DeleteMemberUseCase
-import ir.siamak.fintrack.domain.usecase.member.GetAllMembersUseCase
-import ir.siamak.fintrack.domain.usecase.member.GetMemberByIdUseCase
-import ir.siamak.fintrack.domain.usecase.member.InsertMemberUseCase
-import ir.siamak.fintrack.domain.usecase.member.MemberUseCases
-import ir.siamak.fintrack.domain.usecase.member.UpdateMemberUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.DeleteTransactionUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.GetAllTransactionsUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.GetTransactionByIdUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.GetTransactionsByWalletUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.InsertTransactionUseCase
-import ir.siamak.fintrack.domain.usecase.transaction.TransactionUseCases
-import ir.siamak.fintrack.domain.usecase.transaction.UpdateTransactionUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.DeleteWalletUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.GetAllWalletsUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.GetWalletByIdUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.InsertWalletUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.UpdateWalletUseCase
-import ir.siamak.fintrack.domain.usecase.wallet.WalletUseCases
+import ir.siamak.fintrack.personalaccountant.domain.analytics.DashboardCalculator
+import ir.siamak.fintrack.personalaccountant.domain.analytics.DateRangeProvider
+import ir.siamak.fintrack.personalaccountant.domain.analytics.InstallmentCalculator
+import ir.siamak.fintrack.personalaccountant.domain.analytics.WalletCalculator
+import ir.siamak.fintrack.personalaccountant.domain.repository.InstallmentRepository
+import ir.siamak.fintrack.personalaccountant.domain.repository.MemberRepository
+import ir.siamak.fintrack.personalaccountant.domain.repository.TransactionRepository
+import ir.siamak.fintrack.personalaccountant.domain.repository.WalletRepository
+import ir.siamak.fintrack.personalaccountant.domain.usecase.installments.InstallmentUseCases
+import ir.siamak.fintrack.personalaccountant.domain.usecase.installments.DeleteInstallmentUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.installments.GetAllInstallmentsUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.installments.GetInstallmentByIdUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.installments.InsertInstallmentUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.installments.UpdateInstallmentUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.member.DeleteMemberUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.member.GetAllMembersUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.member.GetMemberByIdUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.member.InsertMemberUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.member.MemberUseCases
+import ir.siamak.fintrack.personalaccountant.domain.usecase.member.UpdateMemberUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.transaction.DeleteTransactionUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.transaction.GetAllTransactionsUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.transaction.GetTransactionByIdUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.transaction.GetTransactionsByWalletUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.transaction.InsertTransactionUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.transaction.TransactionUseCases
+import ir.siamak.fintrack.personalaccountant.domain.usecase.transaction.UpdateTransactionUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.wallet.DeleteWalletUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.wallet.GetAllWalletsUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.wallet.GetWalletByIdUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.wallet.InsertWalletUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.wallet.UpdateWalletUseCase
+import ir.siamak.fintrack.personalaccountant.domain.usecase.wallet.WalletUseCases
 import javax.inject.Singleton
 
 
@@ -143,3 +143,4 @@ object UseCaseModule {
 //        return ReportCalculator()
 //    }
 }
+

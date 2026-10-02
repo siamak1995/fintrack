@@ -1,0 +1,12 @@
+package ir.siamak.fintrack.personalaccountant.presentation.baseinfo.member.add_edit_member
+
+sealed class AddEditMemberEvent {
+    data class EnteredName(val value: String) : AddEditMemberEvent()
+    data class EnteredRelation(val value: String) : AddEditMemberEvent()
+    data class EnteredColor(val value: String) : AddEditMemberEvent()
+    object SaveMember : AddEditMemberEvent()
+    data class LoadMember(val memberId: Long) : AddEditMemberEvent()
+
+    data class EnteredIcon(val value: String) : AddEditMemberEvent()
+}
+

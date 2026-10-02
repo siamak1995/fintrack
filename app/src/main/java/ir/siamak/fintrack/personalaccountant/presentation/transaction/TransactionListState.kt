@@ -1,0 +1,44 @@
+package ir.siamak.fintrack.personalaccountant.presentation.transaction
+
+import ir.siamak.fintrack.personalaccountant.data.model.Member
+import ir.siamak.fintrack.personalaccountant.data.model.Tag
+import ir.siamak.fintrack.personalaccountant.data.model.Transaction
+import ir.siamak.fintrack.personalaccountant.data.model.TransactionType
+import ir.siamak.fintrack.personalaccountant.data.model.Wallet
+
+/**
+ * UI state for the transaction list screen.
+ */
+data class TransactionListState(
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val allTransactions: List<Transaction> = emptyList(),
+    val filteredTransactions: List<Transaction> = emptyList(),
+    val members: List<Member> = emptyList(),
+    val wallets: List<Wallet> = emptyList(),
+    val tags: List<Tag> = emptyList(),
+    val availableTags: List<Tag> = emptyList(),
+    val selectedTransactionType: TransactionType? = null,
+    val filter: TransactionListFilter = TransactionListFilter()
+) {
+    /**
+     * Returns true when there is no transaction at all.
+     */
+    val isCompletelyEmpty: Boolean
+        get() = allTransactions.isEmpty()
+
+    /**
+     * Returns true when source data exists but current filters return no results.
+     */
+    val isFilteredEmpty: Boolean
+        get() = allTransactions.isNotEmpty() &&
+                filteredTransactions.isEmpty() &&
+                filter.hasActiveFilters
+
+    /**
+     * Returns filtered result count.
+     */
+    val filteredCount: Int
+        get() = filteredTransactions.size
+}
+

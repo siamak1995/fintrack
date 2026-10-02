@@ -1,0 +1,1849 @@
+---
+# MASTER PROMPT
+
+# توسعه فاز دوم پروژه حسابدار (FinTrack)
+
+## ماژول حسابدار فروشگاه (Store Accounting Module)
+
+---
+
+## نقش شما
+
+شما یک Senior Android Engineer متخصص Kotlin و Jetpack Compose هستید.
+
+وظیفه شما توسعه فاز دوم اپلیکیشن:
+
+```
+FinTrack
+```
+
+با نام:
+
+```
+Store Accounting Module
+```
+
+است.
+
+این ماژول مربوط به مدیریت مالی فروشگاه‌ها است و باید به صورت مستقل داخل پروژه موجود اضافه شود.
+
+---
+
+# قوانین غیرقابل تغییر پروژه
+
+## تکنولوژی‌ها
+
+الزامی:
+
+```
+Language:
+Kotlin
+
+UI:
+Jetpack Compose
+
+Architecture:
+Clean Architecture + MVVM
+
+DI:
+Hilt
+
+Database:
+Room
+
+Navigation:
+Navigation Compose
+
+Async:
+Kotlin Coroutines + Flow + StateFlow
+
+UI State:
+Immutable UI State Pattern
+
+Design:
+Material 3
+```
+
+---
+
+# قوانین معماری
+
+ماژول فروشگاه نباید با حسابداری شخصی ترکیب شود.
+
+ساختار اصلی:
+
+```
+presentation
+domain
+data
+core
+docs
+```
+
+ماژول جدید:
+
+```
+storeaccountant
+```
+تمام کدهای قبلی باید زیر این مسیر قرار گیرد:
+```
+app/src/main/java/ir/siamak/fintrack/personalaccountant
+```
+تمام کدهای فروشگاه باید زیر این مسیر قرار گیرد:
+
+```
+app/src/main/java/ir/siamak/fintrack/storeaccountant
+```
+ماژول های مشترک باید در مسیر زیر قرار بگیرند:
+```
+app/src/main/java/ir/siamak/fintrack/common
+```
+مثل core security , ...
+```
+---
+
+# ساختار نهایی Package
+
+این ساختار ثابت است و تغییر آن ممنوع است:
+
+```
+ir.siamak.fintrack.storeaccountant
+
+
+├── presentation
+│
+│   ├── navigation
+│   │
+│   ├── dashboard
+│   │
+│   ├── baseinfo
+│   │   │
+│   │   ├── store
+│   │   ├── seller
+│   │   ├── product
+│   │   └── material
+│   │
+│   ├── sales
+│   │
+│   │   ├── list
+│   │   ├── create
+│   │   │
+│   │   ├── customer
+│   │   ├── products
+│   │   ├── discount
+│   │   ├── payment
+│   │   └── invoice
+│   │
+│   ├── preorder
+│   │
+│   │   ├── list
+│   │   ├── create
+│   │   │
+│   │   ├── customer
+│   │   ├── materials
+│   │   ├── pricing
+│   │   ├── payment
+│   │   └── invoice
+│   │
+│   └── invoices
+│
+│
+├── domain
+│
+│   ├── model
+│   │
+│   ├── repository
+│   │
+│   └── usecase
+│
+│
+├── data
+│
+│   ├── local
+│   │
+│   ├── entity
+│   │
+│   ├── dao
+│   │
+│   ├── mapper
+│   │
+│   └── repository
+│
+│
+└── core
+    │
+    ├── pdf
+    ├── calculator
+    ├── formatter
+    └── validation
+```
+
+---
+
+# ورود به حسابدار فروشگاه
+
+در LandingScreen:
+
+دکمه:
+
+```
+ورود به حسابدار فروشگاه
+```
+
+باید Route زیر را باز کند:
+
+```
+StoreDashboard
+```
+
+---
+
+# Navigation فروشگاه
+
+فایل:
+
+```
+storeaccountant/presentation/navigation/StoreScreen.kt
+```
+
+شامل:
+
+```kotlin
+sealed class StoreScreen(
+    val route:String
+)
+```
+
+Routes:
+
+```
+StoreDashboard
+
+StoreBaseInfo
+
+StoreSales
+
+StoreMaterials
+
+StorePreOrders
+
+StoreSaleInvoices
+
+StorePreOrderInvoices
+```
+
+---
+
+# Bottom Navigation فروشگاه
+
+فایل:
+
+```
+storeaccountant/presentation/navigation/StoreBottomBar.kt
+```
+
+منوها:
+
+## 1
+
+```
+داشبورد
+```
+
+Icon:
+
+Home
+
+Route:
+
+```
+StoreDashboard
+```
+
+---
+
+## 2
+
+```
+اطلاعات پایه
+```
+
+Route:
+
+```
+StoreBaseInfo
+```
+
+---
+
+## 3
+
+```
+فروش
+```
+
+Route:
+
+```
+StoreSales
+```
+
+---
+
+## 4
+
+```
+مواد اولیه
+```
+
+Route:
+
+```
+StoreMaterials
+```
+
+---
+
+## 5
+
+```
+سفارشات
+```
+
+Route:
+
+```
+StorePreOrders
+```
+
+---
+
+# بخش اول
+
+# اطلاعات پایه فروشگاه
+
+Package:
+
+```
+presentation/baseinfo
+```
+
+شامل:
+
+```
+StoreInfo
+
+SellerManagement
+
+ProductManagement
+
+MaterialManagement
+```
+
+---
+
+# Entity های اصلی
+
+تمام Entity ها در:
+
+```
+domain/model
+```
+
+قرار می‌گیرند.
+
+---
+
+# Store
+
+File:
+
+```
+Store.kt
+```
+
+```kotlin
+data class Store(
+    val id:Long,
+    val name:String,
+    val brand:String,
+    val logoPath:String?,
+    val phone:String?,
+    val address:String?,
+    val description:String?
+)
+```
+
+---
+
+# Seller
+
+File:
+
+```
+Seller.kt
+```
+
+```kotlin
+data class Seller(
+    val id:Long,
+    val firstName:String,
+    val lastName:String,
+    val phone:String,
+    val address:String?,
+    val description:String?
+)
+```
+
+---
+
+# Product
+
+File:
+
+```
+Product.kt
+```
+
+```kotlin
+data class Product(
+
+val id:Long,
+
+val name:String,
+
+val material:String?,
+
+val size:String?,
+
+val weight:String?,
+
+val stock:Int,
+
+val price:Long,
+
+val image:String?
+
+)
+```
+
+قانون:
+
+فقط:
+
+```
+name
+```
+
+اجباری است.
+
+---
+
+# RawMaterial
+
+File:
+
+```
+RawMaterial.kt
+```
+
+```kotlin
+data class RawMaterial(
+
+val id:Long,
+
+val name:String,
+
+val unit:String,
+
+val pricePerUnit:Long,
+
+val quantity:Double,
+
+val purchaseDate:String?,
+
+val shippingCost:Long?
+
+)
+```
+
+---
+
+# بخش دوم
+
+# فروش
+
+Package:
+
+```
+presentation/sales
+```
+
+---
+
+# صفحه فروش
+
+File:
+
+```
+SalesScreen.kt
+```
+
+نمایش:
+
+```
+فروش امروز
+
+تعداد فاکتور
+
+مبلغ فروش
+
+
+[ثبت فروش جدید]
+
+
+آخرین فروش‌ها
+```
+
+---
+
+# ثبت فروش Wizard
+
+ساختار:
+
+```
+CreateSaleScreen
+```
+
+مراحل:
+
+```
+Step 1 Customer
+
+Step 2 Products
+
+Step 3 Discount
+
+Step 4 Payment
+
+Step 5 Invoice
+```
+
+---
+
+# Customer
+
+File:
+
+```
+Customer.kt
+```
+
+فیلد:
+
+```
+name
+phone
+address
+```
+
+Validation:
+
+```
+name required
+
+phone required
+```
+
+---
+
+# انتخاب کالا
+
+UI باید Card Based باشد.
+
+هر کالا:
+
+```
+Image
+
+Name
+
+Available Stock
+
+Counter
+```
+
+رفتار:
+
+با کلیک:
+
+```
++
+```
+
+تعداد افزایش یابد.
+
+مثال:
+
+```
+ماگ
+
+3 عدد
+
+450000 تومان
+```
+
+---
+
+# تخفیف
+
+مدل:
+
+```
+Discount.kt
+```
+
+انواع:
+
+```
+PERCENT
+
+FIXED
+```
+
+---
+
+# مالیات
+
+مدل:
+
+```
+Tax.kt
+```
+
+فقط درصدی:
+
+```
+percent:Int
+```
+
+---
+
+# پرداخت
+
+Payment:
+
+```
+Payment.kt
+```
+
+انواع:
+
+```
+CASH
+
+INSTALLMENT
+```
+
+---
+
+# اقساط
+
+Installment:
+
+```
+Installment.kt
+```
+
+فیلد:
+
+```
+monthNumber
+
+percentage
+
+amount
+
+dueDate
+```
+
+محاسبه:
+
+مثال:
+
+مبلغ:
+
+10,000,000
+
+سه ماه:
+
+```
+5%
+5%
+5%
+```
+
+نتیجه:
+
+```
+11,500,000
+```
+
+---
+
+# فاکتور فروش
+
+Invoice Model:
+
+```
+SaleInvoice.kt
+```
+
+شامل:
+
+```
+invoiceNumber
+
+date
+
+storeInfo
+
+sellerInfo
+
+customerInfo
+
+items
+
+discount
+
+tax
+
+payment
+
+finalAmount
+
+logo
+```
+
+---
+
+# PDF
+
+Package:
+
+```
+core/pdf
+```
+
+File:
+
+```
+InvoicePdfGenerator.kt
+```
+
+وظیفه:
+
+تولید PDF
+
+امکانات:
+
+```
+Preview
+
+Download
+
+Share
+```
+---
+
+# بخش سوم
+
+# لیست اقلام اولیه (Raw Materials)
+
+## Route
+
+```text
+StoreMaterials
+```
+
+## Package
+
+```text
+presentation/baseinfo/material
+```
+
+---
+
+# صفحه مدیریت اقلام اولیه
+
+File:
+
+```text
+MaterialListScreen.kt
+```
+
+وظیفه:
+
+نمایش تمام مواد اولیه موجود در فروشگاه.
+
+نمونه نمایش:
+
+```
+--------------------------------
+
+خاک سفید
+
+موجودی:
+5 کیلو
+
+قیمت هر واحد:
+9000 تومان
+
+تاریخ خرید:
+1405/05/10
+
+
+--------------------------------
+
+لعاب آبی
+
+موجودی:
+2 لیتر
+
+قیمت:
+300000 تومان
+
+--------------------------------
+```
+
+---
+
+# عملیات
+
+## افزودن ماده اولیه
+
+File:
+
+```text
+AddMaterialScreen.kt
+```
+
+فیلدها:
+
+| نام         | اجباری |
+| ----------- | ------ |
+| نام ماده    | بله    |
+| نوع واحد    | بله    |
+| قیمت واحد   | بله    |
+| مقدار خرید  | بله    |
+| تاریخ خرید  | خیر    |
+| هزینه ارسال | خیر    |
+
+---
+
+# UseCase
+
+مسیر:
+
+```text
+domain/usecase/material
+```
+
+فایل‌ها:
+
+```
+AddMaterialUseCase.kt
+
+GetMaterialsUseCase.kt
+
+DeleteMaterialUseCase.kt
+
+UpdateMaterialUseCase.kt
+```
+
+---
+
+# بخش چهارم
+
+# پیش سفارش (Custom Order)
+
+این بخش مخصوص سفارش‌های خاص مشتری است.
+
+مثال:
+
+```
+مشتری:
+
+یک شیرینی‌خوری سرامیکی
+
+رنگ:
+آبی و قرمز
+
+طرح:
+ترنسفر گل نیلوفر
+```
+
+---
+
+# Package
+
+```
+presentation/preorder
+```
+
+ساختار:
+
+```
+preorder
+
+├── list
+
+├── create
+
+│   ├── customer
+
+│   ├── description
+
+│   ├── materials
+
+│   ├── pricing
+
+│   ├── payment
+
+│   └── invoice
+
+└── invoice
+
+```
+
+---
+
+# Entity
+
+## PreOrder
+
+File:
+
+```
+PreOrder.kt
+```
+
+Model:
+
+```kotlin
+data class PreOrder(
+
+val id:Long,
+
+val customerId:Long,
+
+val description:String,
+
+val deliveryDate:String,
+
+val agreedPrice:Long,
+
+val shippingCost:Long,
+
+val status:PreOrderStatus
+
+)
+```
+
+---
+
+# وضعیت سفارش
+
+File:
+
+```
+PreOrderStatus.kt
+```
+
+مقادیر:
+
+```kotlin
+NEW
+
+IN_PROGRESS
+
+READY
+
+DELIVERED
+
+CANCELLED
+```
+
+---
+
+# مرحله اول پیش سفارش
+
+Customer Information
+
+File:
+
+```
+PreOrderCustomerScreen.kt
+```
+
+فیلدها:
+
+```
+نام مشتری *
+
+شماره تماس *
+
+آدرس
+```
+
+---
+
+# مرحله دوم
+
+# توضیحات سفارش
+
+File:
+
+```
+PreOrderDescriptionScreen.kt
+```
+
+یک Text Area بزرگ:
+
+```
+شرح کامل سفارش
+```
+
+مثال:
+
+```
+شیرینی خوری سرامیکی
+رنگ زمینه سفید
+حاشیه طلایی
+طرح گل نیلوفر
+```
+
+---
+
+# مرحله سوم
+
+# انتخاب مواد اولیه
+
+File:
+
+```
+PreOrderMaterialScreen.kt
+```
+
+کاربر مواد مورد نیاز را انتخاب می‌کند:
+
+مثال:
+
+```
+خاک سفید
+
+2 کیلو
+
+
+لعاب آبی
+
+200 گرم
+
+
+رنگ قرمز
+
+50 گرم
+
+```
+
+---
+
+# مرحله چهارم
+
+# قیمت گذاری
+
+File:
+
+```
+PreOrderPricingScreen.kt
+```
+
+سیستم محاسبه:
+
+```
+هزینه مواد اولیه
+
++
+
+هزینه تولید
+
++
+
+سود
+
++
+
+هزینه ارسال
+
+=
+
+قیمت پیشنهادی
+```
+
+نمایش:
+
+```
+هزینه مواد:
+500000
+
+
+تولید:
+1000000
+
+
+ارسال:
+100000
+
+
+-----------------
+
+قیمت پیشنهادی:
+
+1600000
+
+```
+
+کاربر:
+
+```
+قیمت توافقی:
+
+1500000
+```
+
+ثبت می‌کند.
+
+---
+
+# مرحله پنجم
+
+# پرداخت سفارش
+
+File:
+
+```
+PreOrderPaymentScreen.kt
+```
+
+گزینه‌ها:
+
+## پیش پرداخت درصدی
+
+مثلا:
+
+```
+30%
+```
+
+سیستم:
+
+```
+کل مبلغ:
+
+3,000,000
+
+
+پیش پرداخت:
+
+900,000
+
+
+مانده:
+
+2,100,000
+
+```
+
+## پیش پرداخت مبلغی
+
+مثلا:
+
+```
+1,000,000 تومان
+```
+
+---
+
+# فاکتور پیش پرداخت
+
+File:
+
+```
+PreOrderInvoice.kt
+```
+
+شامل:
+
+```
+شماره سفارش
+
+تاریخ
+
+نام فروشگاه
+
+نام مشتری
+
+شرح سفارش
+
+مبلغ کل
+
+پیش پرداخت
+
+مانده
+
+تاریخ تحویل
+
+```
+
+---
+
+# بخش پنجم
+
+# فاکتور فروش
+
+Route:
+
+```
+StoreSaleInvoices
+```
+
+Package:
+
+```
+presentation/invoices/sale
+```
+
+---
+
+# صفحه لیست فاکتورها
+
+File:
+
+```
+SaleInvoiceListScreen.kt
+```
+
+نمایش:
+
+```
+شماره فاکتور
+
+مشتری
+
+مبلغ
+
+تاریخ
+
+وضعیت پرداخت
+
+```
+
+---
+
+# Filter
+
+موارد:
+
+```
+همه
+
+تسویه شده
+
+تسویه نشده
+
+اقساطی
+
+```
+
+---
+
+# صفحه جزئیات
+
+File:
+
+```
+SaleInvoiceDetailScreen.kt
+```
+
+امکانات:
+
+```
+نمایش
+
+دانلود PDF
+
+اشتراک گذاری
+```
+
+---
+
+# بخش ششم
+
+# فاکتور پیش سفارش
+
+Route:
+
+```
+StorePreOrderInvoices
+```
+
+---
+
+Package:
+
+```
+presentation/invoices/preorder
+```
+
+---
+
+# صفحه لیست
+
+File:
+
+```
+PreOrderInvoiceListScreen.kt
+```
+
+نمایش:
+
+```
+شماره سفارش
+
+مشتری
+
+تاریخ تحویل
+
+وضعیت
+
+روز باقی مانده
+```
+
+مثال:
+
+```
+تحویل:
+
+20 روز دیگر
+```
+
+---
+
+# بخش هفتم
+
+# Domain Layer
+
+مسیر:
+
+```
+store/domain
+```
+
+---
+
+# Models
+
+```
+model
+
+├── Store.kt
+
+├── Seller.kt
+
+├── Customer.kt
+
+├── Product.kt
+
+├── RawMaterial.kt
+
+├── Sale.kt
+
+├── SaleItem.kt
+
+├── Payment.kt
+
+├── Installment.kt
+
+├── Invoice.kt
+
+├── PreOrder.kt
+
+└── PreOrderItem.kt
+
+```
+
+---
+
+# Repository Interface
+
+مسیر:
+
+```
+domain/repository
+```
+
+فایل‌ها:
+
+```
+StoreRepository.kt
+
+SellerRepository.kt
+
+ProductRepository.kt
+
+MaterialRepository.kt
+
+SaleRepository.kt
+
+InvoiceRepository.kt
+
+PreOrderRepository.kt
+```
+
+---
+
+# UseCase Structure
+
+همه UseCase ها باید جدا باشند.
+
+مثال:
+
+```
+domain/usecase/sale
+```
+
+ساختار:
+
+```
+CreateSaleUseCase.kt
+
+GetSalesUseCase.kt
+
+CalculateSaleAmountUseCase.kt
+
+ApplyDiscountUseCase.kt
+
+CalculateInstallmentUseCase.kt
+```
+
+---
+
+# بخش هشتم
+
+# Data Layer
+
+مسیر:
+
+```
+store/data
+```
+
+---
+
+# Room Entities
+
+مسیر:
+
+```
+data/entity
+```
+
+فایل‌ها:
+
+```
+StoreEntity.kt
+
+SellerEntity.kt
+
+CustomerEntity.kt
+
+ProductEntity.kt
+
+RawMaterialEntity.kt
+
+SaleEntity.kt
+
+SaleItemEntity.kt
+
+PaymentEntity.kt
+
+InstallmentEntity.kt
+
+InvoiceEntity.kt
+
+PreOrderEntity.kt
+
+PreOrderItemEntity.kt
+```
+
+---
+
+# DAO
+
+مسیر:
+
+```
+data/dao
+```
+
+فایل‌ها:
+
+```
+StoreDao.kt
+
+SellerDao.kt
+
+CustomerDao.kt
+
+ProductDao.kt
+
+RawMaterialDao.kt
+
+SaleDao.kt
+
+InvoiceDao.kt
+
+PreOrderDao.kt
+```
+
+---
+
+# Mapper
+
+مسیر:
+
+```
+data/mapper
+```
+
+فایل‌ها:
+
+```
+StoreMapper.kt
+
+ProductMapper.kt
+
+SaleMapper.kt
+
+InvoiceMapper.kt
+
+PreOrderMapper.kt
+```
+
+---
+
+# Database
+
+File:
+
+```
+StoreDatabase.kt
+```
+
+Tables:
+
+```
+stores
+
+sellers
+
+customers
+
+products
+
+raw_materials
+
+sales
+
+sale_items
+
+payments
+
+installments
+
+invoices
+
+pre_orders
+
+pre_order_items
+```
+
+---
+
+# بخش نهم
+
+# ViewModel Pattern
+
+تمام صفحات باید ViewModel مستقل داشته باشند.
+
+مثال:
+
+```
+SalesViewModel.kt
+```
+
+State:
+
+```
+SalesUiState.kt
+```
+
+Event:
+
+```
+SalesEvent.kt
+```
+
+ساختار:
+
+```
+presentation/sales/list
+
+
+SalesScreen.kt
+
+SalesViewModel.kt
+
+SalesUiState.kt
+
+SalesEvent.kt
+```
+
+---
+
+# بخش دهم
+
+# UI Rules
+
+## تمام UI ها:
+
+اجباری:
+
+```
+Compose
+
+Material3
+
+State Hoisting
+
+Preview Function
+```
+
+---
+
+# نام گذاری فایل‌ها
+
+قانون:
+
+صفحه:
+
+```
+SomethingScreen.kt
+```
+
+ViewModel:
+
+```
+SomethingViewModel.kt
+```
+
+State:
+
+```
+SomethingUiState.kt
+```
+
+Event:
+
+```
+SomethingEvent.kt
+```
+
+Model:
+
+```
+Something.kt
+```
+
+Entity:
+
+```
+SomethingEntity.kt
+```
+
+DAO:
+
+```
+SomethingDao.kt
+```
+
+Repository:
+
+```
+SomethingRepository.kt
+```
+
+UseCase:
+
+```
+VerbSomethingUseCase.kt
+```
+
+---
+
+# بخش یازدهم
+
+# Sprint Development Plan
+
+## Sprint 1
+
+هدف:
+
+راه‌اندازی ماژول فروشگاه
+
+پیاده سازی:
+
+```
+Store Navigation
+
+Store Dashboard
+
+Store BottomBar
+
+Store Entity
+
+Room Setup
+```
+
+---
+
+## Sprint 2
+
+اطلاعات پایه:
+
+```
+Store
+
+Seller
+
+Product
+
+Material
+```
+
+---
+
+## Sprint 3
+
+فروش:
+
+```
+Sale
+
+Customer
+
+Product Selection
+
+Discount
+
+Tax
+```
+
+---
+
+## Sprint 4
+
+پرداخت:
+
+```
+Cash Payment
+
+Installment
+
+Invoice
+
+PDF Generator
+```
+
+---
+
+## Sprint 5
+
+پیش سفارش:
+
+```
+Customer
+
+Description
+
+Material
+
+Pricing
+
+Payment
+
+Invoice
+```
+
+---
+
+# قوانین مهم توسعه
+
+1. هیچ فایل موجود حذف نشود.
+
+2. هیچ Package موجود تغییر نکند.
+
+3. تمام قابلیت‌های جدید فقط زیر:
+
+```
+ir.siamak.fintrack.store
+```
+
+قرار بگیرد.
+
+4. قبل از ساخت هر فایل ابتدا ساختار بالا بررسی شود.
+
+5. نام فایل‌ها و Package ها قابل تغییر نیستند.
+
+6. منطق Business داخل ViewModel ممنوع است.
+
+7. محاسبات مالی فقط در UseCase انجام شود.
+
+8. Repository فقط مسئول دسترسی داده است.
+
+9. UI فقط مسئول نمایش و Event ارسال کردن است.
+
+10. تمام State ها باید Immutable باشند.
+
+---
+
+# خروجی نهایی مورد انتظار
+
+در پایان این فاز باید کاربر بتواند:
+
+✅ فروشگاه ایجاد کند
+✅ برند ثبت کند
+✅ کالا تعریف کند
+✅ مواد اولیه مدیریت کند
+✅ فروش سریع ثبت کند
+✅ فاکتور PDF دریافت کند
+✅ فروش نقدی داشته باشد
+✅ فروش اقساطی داشته باشد
+✅ سفارش اختصاصی ثبت کند
+✅ مواد مصرفی سفارش را مدیریت کند
+✅ پیش پرداخت دریافت کند
+✅ وضعیت سفارش‌ها را پیگیری کند
+✅ در زمان فروش هزینه در صورت تسویه شدن به مقدار کیف پول/حساب انتخابی افزوده شود
+✅ برای استفاده اول برای کاربر آموزش تصویری درست و استاندارد ببیند بعد برنامه را استفاده کند
+
+این سند، قرارداد توسعه فاز دوم حسابدار فروشگاه است و تمام توسعه‌های بعدی باید بر اساس همین ساختار انجام شود.

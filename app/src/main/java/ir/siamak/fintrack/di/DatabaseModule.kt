@@ -9,12 +9,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import ir.siamak.fintrack.data.local.dao.InstallmentDao
-import ir.siamak.fintrack.data.local.dao.MemberDao
-import ir.siamak.fintrack.data.local.dao.TagDao
-import ir.siamak.fintrack.data.local.dao.TransactionDao
-import ir.siamak.fintrack.data.local.dao.WalletDao
-import ir.siamak.fintrack.data.local.database.AppDatabase
+import ir.siamak.fintrack.personalaccountant.data.local.dao.InstallmentDao
+import ir.siamak.fintrack.personalaccountant.data.local.dao.MemberDao
+import ir.siamak.fintrack.personalaccountant.data.local.dao.TagDao
+import ir.siamak.fintrack.personalaccountant.data.local.dao.TransactionDao
+import ir.siamak.fintrack.personalaccountant.data.local.dao.WalletDao
+import ir.siamak.fintrack.personalaccountant.data.local.database.AppDatabase
 import javax.inject.Singleton
 
 

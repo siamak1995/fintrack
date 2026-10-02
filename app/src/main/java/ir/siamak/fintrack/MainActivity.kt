@@ -11,14 +11,14 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import ir.siamak.fintrack.presentation.baseinfo.settings.AppSettingsViewModel
-import ir.siamak.fintrack.presentation.baseinfo.settings.LocalAppSettings
-import ir.siamak.fintrack.presentation.navigation.AppNavGraph
-import ir.siamak.fintrack.presentation.security.lock.LockEvent
-import ir.siamak.fintrack.presentation.security.lock.LockScreen
-import ir.siamak.fintrack.presentation.security.lock.LockViewModel
-import ir.siamak.fintrack.presentation.theme.FinTrackTheme
-import ir.siamak.fintrack.security.BiometricAuthenticator
+import ir.siamak.fintrack.personalaccountant.presentation.baseinfo.settings.AppSettingsViewModel
+import ir.siamak.fintrack.personalaccountant.presentation.baseinfo.settings.LocalAppSettings
+import ir.siamak.fintrack.personalaccountant.presentation.navigation.AppNavGraph
+import ir.siamak.fintrack.personalaccountant.presentation.security.lock.LockEvent
+import ir.siamak.fintrack.personalaccountant.presentation.security.lock.LockScreen
+import ir.siamak.fintrack.personalaccountant.presentation.security.lock.LockViewModel
+import ir.siamak.fintrack.personalaccountant.presentation.theme.FinTrackTheme
+import ir.siamak.fintrack.common.security.BiometricAuthenticator
 import javax.inject.Inject
 
 /**
@@ -84,3 +84,4 @@ class MainActivity : FragmentActivity() {
         }
     }
 }
+

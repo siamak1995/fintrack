@@ -6,10 +6,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import ir.siamak.fintrack.data.security.PinHasher
-import ir.siamak.fintrack.data.security.SecurityRepositoryImpl
-import ir.siamak.fintrack.data.security.Sha256PinHasher
-import ir.siamak.fintrack.domain.security.repository.SecurityRepository
+import ir.siamak.fintrack.personalaccountant.data.security.PinHasher
+import ir.siamak.fintrack.personalaccountant.data.security.SecurityRepositoryImpl
+import ir.siamak.fintrack.personalaccountant.data.security.Sha256PinHasher
+import ir.siamak.fintrack.personalaccountant.domain.security.repository.SecurityRepository
 import javax.inject.Singleton
 
 /**
@@ -30,3 +30,4 @@ object SecurityModule {
         pinHasher: PinHasher
     ): SecurityRepository = SecurityRepositoryImpl(dataStore, pinHasher)
 }
+

@@ -4,18 +4,18 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import ir.siamak.fintrack.data.dashboard.DashboardRepositoryImpl
-import ir.siamak.fintrack.data.repository.InstallmentRepositoryImpl
-import ir.siamak.fintrack.data.repository.MemberRepositoryImpl
-import ir.siamak.fintrack.data.repository.TagRepositoryImpl
-import ir.siamak.fintrack.data.repository.TransactionRepositoryImpl
-import ir.siamak.fintrack.data.repository.WalletRepositoryImpl
-import ir.siamak.fintrack.domain.dashboard.DashboardRepository
-import ir.siamak.fintrack.domain.repository.InstallmentRepository
-import ir.siamak.fintrack.domain.repository.MemberRepository
-import ir.siamak.fintrack.domain.repository.TagRepository
-import ir.siamak.fintrack.domain.repository.TransactionRepository
-import ir.siamak.fintrack.domain.repository.WalletRepository
+import ir.siamak.fintrack.personalaccountant.data.repository.DashboardRepositoryImpl
+import ir.siamak.fintrack.personalaccountant.data.repository.InstallmentRepositoryImpl
+import ir.siamak.fintrack.personalaccountant.data.repository.MemberRepositoryImpl
+import ir.siamak.fintrack.personalaccountant.data.repository.TagRepositoryImpl
+import ir.siamak.fintrack.personalaccountant.data.repository.TransactionRepositoryImpl
+import ir.siamak.fintrack.personalaccountant.data.repository.WalletRepositoryImpl
+import ir.siamak.fintrack.personalaccountant.domain.dashboard.DashboardRepository
+import ir.siamak.fintrack.personalaccountant.domain.repository.InstallmentRepository
+import ir.siamak.fintrack.personalaccountant.domain.repository.MemberRepository
+import ir.siamak.fintrack.personalaccountant.domain.repository.TagRepository
+import ir.siamak.fintrack.personalaccountant.domain.repository.TransactionRepository
+import ir.siamak.fintrack.personalaccountant.domain.repository.WalletRepository
 import javax.inject.Singleton
 
 /**
@@ -82,3 +82,4 @@ abstract class RepositoryModule {
     ): TagRepository
 
 }
+
