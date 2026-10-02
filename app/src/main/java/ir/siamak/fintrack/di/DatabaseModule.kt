@@ -262,6 +262,7 @@ object DatabaseModule {
 
     @Provides
     @Singleton
+    @PersonalAccountingDatabase
     fun provideAppDatabase(
         @ApplicationContext context: Context
     ): AppDatabase {
@@ -292,6 +293,7 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideMemberDao(
+        @PersonalAccountingDatabase
         database: AppDatabase
     ): MemberDao =
         database.memberDao()
@@ -301,6 +303,7 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideInstallmentDao(
+        @PersonalAccountingDatabase
         database: AppDatabase
     ): InstallmentDao =
         database.installmentDao()
@@ -310,6 +313,7 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideWalletDao(
+        @PersonalAccountingDatabase
         database: AppDatabase
     ): WalletDao =
         database.walletDao()
@@ -319,6 +323,7 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideTransactionDao(
+        @PersonalAccountingDatabase
         database: AppDatabase
     ): TransactionDao =
         database.transactionDao()
@@ -328,6 +333,7 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideTagDao(
+        @PersonalAccountingDatabase
         database: AppDatabase
     ): TagDao =
         database.tagDao()

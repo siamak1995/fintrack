@@ -37,6 +37,15 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        getByName("androidTest") {
+            assets.srcDir("$projectDir/schemas")
+        }
+    }
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {
@@ -66,6 +75,7 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version") // برای پشتیبانی از Flow و Coroutines
+    androidTestImplementation("androidx.room:room-testing:$room_version")
     // Hilt
     implementation("com.google.dagger:hilt-android:2.51.1") // یا جدیدترین ورژن
     ksp("com.google.dagger:hilt-compiler:2.51.1")

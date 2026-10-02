@@ -12,6 +12,7 @@ import ir.siamak.fintrack.storeaccountant.data.dao.RawMaterialDao
 import ir.siamak.fintrack.storeaccountant.data.dao.SellerDao
 import ir.siamak.fintrack.storeaccountant.data.dao.StoreDao
 import ir.siamak.fintrack.storeaccountant.data.local.StoreDatabase
+import ir.siamak.fintrack.di.StoreAccountingDatabase
 import javax.inject.Singleton
 
 @Module
@@ -20,6 +21,7 @@ object StoreDatabaseModule {
 
     @Provides
     @Singleton
+    @StoreAccountingDatabase
     fun provideStoreDatabase(
         @ApplicationContext context: Context
     ): StoreDatabase {
@@ -32,25 +34,25 @@ object StoreDatabaseModule {
 
     @Provides
     @Singleton
-    fun provideStoreDao(database: StoreDatabase): StoreDao {
+    fun provideStoreDao(@StoreAccountingDatabase database: StoreDatabase): StoreDao {
         return database.storeDao()
     }
 
     @Provides
     @Singleton
-    fun provideRawMaterialDao(database: StoreDatabase): RawMaterialDao {
+    fun provideRawMaterialDao(@StoreAccountingDatabase database: StoreDatabase): RawMaterialDao {
         return database.rawMaterialDao()
     }
 
     @Provides
     @Singleton
-    fun provideSellerDao(database: StoreDatabase): SellerDao {
+    fun provideSellerDao(@StoreAccountingDatabase database: StoreDatabase): SellerDao {
         return database.sellerDao()
     }
 
     @Provides
     @Singleton
-    fun provideProductDao(database: StoreDatabase): ProductDao {
+    fun provideProductDao(@StoreAccountingDatabase database: StoreDatabase): ProductDao {
         return database.productDao()
     }
 }

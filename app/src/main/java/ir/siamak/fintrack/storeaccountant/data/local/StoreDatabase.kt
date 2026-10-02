@@ -27,7 +27,7 @@ import ir.siamak.fintrack.storeaccountant.data.entity.StoreEntity
         SaleItemEntity::class
     ],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class StoreDatabase : RoomDatabase() {
     abstract fun storeDao(): StoreDao
