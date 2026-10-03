@@ -6,6 +6,7 @@ import ir.siamak.fintrack.personalaccountant.data.model.Member
 fun MemberEntity.toModel(): Member {
     return Member(
         id = id,
+        contextId = contextId,
         name = name,
         relation = relation,
         color = color,
@@ -16,6 +17,7 @@ fun MemberEntity.toModel(): Member {
 fun Member.toEntity(): MemberEntity {
     return MemberEntity(
         id = id,
+        contextId = contextId,
         name = name,
         relation = relation,
         color = color,

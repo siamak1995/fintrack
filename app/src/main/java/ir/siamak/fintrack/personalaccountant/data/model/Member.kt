@@ -1,5 +1,7 @@
 package ir.siamak.fintrack.personalaccountant.data.model
 
+import ir.siamak.fintrack.personalaccountant.domain.context.LEGACY_PERSONAL_CONTEXT_ID
+
 /**
  * مدل مربوط به اعضای خانواده.
  *
@@ -9,6 +11,7 @@ package ir.siamak.fintrack.personalaccountant.data.model
  */
 data class Member(
     val id: Long = 0L,
+    val contextId: Long = LEGACY_PERSONAL_CONTEXT_ID,
     val name: String,
     val relation: String,
     val color: String,

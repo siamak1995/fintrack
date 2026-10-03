@@ -6,6 +6,7 @@ import ir.siamak.fintrack.personalaccountant.data.model.Tag
 fun TagEntity.toTag(): Tag {
     return Tag(
         id = id,
+        contextId = contextId,
         name = name,
         color = color,
         workspaceId = workspaceId,
@@ -16,6 +17,7 @@ fun TagEntity.toTag(): Tag {
 fun Tag.toEntity(): TagEntity {
     return TagEntity(
         id = id,
+        contextId = contextId,
         name = name,
         color = color,
         allowedType = allowedType,

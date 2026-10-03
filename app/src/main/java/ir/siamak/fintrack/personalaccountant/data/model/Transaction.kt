@@ -1,9 +1,12 @@
 package ir.siamak.fintrack.personalaccountant.data.model
 
+import ir.siamak.fintrack.personalaccountant.domain.context.LEGACY_PERSONAL_CONTEXT_ID
+
 enum class TransactionType { INCOME, EXPENSE, TRANSFER }
 
 data class Transaction(
     val id: Long = 0,
+    val contextId: Long = LEGACY_PERSONAL_CONTEXT_ID,
     val amount: Double,
     val type: TransactionType,
     val categoryName: String,

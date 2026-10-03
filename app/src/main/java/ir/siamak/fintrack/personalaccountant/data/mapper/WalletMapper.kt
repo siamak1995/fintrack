@@ -6,6 +6,7 @@ import ir.siamak.fintrack.personalaccountant.data.model.Wallet
 fun WalletEntity.toModel(): Wallet {
     return Wallet(
         id = id,
+        contextId = contextId,
         name = name,
         balance = balance,
         color = color
@@ -15,6 +16,7 @@ fun WalletEntity.toModel(): Wallet {
 fun Wallet.toEntity(): WalletEntity {
     return WalletEntity(
         id = id,
+        contextId = contextId,
         name = name,
         balance = balance,
         color = color

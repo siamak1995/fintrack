@@ -1,5 +1,7 @@
 package ir.siamak.fintrack.personalaccountant.data.model
 
+import ir.siamak.fintrack.personalaccountant.domain.context.LEGACY_PERSONAL_CONTEXT_ID
+
 
 /**
  * نمایش‌دهنده یک حساب یا کیف پول
@@ -10,6 +12,7 @@ package ir.siamak.fintrack.personalaccountant.data.model
  */
 data class Wallet(
     val id: Long = 0L,
+    val contextId: Long = LEGACY_PERSONAL_CONTEXT_ID,
     val name: String,
     val balance: Double,
     val color: String,

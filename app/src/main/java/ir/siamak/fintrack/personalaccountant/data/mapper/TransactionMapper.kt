@@ -12,6 +12,7 @@ import ir.siamak.fintrack.personalaccountant.data.model.Transaction
 fun TransactionEntity.toModel(): Transaction {
     return Transaction(
         id = id,
+        contextId = contextId,
         amount = amount,
         type = type,
         categoryName = categoryName,
@@ -29,6 +30,7 @@ fun TransactionEntity.toModel(): Transaction {
 fun TransactionWithTags.toModel(): Transaction {
     return Transaction(
         id = transaction.id,
+        contextId = transaction.contextId,
         amount = transaction.amount,
         type = transaction.type,
         categoryName = transaction.categoryName,
@@ -47,6 +49,7 @@ fun TransactionWithTags.toModel(): Transaction {
 fun TagEntity.toModel(): Tag {
     return Tag(
         id = id,
+        contextId = contextId,
         name = name,
         color = color,
         workspaceId = workspaceId,
@@ -60,6 +63,7 @@ fun TagEntity.toModel(): Tag {
 fun Transaction.toEntity(): TransactionEntity {
     return TransactionEntity(
         id = id,
+        contextId = contextId,
         amount = amount,
         type = type,
         categoryName = categoryName,
