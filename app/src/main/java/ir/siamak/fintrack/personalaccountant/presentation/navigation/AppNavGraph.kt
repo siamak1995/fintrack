@@ -42,9 +42,9 @@ import ir.siamak.fintrack.personalaccountant.presentation.report.pages.visual.Vi
 import ir.siamak.fintrack.personalaccountant.presentation.report.pages.wallet.WalletReportRoute
 import ir.siamak.fintrack.personalaccountant.presentation.transaction.add_edit_transaction.AddEditTransactionScreen
 import ir.siamak.fintrack.personalaccountant.presentation.transaction.navigation.TransactionListRoute
-import ir.siamak.fintrack.storeaccountant.presentation.navigation.StoreBottomBar
-import ir.siamak.fintrack.storeaccountant.presentation.navigation.StoreScreen
-import ir.siamak.fintrack.storeaccountant.presentation.navigation.storeNavGraph
+import ir.siamak.fintrack.store.presentation.navigation.StoreBottomBar
+import ir.siamak.fintrack.store.presentation.navigation.StoreScreen
+import ir.siamak.fintrack.store.presentation.navigation.storeNavGraph
 
 
 /**

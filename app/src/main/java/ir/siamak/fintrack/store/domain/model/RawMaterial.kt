@@ -1,6 +1,9 @@
 package ir.siamak.fintrack.store.domain.model
 
+import kotlinx.serialization.Serializable
+
 /** A stock-controlled raw material used to make custom orders. */
+@Serializable
 data class RawMaterial(
     val id: Long = 0,
     val name: String,

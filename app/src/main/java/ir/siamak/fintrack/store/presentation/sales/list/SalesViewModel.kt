@@ -1,9 +1,8 @@
 package ir.siamak.fintrack.store.presentation.sales.list
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import ir.siamak.fintrack.store.presentation.StoreFeatureViewModel
+import ir.siamak.fintrack.store.domain.usecase.store.*
 
-import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-
-/** Owns sales UI state and delegates data retrieval to use cases when wired by DI. */
-class SalesViewModel : ViewModel() { private val mutableState = MutableStateFlow(SalesUiState()); val state: StateFlow<SalesUiState> = mutableState.asStateFlow() }
+@HiltViewModel
+class SalesViewModel @Inject constructor(observe: ObserveStoreWorkspaceUseCase, commands: StoreCommandsUseCase) : StoreFeatureViewModel(observe, commands)

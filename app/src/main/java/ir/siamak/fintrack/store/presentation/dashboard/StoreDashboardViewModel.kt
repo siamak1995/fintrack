@@ -1,9 +1,8 @@
 package ir.siamak.fintrack.store.presentation.dashboard
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import ir.siamak.fintrack.store.presentation.StoreFeatureViewModel
+import ir.siamak.fintrack.store.domain.usecase.store.*
 
-import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-
-/** Owns only dashboard UI state; aggregation belongs in injected use cases. */
-class StoreDashboardViewModel : ViewModel() { private val mutableState = MutableStateFlow(StoreDashboardUiState()); val state: StateFlow<StoreDashboardUiState> = mutableState.asStateFlow() }
+@HiltViewModel
+class StoreDashboardViewModel @Inject constructor(observe: ObserveStoreWorkspaceUseCase, commands: StoreCommandsUseCase) : StoreFeatureViewModel(observe, commands)

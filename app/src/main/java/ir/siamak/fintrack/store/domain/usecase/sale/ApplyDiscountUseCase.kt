@@ -11,7 +11,7 @@ class ApplyDiscountUseCase {
         val amount = when (discount.type) {
             Discount.DiscountType.PERCENT -> {
                 require(discount.value <= PERCENT_BASE) { "Percentage must be at most 100" }
-                subtotal * discount.value / PERCENT_BASE
+                java.math.BigDecimal.valueOf(subtotal).multiply(java.math.BigDecimal.valueOf(discount.value)).divide(java.math.BigDecimal(100), 0, java.math.RoundingMode.DOWN).longValueExact()
             }
             Discount.DiscountType.FIXED -> discount.value
         }

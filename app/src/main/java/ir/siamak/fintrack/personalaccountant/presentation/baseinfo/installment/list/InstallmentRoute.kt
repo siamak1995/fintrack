@@ -1,7 +1,9 @@
 package ir.siamak.fintrack.personalaccountant.presentation.baseinfo.installment.list
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 /**
  * Route مربوط به صفحه اقساط.
@@ -15,7 +17,7 @@ fun InstallmentRoute(
     viewModel: InstallmentViewModel = hiltViewModel()
 ) {
 
-    val state = viewModel.state.value
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     InstallmentScreen(
         state = state,

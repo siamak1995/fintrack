@@ -1,6 +1,9 @@
 package ir.siamak.fintrack.store.domain.model
 
+import kotlinx.serialization.Serializable
+
 /** A person allowed to issue sales on behalf of a store. */
+@Serializable
 data class Seller(
     val id: Long = 0,
     val firstName: String,

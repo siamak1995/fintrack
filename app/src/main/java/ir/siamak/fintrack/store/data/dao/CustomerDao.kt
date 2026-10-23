@@ -6,4 +6,4 @@ import androidx.room.Upsert
 import ir.siamak.fintrack.store.data.entity.CustomerEntity
 
 /** Data access operations for sale and pre-order customers. */
-@Dao interface CustomerDao { @Upsert suspend fun upsert(entity: CustomerEntity): Long; @Query("SELECT * FROM customers WHERE id = :id") suspend fun find(id: Long): CustomerEntity? }
+@Dao interface CustomerDao { @Upsert suspend fun upsert(entity: CustomerEntity): Long; @Query("SELECT * FROM customers WHERE id = :id") suspend fun find(id: Long): CustomerEntity? @androidx.room.Insert suspend fun insert(entity: ir.siamak.fintrack.store.data.entity.CustomerEntity): Long }

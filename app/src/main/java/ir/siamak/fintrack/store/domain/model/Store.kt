@@ -1,6 +1,9 @@
 package ir.siamak.fintrack.store.domain.model
 
+import kotlinx.serialization.Serializable
+
 /** Identifies the shop whose accounting data is being managed. */
+@Serializable
 data class Store(
     val id: Long = 0,
     val name: String,

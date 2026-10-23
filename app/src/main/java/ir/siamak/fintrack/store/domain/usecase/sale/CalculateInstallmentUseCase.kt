@@ -6,9 +6,9 @@ import ir.siamak.fintrack.store.domain.model.Installment
 class CalculateInstallmentUseCase {
     operator fun invoke(baseAmount: Long, months: Int, monthlyPercent: Int, dueDateForMonth: (Int) -> String): List<Installment> {
         require(baseAmount >= 0) { "Base amount cannot be negative" }
-        require(months > 0) { "Months must be positive" }
-        require(monthlyPercent >= 0) { "Percentage cannot be negative" }
-        val total = baseAmount + (baseAmount * monthlyPercent * months / PERCENT_BASE)
+        require(months in 1..60) { "Months must be positive" }
+        require(monthlyPercent in 0..100) { "Percentage cannot be negative" }
+        val total = java.math.BigDecimal.valueOf(baseAmount).multiply(java.math.BigDecimal.valueOf(100L + monthlyPercent.toLong() * months)).divide(java.math.BigDecimal(100), 0, java.math.RoundingMode.HALF_UP).longValueExact()
         val amountPerMonth = total / months
         val remainder = total % months
         return (1..months).map { month ->

@@ -1,7 +1,19 @@
 package ir.siamak.fintrack.store.presentation.preorder.payment
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import ir.siamak.fintrack.store.domain.model.*
+import ir.siamak.fintrack.store.presentation.components.*
+import ir.siamak.fintrack.store.presentation.preorder.create.PreOrderDraft
 
-import androidx.compose.runtime.Composable
-import ir.siamak.fintrack.store.presentation.components.StoreContent
+@Composable fun PreOrderPaymentScreen(draft: PreOrderDraft, workspace: StoreWorkspace, preview: PreOrder?, suggested: Long?, onChange: ((PreOrderDraft) -> PreOrderDraft) -> Unit) {
 
-/** Fifth pre-order wizard step: fixed or percentage advance payment. */
-@Composable fun PreOrderPaymentScreen() = StoreContent("پیش‌پرداخت", "پیش‌پرداخت درصدی یا مبلغی را انتخاب کنید.")
+                Row { Checkbox(draft.advanceIsPercent, { v -> onChange { it.copy(advanceIsPercent = v) } }); Text("پیش‌پرداخت درصدی") }
+                Entry(if(draft.advanceIsPercent) "درصد پیش‌پرداخت" else "مبلغ پیش‌پرداخت (تومان)", draft.advance, { v -> onChange { it.copy(advance = v) } }, true)
+
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable private fun PreOrderPaymentScreenPreview() { MaterialTheme { StorePage("سفارش اختصاصی") { PreOrderPaymentScreen(PreOrderDraft(),StoreWorkspace(),null,null,{}) } } }

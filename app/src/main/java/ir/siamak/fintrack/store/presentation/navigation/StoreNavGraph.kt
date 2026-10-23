@@ -1,24 +1,39 @@
 package ir.siamak.fintrack.store.presentation.navigation
-
-import androidx.compose.runtime.Composable
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
+import androidx.navigation.*
 import androidx.navigation.compose.composable
 import ir.siamak.fintrack.store.presentation.baseinfo.BaseInfoHubScreen
 import ir.siamak.fintrack.store.presentation.baseinfo.material.MaterialListScreen
 import ir.siamak.fintrack.store.presentation.dashboard.StoreDashboardScreen
-import ir.siamak.fintrack.store.presentation.invoices.PreOrderInvoiceListScreen
-import ir.siamak.fintrack.store.presentation.invoices.SaleInvoiceListScreen
-import ir.siamak.fintrack.store.presentation.preorder.PreOrderListScreen
 import ir.siamak.fintrack.store.presentation.sales.list.SalesScreen
+import ir.siamak.fintrack.store.presentation.sales.create.CreateSaleScreen
+import ir.siamak.fintrack.store.presentation.preorder.list.PreOrderListScreen
+import ir.siamak.fintrack.store.presentation.preorder.create.CreatePreOrderScreen
+import ir.siamak.fintrack.store.presentation.invoices.sale.SaleInvoiceListScreen
+import ir.siamak.fintrack.store.presentation.invoices.sale.SaleInvoiceDetailScreen
+import ir.siamak.fintrack.store.presentation.invoices.preorder.PreOrderInvoiceListScreen
 
-/** Adds all store routes to the host application's navigation graph. */
+private const val CREATE_SALE = "store_create_sale"
+private const val CREATE_ORDER = "store_create_order"
+private const val DETAIL = "store_invoice/{id}"
 fun NavGraphBuilder.storeNavGraph(navController: NavHostController) {
-    composable(StoreScreen.StoreDashboard.route) { StoreDashboardScreen(onSales = { navController.navigate(StoreScreen.StoreSales.route) }, onPreOrders = { navController.navigate(StoreScreen.StorePreOrders.route) }) }
+    fun detail(id: Long) { navController.navigate("store_invoice/" + id) }
+    composable(StoreScreen.StoreDashboard.route) { StoreDashboardScreen(
+        onSales = { navController.navigate(StoreScreen.StoreSales.route) }, onPreOrders = { navController.navigate(StoreScreen.StorePreOrders.route) }) }
     composable(StoreScreen.StoreBaseInfo.route) { BaseInfoHubScreen() }
-    composable(StoreScreen.StoreSales.route) { SalesScreen(onInvoices = { navController.navigate(StoreScreen.StoreSaleInvoices.route) }) }
     composable(StoreScreen.StoreMaterials.route) { MaterialListScreen() }
-    composable(StoreScreen.StorePreOrders.route) { PreOrderListScreen(onInvoices = { navController.navigate(StoreScreen.StorePreOrderInvoices.route) }) }
-    composable(StoreScreen.StoreSaleInvoices.route) { SaleInvoiceListScreen() }
-    composable(StoreScreen.StorePreOrderInvoices.route) { PreOrderInvoiceListScreen() }
+    composable(StoreScreen.StoreSales.route) { SalesScreen(
+        onInvoices = { navController.navigate(StoreScreen.StoreSaleInvoices.route) }, onCreate = { navController.navigate(CREATE_SALE) }) }
+    composable(StoreScreen.StorePreOrders.route) { PreOrderListScreen(
+        onInvoices = { navController.navigate(StoreScreen.StorePreOrderInvoices.route) }, onCreate = { navController.navigate(CREATE_ORDER) }) }
+    composable(StoreScreen.StoreSaleInvoices.route) { SaleInvoiceListScreen(::detail) }
+    composable(StoreScreen.StorePreOrderInvoices.route) { PreOrderInvoiceListScreen(::detail) }
+    composable(CREATE_SALE) { CreateSaleScreen(onComplete = { id ->
+        navController.navigate("store_invoice/" + id) { popUpTo(CREATE_SALE) { inclusive = true } }
+    }) }
+    composable(CREATE_ORDER) { CreatePreOrderScreen(onComplete = { id ->
+        navController.navigate("store_invoice/" + id) { popUpTo(CREATE_ORDER) { inclusive = true } }
+    }) }
+    composable(DETAIL, arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
+        SaleInvoiceDetailScreen(requireNotNull(entry.arguments).getLong("id"))
+    }
 }

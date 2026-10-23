@@ -1,6 +1,9 @@
 package ir.siamak.fintrack.store.domain.model
 
+import kotlinx.serialization.Serializable
+
 /** A custom order that moves through production and delivery states. */
+@Serializable
 data class PreOrder(
     val id: Long = 0,
     val customerId: Long,
@@ -14,4 +17,3 @@ data class PreOrder(
 )
 
 /** Lifecycle states for a custom pre-order. */
-enum class PreOrderStatus { NEW, IN_PROGRESS, READY, DELIVERED, CANCELLED }

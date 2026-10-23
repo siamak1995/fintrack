@@ -1,6 +1,9 @@
 package ir.siamak.fintrack.store.domain.model
 
+import kotlinx.serialization.Serializable
+
 /** A sellable product. Only [name] is mandatory at entry time. */
+@Serializable
 data class Product(
     val id: Long = 0,
     val name: String,

@@ -1,6 +1,9 @@
 package ir.siamak.fintrack.store.domain.model
 
+import kotlinx.serialization.Serializable
+
 /** A completed store sale. Monetary totals are calculated by use cases. */
+@Serializable
 data class Sale(
     val id: Long = 0,
     val customerId: Long,

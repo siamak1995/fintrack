@@ -1,12 +1,13 @@
 package ir.siamak.fintrack.store.data.repository
-
 import ir.siamak.fintrack.store.data.dao.PreOrderDao
 import ir.siamak.fintrack.store.data.mapper.toDomain
-import ir.siamak.fintrack.store.data.mapper.toEntity
-import ir.siamak.fintrack.store.domain.model.PreOrder
+import ir.siamak.fintrack.store.domain.model.*
 import ir.siamak.fintrack.store.domain.repository.PreOrderRepository
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-/** Room-backed implementation of [PreOrderRepository]. */
-class PreOrderRepositoryImpl(private val dao: PreOrderDao) : PreOrderRepository { override fun observeAll(): Flow<List<PreOrder>> = dao.observeAll().map { it.map { entity -> entity.toDomain() } }; override suspend fun create(order: PreOrder): Long = dao.insert(order.toEntity()); override suspend fun update(order: PreOrder) = dao.update(order.toEntity()) }
+class PreOrderRepositoryImpl(private val dao: PreOrderDao, private val store: ir.siamak.fintrack.store.domain.repository.StoreRepository) : PreOrderRepository {
+    override fun observeAll() = dao.observeRecords().map { records -> records.map { record -> record.order.toDomain().copy(
+        items = record.items.map { PreOrderItem(it.rawMaterialId, it.materialName, it.quantity, it.unitPrice) }) } }
+    override suspend fun create(order: PreOrder, invoice: Invoice, requestId: String): Long = store.placeOrder(order,invoice,requestId)
+    override suspend fun updateStatus(id: Long, status: PreOrderStatus) = store.changeOrderStatus(id,status)
+}

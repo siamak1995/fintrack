@@ -11,5 +11,5 @@ import kotlinx.coroutines.flow.map
 class MaterialRepositoryImpl(private val dao: RawMaterialDao) : MaterialRepository {
     override fun observeAll(): Flow<List<RawMaterial>> = dao.observeAll().map { list -> list.map { RawMaterial(it.id, it.name, it.unit, it.pricePerUnit, it.quantity, it.purchaseDate, it.shippingCost) } }
     override suspend fun save(material: RawMaterial) = dao.upsert(RawMaterialEntity(material.id, material.name, material.unit, material.pricePerUnit, material.quantity, material.purchaseDate, material.shippingCost))
-    override suspend fun delete(id: Long) = dao.delete(id)
+    override suspend fun delete(id: Long) { check(dao.delete(id) == 1) { "ماده اولیه در سفارش باز رزرو شده است یا وجود ندارد" } }
 }
