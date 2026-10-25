@@ -12,16 +12,15 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
-data class StoreReportsUiState(val loading: Boolean = true, val invoices: List<Invoice> = emptyList(), val report: StoreReport? = null, val error: String? = null)
+data class StoreReportsUiState(val loading: Boolean = true, val invoices: List<Invoice> = emptyList(), val report: StoreReport? = null, val error: String? = null, val stores: List<Store> = emptyList())
 
 @HiltViewModel
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class StoreReportsViewModel @Inject constructor(repository: InvoiceRepository, calculator: CalculateStoreReportUseCase, stores: StoreRepository) : ViewModel() {
     private val filter = MutableStateFlow(StoreReportFilter())
     private val reload = MutableStateFlow(0L)
-    private val scopedInvoices = combine(repository.observeAll(), stores.observeStore(), stores.observeStores()) { all, active, profiles -> all.forStore(active, profiles) }
-    val state = reload.flatMapLatest { combine(scopedInvoices, filter) { invoices, query ->
-        try { StoreReportsUiState(false, invoices, calculator(invoices, query)) }
+    val state = reload.flatMapLatest { combine(repository.observeAll(), stores.observeStores(), filter) { invoices, profiles, query ->
+        try { StoreReportsUiState(false, invoices, calculator(invoices, query, stores = profiles), stores = profiles) }
         catch(cancelled: CancellationException) { throw cancelled }
         catch(error: Exception) { StoreReportsUiState(false, invoices, error = error.message ?: "گزارش قابل محاسبه نیست") }
     }.catch { emit(StoreReportsUiState(false, error = "خواندن گزارش ناموفق بود: " + it.message)) } }
@@ -37,5 +36,10 @@ class StoreReportsViewModel @Inject constructor(repository: InvoiceRepository, c
     } }
     fun page(number: Int) { filter.update { it.copy(page = number.coerceAtLeast(0)) } }
     fun reset() { filter.value = StoreReportFilter() }
+    fun selectStore(id: Long?) {
+        val store = state.value.stores.firstOrNull { it.id == id }
+        change { it.copy(storeId = id, from = store?.startsOn?.let(java.time.LocalDate::parse) ?: it.from,
+            to = store?.endsOn?.let(java.time.LocalDate::parse) ?: it.to) }
+    }
     fun retry() { reload.update { it + 1 } }
 }

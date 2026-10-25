@@ -20,7 +20,9 @@ data class StoreReportFilter(
     val comparisonFrom: LocalDate? = null,
     val comparisonTo: LocalDate? = null,
     val page: Int = 0,
-    val pageSize: Int = 20
+    val pageSize: Int = 20,
+    val storeId: Long? = null,
+    val comparisonStoreId: Long? = null
 )
 
 data class StoreReportTotals(
@@ -32,6 +34,7 @@ data class StoreReportTotals(
 data class StoreReportProduct(val id: Long, val name: String, val quantity: Long, val gross: Long)
 data class StoreReportCustomer(val id: Long, val name: String, val phone: String, val count: Int, val payable: Long, val balance: Long)
 data class StoreReportBucket(val label: String, val amount: Long, val count: Int)
+data class StoreReportBranch(val id: Long, val name: String, val totals: StoreReportTotals)
 data class StoreReport(
     val filter: StoreReportFilter,
     val totals: StoreReportTotals,
@@ -45,5 +48,8 @@ data class StoreReport(
     val trend: List<StoreReportBucket>,
     val pages: Int,
     val excludedCancelled: Int,
-    val invalidDates: Int = 0
+    val invalidDates: Int = 0,
+    val branches: List<StoreReportBranch> = emptyList(),
+    val stores: List<Store> = emptyList(),
+    val comparisonTrend: List<StoreReportBucket> = emptyList()
 )

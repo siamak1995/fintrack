@@ -16,6 +16,7 @@ class StoreCommandsUseCase @Inject constructor(
         stores.save(value)
     }
     suspend fun selectStore(id: Long) = stores.selectStore(id)
+    suspend fun syncInvoice(id: Long) = stores.syncInvoice(id)
     suspend fun deleteStore(id: Long) = stores.deleteStore(id)
     suspend fun saveBrand(value: Brand) = stores.saveBrand(value)
     suspend fun deleteBrand(id: String) = stores.deleteBrand(id)

@@ -21,10 +21,12 @@ import java.time.LocalDate
                 Text(state.overview.todayCount.toString() + " فاکتور")
             }
         }
-        Button(onClick = onCreate, enabled = state.data.store != null, modifier = Modifier.fillMaxWidth()) { Text("ثبت فروش جدید") }
-        OutlinedButton(onClick = onInvoices, modifier = Modifier.fillMaxWidth()) { Text("فاکتورهای فروش") }
+        ActionPair("ثبت فروش جدید", "فاکتورهای فروش",onCreate,onInvoices)
         Text("آخرین فروش‌ها", style = MaterialTheme.typography.titleMedium)
         if(state.data.sales.isEmpty()) Text("هنوز فروشی ثبت نشده است.")
-        state.data.sales.take(30).forEach { Text(dateLabel(it.createdAt) + " — " + money(it.finalAmount) + " — " + it.items.joinToString { item -> item.productName }) }
+        state.data.sales.take(30).forEach { sale -> FormSection(dateLabel(sale.createdAt)) {
+            Text(sale.items.joinToString { item -> item.productName })
+            DataRow("مبلغ فروش",money(sale.finalAmount),true)
+        } }
     }
 }

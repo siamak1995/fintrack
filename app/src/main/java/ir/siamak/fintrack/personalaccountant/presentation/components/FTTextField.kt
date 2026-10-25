@@ -15,7 +15,7 @@ fun FTTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     OutlinedTextField(
-        visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
+        visualTransformation = if(keyboardOptions.keyboardType in listOf(androidx.compose.ui.text.input.KeyboardType.Number, androidx.compose.ui.text.input.KeyboardType.Decimal) && ',' !in value && '٬' !in value) ir.siamak.fintrack.common.core.formatter.GroupedNumberTransformation else ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
         value = value,
         onValueChange = onValueChange,
         label = { Text(text = label) },

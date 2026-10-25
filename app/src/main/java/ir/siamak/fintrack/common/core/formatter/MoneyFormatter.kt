@@ -6,7 +6,7 @@ object MoneyFormatter {
 
     /** Returns a grouped Persian amount followed by its currency label. */
     fun format(amount: Long, currency: String = DEFAULT_CURRENCY): String {
-        val grouped = "%,d".format(java.util.Locale.US, amount).replace(',', '٬')
+        val grouped = "%,d".format(java.util.Locale.US, amount)
         return "${PersianNumberFormatter.toPersianDigits(grouped)} $currency"
     }
 }

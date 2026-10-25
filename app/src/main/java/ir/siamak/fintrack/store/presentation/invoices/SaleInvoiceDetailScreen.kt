@@ -39,36 +39,52 @@ import java.io.File
     StorePage("جزئیات فاکتور", state.loading, localError ?: state.error, vm::reload) {
         if(invoice == null && !state.loading) Text("فاکتور یافت نشد.")
         invoice?.let {
-            Picture(it.store.logoPath)
-            Text(it.store.name + " — " + it.store.brand)
-            Text("کد رهگیری", style = MaterialTheme.typography.labelLarge)
-            androidx.compose.foundation.text.selection.SelectionContainer {
-                Text(ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(it), style = MaterialTheme.typography.titleMedium)
+            FormSection(it.store.name) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { Picture(it.store.logoPath) }
+                if(it.store.brand.isNotBlank()) DataRow("برند",it.store.brand)
+                DataRow("نام مشتری",it.customer.name)
+                DataRow("تلفن",it.customer.phone)
+                it.customer.address?.let { address -> DataRow("آدرس",address) }
+                DataRow("تاریخ",dateLabel(it.date))
+                androidx.compose.foundation.text.selection.SelectionContainer { DataRow("کد رهگیری",ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(it)) }
+                it.seller?.let { seller -> DataRow("فروشنده",seller.fullName) }
+                DataRow("وضعیت",if(it.cancelled) "لغوشده" else paymentLabel(it.paymentStatus))
             }
-            Text(dateLabel(it.date))
-            Text("مشتری: " + it.customer.name + " — " + it.customer.phone)
-            it.customer.address?.let { address -> Text(address) }
-            it.seller?.let { seller -> Text("فروشنده: " + seller.fullName); Picture(seller.signaturePath) }
-            it.description?.let { description -> Text(description) }
-            it.deliveryDate?.let { date -> Text("تحویل: " + dateLabel(date) + " — " + remainingDays(date)) }
-            it.items.forEach { item -> Text(item.productName + " × " + item.quantity + " — " + money(item.unitPrice)) }
-            it.materialItems.forEach { item -> Text(item.materialName + " — مقدار مصرف: " + item.quantity) }
-
-            it.pricing?.let { pricing ->
-                Text("هزینه مواد: " + money(pricing.materialCost))
-                Text("تولید: " + money(pricing.productionCost) + " | سود: " + money(pricing.profit) + " | ارسال: " + money(pricing.shippingCost))
-                Text("قیمت پیشنهادی: " + money(pricing.suggestedPrice))
+            if(it.items.isNotEmpty()) ItemTable(it.items)
+            if(it.description != null || it.materialItems.isNotEmpty() || it.deliveryDate != null) FormSection("جزئیات سفارش") {
+                it.description?.let { description -> Text(description) }
+                it.deliveryDate?.let { date -> DataRow("تحویل",dateLabel(date) + " · " + remainingDays(date)) }
+                it.materialItems.forEach { item -> DataRow(item.materialName, quantity(item.quantity)) }
             }
-            HorizontalDivider()
-            Text("تخفیف: " + money(it.discountAmount)); Text("مالیات: " + money(it.taxAmount))
-            Text("مبلغ کل: " + money(it.finalAmount), style = MaterialTheme.typography.titleLarge)
-            Text("پرداخت‌شده: " + money(it.payment?.paidAmount ?: 0))
-            Text("مانده: " + money(ir.siamak.fintrack.store.domain.usecase.invoice.CalculateInvoiceBalanceUseCase()(it)))
-            Text(if(it.cancelled) "لغوشده — استرداد دریافت‌های قبلی را جداگانه پیگیری کنید." else paymentLabel(it.paymentStatus))
-            it.payment?.installments?.forEach { installment -> Text("قسط " + installment.monthNumber + " — " + dateLabel(installment.dueDate) + " — " + money(installment.amount)) }
+            it.pricing?.let { pricing -> FormSection("برآورد قیمت") {
+                DataRow("هزینه مواد",money(pricing.materialCost)); DataRow("تولید",money(pricing.productionCost))
+                DataRow("سود",money(pricing.profit)); DataRow("ارسال",money(pricing.shippingCost)); DataRow("قیمت پیشنهادی",money(pricing.suggestedPrice))
+            } }
+            FormSection("خلاصه مالی") {
+                DataRow("تخفیف",money(it.discountAmount)); DataRow("مالیات",money(it.taxAmount)); HorizontalDivider()
+                DataRow("مبلغ کل",money(it.finalAmount),true)
+                DataRow("پرداخت‌شده",money(it.payment?.paidAmount ?: 0))
+                DataRow("مانده",money(ir.siamak.fintrack.store.domain.usecase.invoice.CalculateInvoiceBalanceUseCase()(it)),true)
+                if(it.cancelled) Text("استرداد دریافت‌های قبلی جداگانه پیگیری شود.",color = MaterialTheme.colorScheme.error)
+            }
+            if(it.payment?.installments.orEmpty().isNotEmpty()) FormSection("برنامه اقساط") {
+                it.payment?.installments?.forEach { installment -> DataRow("قسط " + installment.monthNumber + " · " + dateLabel(installment.dueDate),money(installment.amount)) }
+            }
+            FormSection("ثبت در کیف پول شخصی") {
+                val posted = state.data.finance.posted[it.invoiceNumber] ?: 0L
+                DataRow("دریافتی ثبت‌شده", money(posted))
+                if(it.invoiceNumber in state.data.finance.conflicts) Text("سابقهٔ کیف پول ویرایش شده و نیازمند بررسی است.",color = MaterialTheme.colorScheme.error)
+                val paid = it.payment?.paidAmount ?: 0L
+                val destination = it.settlement ?: state.data.stores.firstOrNull { store -> store.id == it.store.id }?.settlement
+                if(it.settlement != null) Text(state.data.finance.wallets.firstOrNull { wallet -> wallet.id == it.settlement.walletId }?.name ?: "کیف پول مقصد در دسترس نیست")
+                if(posted < paid && destination != null) {
+                    Text("در انتظار ثبت: " + money(paid-posted),color = MaterialTheme.colorScheme.error)
+                    FilledTonalButton(enabled = !state.busy, modifier = Modifier.fillMaxWidth(), onClick = { vm.syncInvoice(invoiceId) }) { Text("ثبت / تلاش مجدد در کیف پول") }
+                } else if(destination == null) Text("کیف پول و شخص دریافت‌کننده را در اطلاعات فروشگاه انتخاب کنید.")
+            }
             val cancelled = state.data.orders.firstOrNull { order -> order.id == it.preOrderId }?.status == PreOrderStatus.CANCELLED
             if(it.paymentStatus != PaymentStatus.SETTLED && !cancelled && !it.cancelled) Button(enabled = !state.busy, onClick = { receiving = true }) { Text("ثبت دریافت وجه") }
-            InvoiceActions(it, state.data.invoices)
+            FormSection("خروجی فاکتور") { InvoiceActions(it, state.data.invoices, state.data.sellers) }
         }
     }
     if(receiving && invoice != null) AlertDialog(onDismissRequest = { if(!state.busy) receiving = false },

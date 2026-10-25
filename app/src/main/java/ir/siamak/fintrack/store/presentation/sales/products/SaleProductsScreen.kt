@@ -11,17 +11,21 @@ import ir.siamak.fintrack.store.presentation.sales.create.SaleDraft
 
 @Composable fun SaleProductsScreen(draft: SaleDraft, workspace: StoreWorkspace, preview: Sale?, onChange: ((SaleDraft) -> SaleDraft) -> Unit) {
 
+                var search by remember { mutableStateOf("") }
+                Entry("جست‌وجوی سریع کالا", search, { search = it })
                 if(workspace.products.isEmpty()) Text("ابتدا کالا تعریف کنید.")
-                workspace.products.forEach { product ->
+                workspace.products.filter { it.name.contains(search.trim(), true) }.forEach { product ->
                     val count = draft.quantities[product.id] ?: 0
-                    Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) {
-                        Picture(product.image)
-                        Text(product.name, style = MaterialTheme.typography.titleMedium)
-                        Text("موجودی: " + product.stock + " | " + money(product.price))
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            OutlinedButton(enabled = count < product.stock, onClick = { onChange { it.copy(quantities = it.quantities + (product.id to count + 1)) } }) { Text("+") }
-                            Text(count.toString())
-                            OutlinedButton(enabled = count > 0, onClick = { onChange { it.copy(quantities = if(count == 1) it.quantities - product.id else it.quantities + (product.id to count - 1)) } }) { Text("−") }
+                    OutlinedCard(onClick = { if(count < product.stock) onChange { it.copy(quantities = it.quantities + (product.id to count + 1)) } }, modifier = Modifier.fillMaxWidth(), colors = CardDefaults.outlinedCardColors(containerColor = if(count > 0) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface)) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            if(product.image != null) Picture(product.image, Modifier.size(48.dp))
+                            Column(Modifier.weight(1f)) { Text(product.name, style = MaterialTheme.typography.titleMedium); Text(money(product.price)) }
+                            Text("موجودی: " + quantity(product.stock), style = MaterialTheme.typography.labelMedium)
+                        }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            FilledTonalButton(modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp), enabled = count < product.stock, onClick = { onChange { it.copy(quantities = it.quantities + (product.id to count + 1)) } }) { Text("+") }
+                            Text(quantity(count), Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, style = MaterialTheme.typography.titleLarge)
+                            OutlinedButton(modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp), enabled = count > 0, onClick = { onChange { it.copy(quantities = if(count == 1) it.quantities - product.id else it.quantities + (product.id to count - 1)) } }) { Text("−") }
                         }
                     } }
                 }

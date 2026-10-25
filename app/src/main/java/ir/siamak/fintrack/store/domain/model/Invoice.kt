@@ -26,7 +26,10 @@ data class Invoice(
     val requestId: String = "",
     val cancelled: Boolean = false,
     val paymentStatus: PaymentStatus,
-    val saleId: Long? = null
+    val saleId: Long? = null,
+    val displaySequence: Long = 0,
+    val settlement: StoreSettlementAccount? = null,
+    val walletPostedAmount: Long = 0
 ) {
     enum class PaymentStatus { SETTLED, UNSETTLED, INSTALLMENT }
 }

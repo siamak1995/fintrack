@@ -24,23 +24,27 @@ fun remainingDays(value: String): String = runCatching {
     val state by vm.state.collectAsStateWithLifecycle()
     var pending by remember { mutableStateOf<Pair<Long,PreOrderStatus>?>(null) }
     StorePage("سفارش‌های اختصاصی", state.loading, state.error, vm::reload) {
-        Button(onClick = onCreate) { Text("سفارش جدید") }
-        OutlinedButton(onClick = onInvoices) { Text("فاکتورهای پیش‌سفارش") }
+        ActionPair("ثبت سفارش", "فاکتورهای سفارش", onCreate,onInvoices)
         if(state.data.orders.isEmpty()) Text("هنوز سفارشی ثبت نشده است.")
         state.data.orders.forEach { order ->
-            Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(state.data.invoices.firstOrNull { it.preOrderId == order.id }?.let { ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(it) } ?: "سفارش اختصاصی", style = MaterialTheme.typography.titleMedium)
-                Text(statusLabel(order.status))
-                Text(order.description); Text("تحویل: " + dateLabel(order.deliveryDate) + " — " + remainingDays(order.deliveryDate))
-                Text(money(order.agreedPrice) + " | مانده: " + money(ir.siamak.fintrack.store.domain.usecase.invoice.CalculateInvoiceBalanceUseCase()(order)))
+            OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                val document = state.data.invoices.firstOrNull { it.preOrderId == order.id }
+                Text("نام مشتری: " + document?.customer?.name.orEmpty(), style = MaterialTheme.typography.titleMedium)
+                DataRow("وضعیت",statusLabel(order.status))
+                Text(order.description)
+                DataRow("تحویل",dateLabel(order.deliveryDate) + " · " + remainingDays(order.deliveryDate))
+                if(document != null) DataRow("کد رهگیری",ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(document))
+                HorizontalDivider()
+                DataRow("مبلغ توافقی",money(order.agreedPrice),true)
+                DataRow("مانده",money(ir.siamak.fintrack.store.domain.usecase.invoice.CalculateInvoiceBalanceUseCase()(order)))
                 val next = when(order.status) {
                     PreOrderStatus.NEW -> PreOrderStatus.IN_PROGRESS
                     PreOrderStatus.IN_PROGRESS -> PreOrderStatus.READY
                     PreOrderStatus.READY -> PreOrderStatus.DELIVERED
                     else -> null
                 }
-                next?.let { Button(enabled = !state.busy, onClick = { pending = order.id to it }) { Text(statusLabel(it)) } }
-                if(next != null) TextButton(enabled = !state.busy, onClick = { pending = order.id to PreOrderStatus.CANCELLED }) { Text("لغو سفارش") }
+                next?.let { Button(modifier = Modifier.fillMaxWidth(), enabled = !state.busy, onClick = { pending = order.id to it }) { Text(statusLabel(it)) } }
+                if(next != null) FilledTonalButton(modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer,contentColor = MaterialTheme.colorScheme.onErrorContainer), enabled = !state.busy, onClick = { pending = order.id to PreOrderStatus.CANCELLED }) { Text("لغو سفارش") }
             } }
         }
     }

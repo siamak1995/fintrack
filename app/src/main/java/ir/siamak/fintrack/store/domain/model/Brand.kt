@@ -12,5 +12,7 @@ data class StoreProfiles(
     val signatures: Map<Long, String> = emptyMap(),
     val cards: Map<Long, String> = emptyMap(),
     val accounts: Map<Long, String> = emptyMap(),
-    val storeBrands: Map<Long, String> = emptyMap()
+    val storeBrands: Map<Long, String> = emptyMap(),
+    val periods: Map<Long, ExhibitionPeriod> = emptyMap(),
+    val settlements: Map<Long, StoreSettlementAccount> = emptyMap()
 )

@@ -10,7 +10,8 @@ data class StoreWorkspace(
     val orders: List<PreOrder> = emptyList(),
     val invoices: List<Invoice> = emptyList(),
     val stores: List<Store> = emptyList(),
-    val brands: List<Brand> = emptyList()
+    val brands: List<Brand> = emptyList(),
+    val finance: StoreFinanceDirectory = StoreFinanceDirectory()
 )
 
 /** Validated sale request; product prices are resolved from the persisted catalog. */

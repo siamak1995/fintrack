@@ -11,7 +11,10 @@ import ir.siamak.fintrack.store.presentation.sales.create.SaleDraft
 
 @Composable fun SalePaymentScreen(draft: SaleDraft, workspace: StoreWorkspace, preview: Sale?, onChange: ((SaleDraft) -> SaleDraft) -> Unit) {
 
-                Row { Checkbox(draft.installments, { v -> onChange { it.copy(installments = v) } }); Text("فروش اقساطی (در غیر این صورت نقدی و تسویه)") }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(!draft.installments, { onChange { it.copy(installments = false) } }, { Text("نقدی · تسویه کامل") })
+                    FilterChip(draft.installments, { onChange { it.copy(installments = true) } }, { Text("اقساطی") })
+                }
                 if(draft.installments) {
                     Entry("تعداد ماه (۱ تا ۶۰)", draft.months, { v -> onChange { it.copy(months = v) } }, true)
                     Entry("درصد سود هر ماه", draft.monthlyPercent, { v -> onChange { it.copy(monthlyPercent = v) } }, true)

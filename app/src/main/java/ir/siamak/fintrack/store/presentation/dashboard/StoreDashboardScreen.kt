@@ -41,6 +41,11 @@ import java.time.LocalDate
                 TextButton(onClick = onCatalog) { Text("شروع راه‌اندازی") }
             }
         }
+        val pending = data.invoices.count { it.settlement != null && (it.payment?.paidAmount ?: 0) > (data.finance.posted[it.invoiceNumber] ?: 0) }
+        if(pending > 0) FormSection("کیف پول") {
+            Text(quantity(pending) + " فاکتور در انتظار ثبت دریافت در کیف پول است.",color = MaterialTheme.colorScheme.error)
+            FilledTonalButton(onClick = onSales,modifier = Modifier.fillMaxWidth()) { Text("بررسی فاکتورها") }
+        }
         Card(onClick = onReports, modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
             Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

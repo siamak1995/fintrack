@@ -11,9 +11,13 @@ import ir.siamak.fintrack.store.presentation.sales.create.SaleDraft
 
 @Composable fun SaleInvoiceScreen(draft: SaleDraft, workspace: StoreWorkspace, preview: Sale?, onChange: ((SaleDraft) -> SaleDraft) -> Unit) {
 
-                Text("مشتری: " + draft.name)
-                preview?.items?.forEach { Text(it.productName + " × " + it.quantity + " — " + money(it.unitPrice)) }
-                Text("با ثبت نهایی، موجودی کسر و فاکتور ذخیره می‌شود.")
+                FormSection("مشخصات فاکتور") {
+                    DataRow("نام مشتری", draft.name); DataRow("تلفن", draft.phone)
+                    if(draft.address.isNotBlank()) DataRow("آدرس", draft.address)
+                    DataRow("فروشگاه", workspace.store?.name.orEmpty())
+                    DataRow("فروشنده", workspace.sellers.firstOrNull { it.id == draft.sellerId }?.fullName ?: "بدون فروشنده")
+                }
+                preview?.items?.let { ItemTable(it) }
 
 }
 

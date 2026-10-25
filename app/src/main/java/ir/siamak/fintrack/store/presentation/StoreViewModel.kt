@@ -46,6 +46,7 @@ abstract class StoreFeatureViewModel(
         }
     }
     fun selectStore(id: Long) = execute { commands.selectStore(id) }
+    fun syncInvoice(id: Long) = execute { commands.syncInvoice(id) }
     fun deleteBrand(id: String, done: () -> Unit) = execute(done) { commands.deleteBrand(id) }
     fun status(id: Long, value: PreOrderStatus) = execute { commands.changeStatus(id, value) }
     fun receive(id: Long, amount: Long, done: () -> Unit) = execute(done) { commands.receivePayment(id, amount) }

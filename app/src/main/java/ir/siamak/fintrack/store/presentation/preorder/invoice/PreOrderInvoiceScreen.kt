@@ -13,7 +13,7 @@ import ir.siamak.fintrack.store.presentation.preorder.create.PreOrderDraft
 
                 Text("مشتری: " + draft.name); Text(draft.description)
                 Text("تحویل: " + dateLabel(draft.deliveryDate))
-                preview?.items?.forEach { Text(it.materialName + " — " + it.quantity) }
+                preview?.items?.forEach { DataRow(it.materialName, quantity(it.quantity)) }
                 Text("با تأیید، مواد مصرفی از موجودی کسر می‌شوند.")
 
 }

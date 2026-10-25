@@ -11,7 +11,10 @@ import ir.siamak.fintrack.store.presentation.sales.create.SaleDraft
 
 @Composable fun SaleDiscountScreen(draft: SaleDraft, workspace: StoreWorkspace, preview: Sale?, onChange: ((SaleDraft) -> SaleDraft) -> Unit) {
 
-                Row { Checkbox(draft.percentDiscount, { v -> onChange { it.copy(percentDiscount = v) } }); Text("تخفیف درصدی") }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(!draft.percentDiscount, { onChange { it.copy(percentDiscount = false) } }, { Text("تخفیف مبلغی") })
+                    FilterChip(draft.percentDiscount, { onChange { it.copy(percentDiscount = true) } }, { Text("تخفیف درصدی") })
+                }
                 Entry("تخفیف " + if(draft.percentDiscount) "(درصد)" else "(تومان)", draft.discount, { v -> onChange { it.copy(discount = v) } }, true)
                 Entry("مالیات (درصد)", draft.tax, { v -> onChange { it.copy(tax = v) } }, true)
 

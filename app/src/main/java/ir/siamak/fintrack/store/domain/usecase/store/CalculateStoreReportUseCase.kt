@@ -11,20 +11,21 @@ import javax.inject.Inject
 
 /** One row per persisted invoice. Receipts are current cumulative balances, not cash flow. */
 class CalculateStoreReportUseCase @Inject constructor() {
-    operator fun invoke(invoices: List<Invoice>, filter: StoreReportFilter, today: LocalDate = LocalDate.now()): StoreReport {
+    operator fun invoke(invoices: List<Invoice>, filter: StoreReportFilter, today: LocalDate = LocalDate.now(), stores: List<Store> = emptyList()): StoreReport {
         require(!filter.to.isBefore(filter.from)) { "بازهٔ تاریخ معتبر نیست" }
         require(filter.page >= 0 && filter.pageSize in 1..100)
         require((filter.comparisonFrom == null) == (filter.comparisonTo == null))
         val days = ChronoUnit.DAYS.between(filter.from, filter.to) + 1
-        val previousTo = filter.comparisonTo ?: filter.from.minusDays(1)
-        val previousFrom = filter.comparisonFrom ?: previousTo.minusDays(days - 1)
+        val previousTo = filter.comparisonTo ?: if(filter.comparisonStoreId != null) filter.to else filter.from.minusDays(1)
+        val previousFrom = filter.comparisonFrom ?: if(filter.comparisonStoreId != null) filter.from else previousTo.minusDays(days - 1)
         require(!previousTo.isBefore(previousFrom)) { "بازهٔ مقایسه معتبر نیست" }
         val search = PersianNumberFormatter.normalize(filter.search.trim()).lowercase()
-        fun matching(from: LocalDate, to: LocalDate, includeCancelled: Boolean = false) = invoices.filter { invoice ->
+        fun owner(invoice: Invoice) = invoice.store.id.takeIf { it > 0 } ?: stores.firstOrNull()?.id ?: 0L
+        fun matching(from: LocalDate, to: LocalDate, includeCancelled: Boolean = false, storeId: Long? = filter.storeId) = invoices.filter { invoice ->
             val date = runCatching { LocalDate.parse(invoice.date.take(10)) }.getOrNull()
             val paid = invoice.payment?.paidAmount ?: 0
             val remaining = Math.subtractExact(invoice.finalAmount, paid)
-            date != null && !date.isBefore(from) && !date.isAfter(to) &&
+            (storeId == null || owner(invoice) == storeId) && date != null && !date.isBefore(from) && !date.isAfter(to) &&
                 (includeCancelled || !invoice.cancelled) &&
                 (invoice.preOrderId != null) == (filter.document == ReportDocument.PREORDER) &&
                 (filter.customerId == null || invoice.customer.id == filter.customerId) &&
@@ -48,7 +49,7 @@ class CalculateStoreReportUseCase @Inject constructor() {
         val pages = ((ordered.size + filter.pageSize - 1) / filter.pageSize).coerceAtLeast(1)
         val page = filter.page.coerceAtMost(pages - 1)
         val items = selected.flatMap { it.items }.filter { filter.productId == null || it.productId == filter.productId }
-        return StoreReport(filter.copy(page = page), totals(selected, today), totals(matching(previousFrom, previousTo), today), previousFrom, previousTo,
+        return StoreReport(filter.copy(page = page), totals(selected, today), totals(matching(previousFrom, previousTo, storeId = filter.comparisonStoreId ?: filter.storeId), today), previousFrom, previousTo,
             ordered.drop(page * filter.pageSize).take(filter.pageSize), ordered,
             items.groupBy { it.productId }.map { (id, rows) -> StoreReportProduct(id, rows.last().productName,
                 rows.fold(0L) { a, b -> Math.addExact(a, b.quantity.toLong()) },
@@ -61,7 +62,11 @@ class CalculateStoreReportUseCase @Inject constructor() {
             selected.groupBy { bucket(LocalDate.parse(it.date.take(10)), filter.period) }.toSortedMap().map { (label, rows) ->
                 StoreReportBucket(label, rows.fold(0L) { a, b -> Math.addExact(a, b.finalAmount) }, rows.size)
             }, pages, matching(filter.from, filter.to, true).count { it.cancelled },
-            invoices.count { (it.preOrderId != null) == (filter.document == ReportDocument.PREORDER) && runCatching { LocalDate.parse(it.date.take(10)) }.isFailure })
+            invoices.count { (filter.storeId == null || owner(it) == filter.storeId) && (it.preOrderId != null) == (filter.document == ReportDocument.PREORDER) && runCatching { LocalDate.parse(it.date.take(10)) }.isFailure },
+            selected.groupBy(::owner).map { (id, rows) -> StoreReportBranch(id, stores.firstOrNull { it.id == id }?.name ?: rows.last().store.name, totals(rows,today)) }.sortedByDescending { it.totals.payable }, stores,
+            matching(previousFrom,previousTo,storeId = filter.comparisonStoreId ?: filter.storeId).groupBy { bucket(LocalDate.parse(it.date.take(10)), filter.period) }.toSortedMap().map { (label,rows) ->
+                StoreReportBucket(label,rows.fold(0L) { sum,row -> Math.addExact(sum,row.finalAmount) },rows.size)
+            })
     }
 
     private fun totals(rows: List<Invoice>, today: LocalDate): StoreReportTotals {

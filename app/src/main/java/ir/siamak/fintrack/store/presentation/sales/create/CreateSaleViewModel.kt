@@ -36,7 +36,12 @@ internal fun Long.toIntChecked(): Int { require(this in 0..Int.MAX_VALUE.toLong(
         viewModelScope.launch {
             observe().catch { e -> mutable.update { it.copy(loading = false, error = e.message) } }.collect { workspace ->
                 mutable.update { it.copy(workspace = workspace, loading = false) }
-                workspace.invoices.firstOrNull { it.requestId == mutable.value.draft.requestId }?.let { invoice ->
+                if(saved.get<Boolean>("sellerInitialized") != true && workspace.sellers.isNotEmpty()) {
+                    saved["sellerInitialized"] = true
+                    if(mutable.value.draft.sellerId == null && saved.get<String>("draft") == null)
+                        edit { it.copy(sellerId = (workspace.sellers.firstOrNull { seller -> seller.signaturePath != null } ?: workspace.sellers.first()).id) }
+                }
+                workspace.invoices.firstOrNull { !mutable.value.busy && it.requestId == mutable.value.draft.requestId }?.let { invoice ->
                     saved.remove<String>("draft")
                     mutable.update { it.copy(invoiceId = invoice.id) }
                 }
@@ -64,13 +69,13 @@ internal fun Long.toIntChecked(): Int { require(this in 0..Int.MAX_VALUE.toLong(
             else -> runCatching { checkout.preview(current.draft.request(), current.workspace) }.exceptionOrNull()?.message
         }
         if(error != null) mutable.update { it.copy(error = error) }
-        else edit { it.copy(step = (it.step + 1).coerceAtMost(4)) }
+        else edit { it.copy(step = if(it.step in 2..3) 4 else (it.step + 1).coerceAtMost(4)) }
     }
-    fun back() = edit { it.copy(step = (it.step - 1).coerceAtLeast(0)) }
+    fun back() = edit { it.copy(step = if(it.step == 4) 2 else (it.step - 1).coerceAtLeast(0)) }
     private fun refresh() {
         val current = mutable.value
         val result = runCatching { checkout.preview(current.draft.request(), current.workspace) }
-        mutable.update { it.copy(preview = result.getOrNull()) }
+        mutable.update { it.copy(preview = result.getOrNull(), validationMessage = result.exceptionOrNull()?.message) }
     }
     fun submit() {
         if(mutable.value.busy || mutable.value.invoiceId != null) return

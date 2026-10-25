@@ -11,7 +11,7 @@ import java.util.Locale
 
 /** Platform-independent A5 geometry measured from the supplied reference (420 × 595 pt). */
 @Serializable data class InvoicePrintElement(val kind: String, val x: Float, val y: Float, val width: Float = 0f,
-    val height: Float = 0f, val text: String = "", val size: Float = 9f, val bold: Boolean = false, val align: String = "right")
+    val height: Float = 0f, val text: String = "", val size: Float = 9f, val bold: Boolean = false, val align: String = "right", val color: Int = -16777216)
 @Serializable data class InvoicePrintDocument(val pages: List<List<InvoicePrintElement>>, val width: Int = 420, val height: Int = 595)
 
 class InvoicePrintLayout {
@@ -108,7 +108,7 @@ class InvoicePrintLayout {
                 part.forEachIndexed { line,value -> text(value,252f,y+3+line*13,130f) }
                 if(offset == 0) {
                     text((index+1).toString(),386f,y+3,17f,8f,align = "center")
-                    text(item.quantity.toString() + " عدد",203f,y+3,45f,8f,align = "center")
+                    text(amount(item.quantity.toLong()) + " عدد",203f,y+3,45f,8f,align = "center")
                     text(amount(item.unitPrice),141f,y+3,60f,8f,align = "center")
                     text("—",78f,y+3,60f,8f,align = "center")
                     text(amount(Math.multiplyExact(item.unitPrice,item.quantity.toLong())),16f,y+3,60f,8f,align = "center")
@@ -157,7 +157,7 @@ class InvoicePrintLayout {
             next(false)
             text("پیوست و جزئیات فاکتور " + tracking,15f,y,390f,10f,true); y += 24f
             val notes = overflowNotes.toList() + listOfNotNull(if(invoice.cancelled) "لغوشده — دریافت‌های قبلی محفوظ است؛ استرداد وجه جداگانه پیگیری شود." else null, invoice.description, invoice.deliveryDate?.let { "تاریخ تحویل: " + date(it) }) +
-                invoice.materialItems.map { "ماده: " + it.materialName + " | مقدار: " + it.quantity + " | قیمت واحد: " + money(it.unitPrice) } +
+                invoice.materialItems.map { "ماده: " + it.materialName + " | مقدار: " + NumberFormat.getNumberInstance(Locale.US).apply { maximumFractionDigits = 8 }.format(it.quantity) + " | قیمت واحد: " + money(it.unitPrice) } +
                 invoice.pricing?.let { listOf("هزینه مواد: " + money(it.materialCost), "تولید: " + money(it.productionCost), "سود: " + money(it.profit), "ارسال: " + money(it.shippingCost), "قیمت پیشنهادی: " + money(it.suggestedPrice)) }.orEmpty() +
                 invoice.payment?.installments.orEmpty().map { "قسط " + it.monthNumber + " | سررسید: " + date(it.dueDate) + " | سود ماهانه: " + it.percentage + "٪ | مبلغ: " + money(it.amount) }
             notes.forEach { note -> lines(note,390f).forEach { line -> if(y > 545) next(false); text(line,15f,y,390f); y += 14f }; y += 8f }

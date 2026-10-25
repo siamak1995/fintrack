@@ -13,22 +13,29 @@ import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: StoreProfilesDataSource? = null) : StoreRepository {
+class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: StoreProfilesDataSource? = null, private val ledger: StorePersonalLedger? = null) : StoreRepository {
     override fun observeStores() = combine(db.storeDao().observeAll(), observeProfiles()) { rows, settings -> rows.map { row ->
         val brand = settings.brands.firstOrNull { it.id == settings.storeBrands[row.id] }
         row.toDomain().let { if(brand == null) it else it.copy(brand = brand.name, logoPath = brand.image, brandId = brand.id) }
+            .copy(startsOn = settings.periods[row.id]?.start, endsOn = settings.periods[row.id]?.end, settlement = settings.settlements[row.id])
     } }
     override fun observeProfiles() = profiles?.profiles ?: kotlinx.coroutines.flow.flowOf(StoreProfiles())
+    override fun observeFinanceDirectory() = ledger?.directory ?: kotlinx.coroutines.flow.flowOf(StoreFinanceDirectory())
     override fun observeStore() = combine(observeStores(), observeProfiles()) { all, settings ->
         all.firstOrNull { it.id == settings.activeStoreId } ?: all.firstOrNull()
     }
     override suspend fun save(store: Store) {
+        store.settlement?.let { requireNotNull(ledger).validate(it) }
+        require((store.startsOn == null) == (store.endsOn == null)) { "تاریخ شروع و پایان را با هم وارد کنید" }
+        if(store.startsOn != null) require(!java.time.LocalDate.parse(store.endsOn).isBefore(java.time.LocalDate.parse(store.startsOn))) { "پایان نمایشگاه نمی‌تواند قبل از شروع باشد" }
         val id = db.withTransaction {
             val id = store.id.takeIf { it > 0 } ?: db.storeDao().nextId()
             db.storeDao().upsert(store.copy(id = id).toEntity()); id
         }
         profiles?.update { it.copy(activeStoreId = if(store.id == 0L) id else it.activeStoreId,
-            storeBrands = it.storeBrands - id + listOfNotNull(store.brandId?.let { brand -> id to brand }).toMap()) }
+            storeBrands = it.storeBrands - id + listOfNotNull(store.brandId?.let { brand -> id to brand }).toMap(),
+            periods = it.periods - id + listOfNotNull(store.startsOn?.let { start -> id to ExhibitionPeriod(start,requireNotNull(store.endsOn)) }).toMap(),
+            settlements = it.settlements - id + listOfNotNull(store.settlement?.let { account -> id to account }).toMap()) }
     }
     override suspend fun selectStore(id: Long) {
         require(observeStores().first().any { it.id == id }) { "فروشگاه یافت نشد" }
@@ -44,7 +51,7 @@ class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: S
             require(!used) { "فروشگاه دارای فاکتور قابل حذف نیست؛ سابقهٔ مالی باید حفظ شود" }
             db.storeDao().delete(id)
         }
-        profiles?.update { it.copy(activeStoreId = if(it.activeStoreId == id) null else it.activeStoreId, storeBrands = it.storeBrands-id) }
+        profiles?.update { it.copy(activeStoreId = if(it.activeStoreId == id) null else it.activeStoreId, storeBrands = it.storeBrands-id, periods = it.periods-id, settlements = it.settlements-id) }
     }
     override suspend fun saveBrand(brand: Brand) {
         require(brand.name.isNotBlank()) { "نام برند الزامی است" }
@@ -61,7 +68,9 @@ class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: S
         }
     }
 
-    override suspend fun checkout(sale: Sale, invoice: Invoice, requestId: String): Long = db.withTransaction {
+    override suspend fun checkout(sale: Sale, invoice: Invoice, requestId: String): Long {
+      invoice.store.settlement?.let { requireNotNull(ledger).validate(it) }
+      val id = db.withTransaction {
         require(requestId.isNotBlank() && invoice.requestId == requestId && invoice.invoiceNumber == "S-" + requestId)
         db.invoiceDao().byNumber(invoice.invoiceNumber)?.let { return@withTransaction it.id }
         require(sale.items.isNotEmpty() && sale.finalAmount >= 0)
@@ -75,10 +84,15 @@ class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: S
         db.saleDao().insertItems(sale.items.map { SaleItemEntity(saleId = saleId, productId = it.productId, productName = it.productName, quantity = it.quantity, unitPrice = it.unitPrice) })
         val paymentId = db.saleDao().insertPayment(PaymentEntity(saleId = saleId, preOrderId = null, type = sale.payment.type.name, paidAmount = sale.payment.paidAmount))
         db.saleDao().insertInstallments(sale.payment.installments.map { InstallmentEntity(paymentId = paymentId, monthNumber = it.monthNumber, percentage = it.percentage, amount = it.amount, dueDate = it.dueDate) })
-        db.invoiceDao().upsert(invoice.entity(saleId = saleId, customerId = customerId))
+        db.invoiceDao().upsert(invoice.copy(displaySequence = nextSequence(false), settlement = invoice.store.settlement).entity(saleId = saleId, customerId = customerId))
+      }
+      postIfLinked(id)
+      return id
     }
 
-    override suspend fun placeOrder(order: PreOrder, invoice: Invoice, requestId: String): Long = db.withTransaction {
+    override suspend fun placeOrder(order: PreOrder, invoice: Invoice, requestId: String): Long {
+      invoice.store.settlement?.let { requireNotNull(ledger).validate(it) }
+      val invoiceId = db.withTransaction {
         require(requestId.isNotBlank() && invoice.requestId == requestId && invoice.invoiceNumber == "P-" + requestId)
         db.invoiceDao().byNumber(invoice.invoiceNumber)?.let { return@withTransaction it.id }
         require(order.agreedPrice > 0 && order.advancePayment in 0..order.agreedPrice)
@@ -90,7 +104,10 @@ class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: S
         val id = db.preOrderDao().insert(order.copy(customerId = customerId).toEntity())
         db.preOrderDao().insertItems(order.items.map { PreOrderItemEntity(preOrderId = id, rawMaterialId = it.rawMaterialId, materialName = it.materialName, quantity = it.quantity, unitPrice = it.unitPrice) })
         db.saleDao().insertPayment(PaymentEntity(saleId = null, preOrderId = id, type = Payment.PaymentType.CASH.name, paidAmount = order.advancePayment))
-        db.invoiceDao().upsert(invoice.copy(preOrderId = id).entity(orderId = id, customerId = customerId))
+        db.invoiceDao().upsert(invoice.copy(preOrderId = id, displaySequence = nextSequence(true), settlement = invoice.store.settlement).entity(orderId = id, customerId = customerId))
+      }
+      postIfLinked(invoiceId)
+      return invoiceId
     }
 
     override suspend fun changeOrderStatus(orderId: Long, status: PreOrderStatus): Unit = db.withTransaction {
@@ -110,7 +127,8 @@ class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: S
         db.preOrderDao().status(orderId, status.name)
     }
 
-    override suspend fun receivePayment(invoiceId: Long, amount: Long): Unit = db.withTransaction {
+    override suspend fun receivePayment(invoiceId: Long, amount: Long) {
+      db.withTransaction {
         require(amount > 0)
         val entity = requireNotNull(db.invoiceDao().get(invoiceId))
         val invoice = Json.decodeFromString<Invoice>(entity.payload).copy(id = entity.id)
@@ -123,6 +141,35 @@ class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: S
         else db.saleDao().insertPayment(PaymentEntity(saleId = entity.saleId, preOrderId = entity.preOrderId, type = newPayment.type.name, paidAmount = paid))
         entity.preOrderId?.let { db.preOrderDao().updatePaid(it, paid) }
         db.invoiceDao().upsert(entity.copy(paymentStatus = updated.paymentStatus.name, payload = Json.encodeToString(updated)))
+      }
+      postIfLinked(invoiceId)
+    }
+    private suspend fun nextSequence(order: Boolean): Long {
+        val rows = db.invoiceDao().records().filter { (it.preOrderId != null) == order }
+        return Math.addExact(maxOf(rows.size.toLong(), rows.maxOfOrNull { Json.decodeFromString<Invoice>(it.payload).displaySequence } ?: 0L), 1L)
+    }
+    override suspend fun syncInvoice(id: Long) {
+        val snapshot = db.withTransaction {
+            val entity = requireNotNull(db.invoiceDao().get(id))
+            val invoice = Json.decodeFromString<Invoice>(entity.payload).copy(id = id, saleId = entity.saleId, preOrderId = entity.preOrderId)
+            val account = invoice.settlement ?: profiles?.profiles?.first()?.settlements?.get(invoice.store.id)
+            val linked = invoice.copy(settlement = requireNotNull(account) { "ابتدا کیف پول و شخص دریافت‌کننده را در فرم فروشگاه انتخاب کنید" })
+            db.invoiceDao().upsert(entity.copy(payload = Json.encodeToString(linked)))
+            linked
+        }
+        val posted = requireNotNull(ledger).post(snapshot)
+        db.withTransaction {
+            val entity = requireNotNull(db.invoiceDao().get(id))
+            val current = Json.decodeFromString<Invoice>(entity.payload)
+            db.invoiceDao().upsert(entity.copy(payload = Json.encodeToString(current.copy(walletPostedAmount = maxOf(current.walletPostedAmount,posted)))))
+        }
+    }
+    private suspend fun postIfLinked(id: Long) {
+        val invoice = db.invoiceDao().get(id)?.let { Json.decodeFromString<Invoice>(it.payload) } ?: return
+        if(invoice.settlement == null) return
+        try { syncInvoice(id) }
+        catch(cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+        catch(_: Exception) { /* Durable invoice receipt remains pending; details exposes status + explicit retry. */ }
     }
     private fun Invoice.entity(saleId: Long? = null, orderId: Long? = null, customerId: Long): InvoiceEntity =
         InvoiceEntity(invoiceNumber = invoiceNumber, saleId = saleId, preOrderId = orderId, date = date, finalAmount = finalAmount,

@@ -14,9 +14,10 @@ import ir.siamak.fintrack.store.presentation.preorder.create.PreOrderDraft
                 Text("مقدار مصرف را در همان واحد ثبت‌شده وارد کنید؛ برای مثال ۲۰۰ گرم از موجودی کیلویی = ۰٫۲ کیلو.")
                 if(workspace.materials.isEmpty()) Text("برای سفارش بدون مواد، به مرحله بعد بروید؛ برای مدیریت مواد از اطلاعات پایه استفاده کنید.")
                 workspace.materials.forEach { material ->
-                    Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) {
-                        Text(material.name + " — موجودی " + material.quantity + " " + material.unit)
-                        Text(money(material.pricePerUnit) + " / " + material.unit)
+                    OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp),verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(material.name,style = MaterialTheme.typography.titleMedium)
+                        DataRow("موجودی",quantity(material.quantity) + " " + material.unit)
+                        DataRow("قیمت واحد",money(material.pricePerUnit) + " / " + material.unit)
                         Entry("مقدار مصرف (" + material.unit + ")", draft.quantities[material.id].orEmpty(), { v -> onChange { it.copy(quantities = it.quantities + (material.id to v)) } }, true)
                     } }
                 }

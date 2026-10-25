@@ -15,10 +15,13 @@ class InvoicePdfGenerator {
     fun generate(invoice: Invoice, output: OutputStream, logo: Bitmap? = null, signature: Bitmap? = null, related: List<Invoice>? = null,
                  regularTypeface: Typeface? = null, boldTypeface: Typeface? = null) {
         val layout = InvoicePrintLayout().create(invoice,related)
+        render(layout,output,regularTypeface,boldTypeface,logo,signature,TrackingQr.encode(InvoiceTrackingCode.of(invoice)))
+    }
+    fun render(layout: InvoicePrintDocument, output: OutputStream, regularTypeface: Typeface? = null, boldTypeface: Typeface? = null,
+               logo: Bitmap? = null, signature: Bitmap? = null, qr: Array<BooleanArray> = emptyArray()) {
         val document = PdfDocument()
         val ink = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK }
         val border = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.GRAY; style = Paint.Style.STROKE; strokeWidth = .4f }
-        val qr = TrackingQr.encode(InvoiceTrackingCode.of(invoice))
         try {
             layout.pages.forEachIndexed { index,elements ->
                 val page = document.startPage(PdfDocument.PageInfo.Builder(layout.width,layout.height,index+1).create())
@@ -30,9 +33,10 @@ class InvoicePdfGenerator {
                         "line" -> canvas.drawLine(x,y,x+w,y,border)
                         "vertical" -> canvas.drawLine(x,y,x,y+h,border)
                         "box" -> canvas.drawRect(x,y,x+w,y+h,border)
+                        "fill" -> canvas.drawRect(x,y,x+w,y+h,Paint(Paint.ANTI_ALIAS_FLAG).apply { color = element.color })
                         "text" -> {
                             val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-                                textSize = element.size; color = Color.BLACK
+                                textSize = element.size; color = element.color
                                 typeface = (if(element.bold) boldTypeface else regularTypeface) ?: Typeface.create("sans-serif",if(element.bold) Typeface.BOLD else Typeface.NORMAL)
                             }
                             while(paint.measureText(element.text) > w && paint.textSize > 4f) paint.textSize -= .25f

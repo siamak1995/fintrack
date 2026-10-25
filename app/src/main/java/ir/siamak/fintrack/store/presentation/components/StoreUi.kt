@@ -26,9 +26,10 @@ import java.time.*
 import java.text.NumberFormat
 import java.util.Locale
 
-fun money(value: Long) = NumberFormat.getIntegerInstance(Locale.forLanguageTag("fa")).format(value) + " تومان"
+fun money(value: Long) = ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter.format(value) + " تومان"
+fun quantity(value: Number) = ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter.toPersianDigits(NumberFormat.getNumberInstance(Locale.US).apply { maximumFractionDigits = 8 }.format(value))
 fun dateLabel(value: String) = runCatching { DateFormatter.formatJalali(LocalDate.parse(value.take(10))) }.getOrDefault(value)
-fun numeric(value: String): String = value.map { c -> if(c.isDigit()) Character.getNumericValue(c).toString() else c.toString() }.joinToString("")
+fun numeric(value: String): String = value.filterNot { it == ',' || it == '٬' }.map { c -> if(c.isDigit()) Character.getNumericValue(c).toString() else c.toString() }.joinToString("")
 fun whole(value: String, optional: Boolean = false): Long = if(optional && value.isBlank()) 0 else numeric(value).toLongOrNull() ?: error("مبلغ یا تعداد صحیح وارد کنید")
 fun decimal(value: String): Double = numeric(value).replace('٫','.').toDoubleOrNull()?.takeIf { it.isFinite() } ?: error("مقدار عددی معتبر وارد کنید")
 
@@ -51,8 +52,8 @@ fun decimal(value: String): Double = numeric(value).replace('٫','.').toDoubleOr
     }
 }
 @Composable fun Entry(label: String, value: String, change: (String) -> Unit, number: Boolean = false, lines: Int = 1) =
-    OutlinedTextField(value = value, onValueChange = change, label = { Text(label) }, modifier = Modifier.fillMaxWidth(),
-        visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
+    OutlinedTextField(value = value, onValueChange = { change(if(number) numeric(it) else it) }, label = { Text(label) }, modifier = Modifier.fillMaxWidth(),
+        visualTransformation = if(number) ir.siamak.fintrack.common.core.formatter.GroupedNumberTransformation else ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
         singleLine = lines == 1, minLines = lines, keyboardOptions = KeyboardOptions(keyboardType = if(number) KeyboardType.Decimal else KeyboardType.Text))
 
 
@@ -92,11 +93,11 @@ fun decimal(value: String): Double = numeric(value).replace('٫','.').toDoubleOr
                 .onFailure { error = "دسترسی پایدار به تصویر ممکن نشد" }
         }
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Picture(value)
-        TextButton(onClick = { launcher.launch(arrayOf("image/*")) }) { Text(label) }
-        if(value != null) TextButton(onClick = { change(null) }) { Text("حذف تصویر") }
-    }
+    OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Picture(value, Modifier.size(112.dp))
+        Button(onClick = { launcher.launch(arrayOf("image/*")) }, modifier = Modifier.fillMaxWidth()) { Text(label) }
+        if(value != null) FilledTonalButton(onClick = { change(null) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Text("حذف تصویر") }
+    } }
     error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 }
 @Composable fun ConfirmDelete(name: String, confirm: () -> Unit, dismiss: () -> Unit, error: String? = null, busy: Boolean = false) =
@@ -107,3 +108,53 @@ fun decimal(value: String): Double = numeric(value).replace('٫','.').toDoubleOr
 
 @androidx.compose.ui.tooling.preview.Preview(showBackground = true)
 @Composable private fun StorePagePreview() { MaterialTheme { StorePage("حسابدار فروشگاه") { Text("اطلاعات فروشگاه") } } }
+
+@Composable fun FormSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+    OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(title, style = MaterialTheme.typography.titleMedium)
+        content()
+    } }
+}
+@Composable fun <T> ChoiceEntry(title: String, selected: String, options: List<Pair<T,String>>, change: (T) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box(Modifier.fillMaxWidth()) {
+        OutlinedButton(modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp), onClick = { open = true }, shape = MaterialTheme.shapes.small) {
+            Text(title + ": " + selected, Modifier.weight(1f)); Text("⌄")
+        }
+        DropdownMenu(open, { open = false }) { options.forEach { (value,label) -> DropdownMenuItem(text = { Text(label) }, onClick = { open = false; change(value) }) } }
+    }
+}
+@Composable fun DataRow(label: String, value: String, strong: Boolean = false) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(label, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, Modifier.weight(1.3f), style = if(strong) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium, textAlign = androidx.compose.ui.text.style.TextAlign.End)
+    }
+}
+@Composable fun ItemTable(items: List<ir.siamak.fintrack.store.domain.model.SaleItem>) {
+    FormSection("اقلام فاکتور") {
+        Row(Modifier.fillMaxWidth()) { Text("کالا", Modifier.weight(1.5f)); Text("تعداد", Modifier.weight(.6f)); Text("جمع · تومان", Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.End) }
+        HorizontalDivider()
+        items.forEach { item ->
+            Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.weight(1.5f)) { Text(item.productName); Text(money(item.unitPrice), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                Text(quantity(item.quantity), Modifier.weight(.6f))
+                Text(quantity(Math.multiplyExact(item.quantity.toLong(), item.unitPrice)), Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.End)
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = .5f))
+        }
+    }
+}
+@Composable fun ActionPair(createLabel: String, invoicesLabel: String, create: () -> Unit, invoices: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Card(onClick = create, modifier = Modifier.weight(1f).height(120.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+            Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+                Text("＋", style = MaterialTheme.typography.headlineMedium); Text(createLabel,style = MaterialTheme.typography.titleSmall)
+            }
+        }
+        OutlinedCard(onClick = invoices, modifier = Modifier.weight(1f).height(120.dp)) {
+            Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+                Text("≡",style = MaterialTheme.typography.headlineMedium); Text(invoicesLabel,style = MaterialTheme.typography.titleSmall)
+            }
+        }
+    }
+}

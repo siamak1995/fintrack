@@ -37,7 +37,11 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
         if(uri != null && snapshot != null) scope.launch {
             exporting = true
             try {
-                withContext(Dispatchers.IO) { requireNotNull(context.contentResolver.openOutputStream(uri)).use { StoreReportPdfGenerator().generate(snapshot, it) } }
+                withContext(Dispatchers.IO) {
+                    val regular = androidx.core.content.res.ResourcesCompat.getFont(context,ir.siamak.fintrack.R.font.store_regular)
+                    val bold = androidx.core.content.res.ResourcesCompat.getFont(context,ir.siamak.fintrack.R.font.store_bold)
+                    requireNotNull(context.contentResolver.openOutputStream(uri)).use { StoreReportPdfGenerator().generate(snapshot, it, regular, bold) }
+                }
                 exportMessage = "گزارش همهٔ نتایج فیلترشده ذخیره شد."
             } catch(cancel: CancellationException) { throw cancel }
             catch(error: Exception) { exportMessage = "ذخیرهٔ گزارش ناموفق بود: " + error.message }
@@ -47,7 +51,7 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
     StorePage("گزارش‌های فروشگاه", state.loading, state.error, vm::retry) {
         report?.let { result ->
             val filter = result.filter
-            Text("خلاصهٔ عملکرد فروشگاه فعال", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            ChoiceEntry("فروشگاه / نمایشگاه", state.stores.firstOrNull { it.id == filter.storeId }?.name ?: "همهٔ فروشگاه‌ها", listOf(null to "همهٔ فروشگاه‌ها") + state.stores.map { it.id to it.name }, vm::selectStore)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(filter.document == ReportDocument.SALE, { vm.change { it.copy(document = ReportDocument.SALE, productId = null) } }, { Text("فروش") })
                 FilterChip(filter.document == ReportDocument.PREORDER, { vm.change { it.copy(document = ReportDocument.PREORDER, productId = null) } }, { Text("پیش‌سفارش") })
@@ -56,6 +60,12 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
                 Text(dateLabel(filter.from.toString()) + " تا " + dateLabel(filter.to.toString()), style = MaterialTheme.typography.labelLarge)
                 TextButton(onClick = { filtersOpen = !filtersOpen }) { Text(if(filtersOpen) "بستن فیلترها" else "فیلتر و بازه زمانی") }
             }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(filter.from == filter.to, { vm.change { it.copy(from = it.to) } }, { Text("یک روز") })
+                FilterChip(filter.from != filter.to, { filtersOpen = true; vm.change { it.copy(from = it.to.minusDays(6)) } }, { Text("بازه زمانی") })
+                TextButton(onClick = { vm.change { it.copy(from = java.time.LocalDate.now(), to = java.time.LocalDate.now()) } }) { Text("امروز") }
+            }
+            if(filter.from == filter.to) DateEntry("روز گزارش", filter.to.toString()) { date -> vm.change { it.copy(from = java.time.LocalDate.parse(date), to = java.time.LocalDate.parse(date)) } }
             if(filtersOpen) OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             DateEntry("از تاریخ", filter.from.toString()) { value -> vm.change { it.copy(from = java.time.LocalDate.parse(value)) } }
             DateEntry("تا تاریخ", filter.to.toString()) { value -> vm.change { it.copy(to = java.time.LocalDate.parse(value)) } }
@@ -89,6 +99,17 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
             Text("تخفیف اقلام، گروه کالا، پرداخت‌های خروجی و تاریخ تک‌تک دریافت‌ها در مدل فعلی ثبت نمی‌شوند.", style = MaterialTheme.typography.bodySmall)
             }
             if(section == 1) {
+            FormSection("عملکرد فروشگاه‌ها در بازه انتخاب‌شده") {
+                if(result.branches.isEmpty()) Text("فروشی ثبت نشده است.")
+                result.branches.forEach { branch ->
+                    Text(branch.name, style = MaterialTheme.typography.titleSmall)
+                    DataRow("مبلغ فروش", money(branch.totals.payable), true)
+                    DataRow("دریافت‌شده", money(branch.totals.received))
+                    DataRow("مانده", money(branch.totals.balance))
+                    HorizontalDivider()
+                }
+            }
+            ChoiceEntry("مقایسه با", state.stores.firstOrNull { it.id == filter.comparisonStoreId }?.name ?: "دوره قبل · همین فروشگاه‌ها", listOf(null to "دوره قبل · همین فروشگاه‌ها") + state.stores.map { it.id to it.name }) { id -> vm.change { it.copy(comparisonStoreId = id, comparisonFrom = null, comparisonTo = null) } }
             Text("مقایسهٔ دوره‌ها", style = MaterialTheme.typography.titleLarge)
             DateEntry("شروع دورهٔ مقایسه", result.comparisonFrom.toString()) { date -> vm.change { it.copy(comparisonFrom = java.time.LocalDate.parse(date), comparisonTo = result.comparisonTo) } }
             DateEntry("پایان دورهٔ مقایسه", result.comparisonTo.toString()) { date -> vm.change { it.copy(comparisonFrom = result.comparisonFrom, comparisonTo = java.time.LocalDate.parse(date)) } }
@@ -97,20 +118,33 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
             ReportChoice("گروه‌بندی روند", period(filter.period), ReportPeriod.entries.map { it to period(it) }) { value -> vm.change { it.copy(period = value) } }
             Text("روند مبلغ قابل پرداخت — تومان", style = MaterialTheme.typography.titleLarge)
             if(result.trend.isEmpty()) Text("در این بازه داده‌ای برای نمودار وجود ندارد.")
-            val max = result.trend.maxOfOrNull { it.amount }?.coerceAtLeast(1) ?: 1
+            val max = (result.trend + result.comparisonTrend).maxOfOrNull { it.amount }?.coerceAtLeast(1) ?: 1
             result.trend.forEach { bucket ->
                 Text(PersianNumberFormatter.toPersianDigits(bucket.label) + " — " + money(bucket.amount) + " — " + fa(bucket.count) + " فاکتور")
                 LinearProgressIndicator(progress = { (bucket.amount.toDouble() / max).toFloat().coerceIn(0f,1f) }, modifier = Modifier.fillMaxWidth())
             }
             if(result.trend.isNotEmpty()) Text("طول میله از صفر تا " + money(max) + " است؛ تاریخ‌ها شمسی و شروع هفته شنبه است.", style = MaterialTheme.typography.bodySmall)
+            FormSection("روند مقایسه · " + (state.stores.firstOrNull { it.id == filter.comparisonStoreId }?.name ?: "دوره قبل")) {
+                if(result.comparisonTrend.isEmpty()) Text("در دورهٔ مقایسه داده‌ای ثبت نشده است.")
+                result.comparisonTrend.forEach { bucket ->
+                    DataRow(bucket.label,money(bucket.amount))
+                    LinearProgressIndicator(progress = { (bucket.amount.toDouble()/max).toFloat().coerceIn(0f,1f) }, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.tertiary)
+                }
+            }
             }
             if(section == 2) {
             if(filter.document == ReportDocument.SALE) {
-                Text("کالاها — مبلغ ناخالص پیش از تخفیف و مالیات", style = MaterialTheme.typography.titleMedium)
-                result.products.forEach { item -> Text(item.name + " | " + fa(item.quantity) + " عدد | " + money(item.gross)) }
+                FormSection("کالاها · پیش از تخفیف و مالیات") {
+                    result.products.forEach { item -> DataRow(item.name + " · " + fa(item.quantity) + " عدد",money(item.gross)); HorizontalDivider() }
+                }
             }
-            Text("مشتریان — جمع فاکتور و مانده", style = MaterialTheme.typography.titleMedium)
-            result.customers.forEach { customer -> Text(customer.name + " | " + fa(customer.count) + " فاکتور | " + money(customer.payable) + " | مانده: " + money(customer.balance)) }
+            FormSection("مشتریان") {
+                result.customers.forEach { customer ->
+                    Text(customer.name,style = MaterialTheme.typography.titleSmall)
+                    DataRow(fa(customer.count) + " فاکتور",money(customer.payable))
+                    DataRow("مانده",money(customer.balance)); HorizontalDivider()
+                }
+            }
             }
             if(section == 0) {
             Text("جزئیات فاکتورها", style = MaterialTheme.typography.titleLarge)
@@ -118,8 +152,9 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
             result.rows.forEach { invoice ->
                 OutlinedCard(onClick = { onDetail(invoice.id) }, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice), style = MaterialTheme.typography.titleSmall)
-                        Text(invoice.customer.name + " — " + dateLabel(invoice.date))
+                        Text("نام مشتری: " + invoice.customer.name, style = MaterialTheme.typography.titleSmall)
+                        Text(invoice.store.name + " · " + dateLabel(invoice.date))
+                        Text("کد رهگیری: " + ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice), style = MaterialTheme.typography.labelMedium)
                         Text("قابل پرداخت: " + money(invoice.finalAmount))
                         Text("دریافت: " + money(invoice.payment?.paidAmount ?: 0) + " — مانده: " + money(invoice.finalAmount - (invoice.payment?.paidAmount ?: 0)))
                     }
@@ -163,7 +198,7 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
         } }
     }
 }
-private fun fa(value: Number) = PersianNumberFormatter.toPersianDigits(value.toString())
+private fun fa(value: Number) = quantity(value)
 private fun settlement(value: ReportSettlement) = when(value) { ReportSettlement.ALL -> "همه"; ReportSettlement.SETTLED -> "تسویه‌شده"; ReportSettlement.OUTSTANDING -> "دارای مانده"; ReportSettlement.INSTALLMENT -> "اقساطی" }
 private fun period(value: ReportPeriod) = when(value) { ReportPeriod.DAY -> "روزانه"; ReportPeriod.WEEK -> "هفتگی"; ReportPeriod.MONTH -> "ماهانه"; ReportPeriod.YEAR -> "سالانه" }
 private fun order(value: ReportOrder) = when(value) { ReportOrder.NEWEST -> "جدیدترین"; ReportOrder.OLDEST -> "قدیمی‌ترین"; ReportOrder.AMOUNT_DESC -> "بیشترین مبلغ"; ReportOrder.BALANCE_DESC -> "بیشترین مانده" }

@@ -51,9 +51,10 @@ fun paymentLabel(status: PaymentStatus) = when(status) { PaymentStatus.SETTLED -
         records.forEach { invoice ->
             OutlinedCard(onClick = { onDetail(invoice.id) }, modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice), style = MaterialTheme.typography.titleMedium)
-                    Text(invoice.customer.name + " — " + money(invoice.finalAmount))
+                    Text("نام مشتری: " + invoice.customer.name, style = MaterialTheme.typography.titleMedium)
+                    Text(money(invoice.finalAmount), style = MaterialTheme.typography.titleLarge)
                     Text(dateLabel(invoice.date) + " — " + if(invoice.cancelled) "لغوشده" else paymentLabel(invoice.paymentStatus))
+                    Text("کد رهگیری: " + ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice), style = MaterialTheme.typography.labelMedium)
                     invoice.deliveryDate?.let { Text("تحویل: " + dateLabel(it) + " — " + remainingDays(it)) }
                     state.data.orders.firstOrNull { it.id == invoice.preOrderId }?.let { Text(statusLabel(it.status)) }
                 }
@@ -62,22 +63,35 @@ fun paymentLabel(status: PaymentStatus) = when(status) { PaymentStatus.SETTLED -
     }
 }
 
-@Composable internal fun InvoiceActions(invoice: Invoice, related: List<Invoice>? = null) {
+@Composable internal fun InvoiceActions(invoice: Invoice, related: List<Invoice>? = null, sellers: List<ir.siamak.fintrack.store.domain.model.Seller> = emptyList()) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     var preview by remember { mutableStateOf<File?>(null) }
+    val candidates = sellers.filter { it.signaturePath != null && (invoice.seller == null || it.id == invoice.seller.id) }
+    var signatureId by rememberSaveable(invoice.id) { mutableStateOf(if(invoice.seller?.signaturePath != null) "snapshot" else invoice.seller?.id?.takeIf { id -> candidates.any { it.id == id } }?.toString()) }
+    val signer = candidates.firstOrNull { it.id.toString() == signatureId }
+    val selectedSignature = if(signatureId == "snapshot") invoice.seller?.signaturePath else signer?.signaturePath
+    if(invoice.seller?.signaturePath != null || candidates.isNotEmpty()) {
+        ChoiceEntry("امضای این خروجی", if(signatureId == "snapshot") "امضای ثبت‌شده" else signer?.fullName ?: "بدون امضا", listOf(null to "بدون امضا") + listOfNotNull(invoice.seller?.signaturePath?.let { "snapshot" to "امضای ثبت‌شده" }) + candidates.map { it.id.toString() to (it.fullName + " · فعلی") }) { signatureId = it }
+    }
+    if(selectedSignature != null) Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.Center) { Picture(selectedSignature) }
     suspend fun write(uri: Uri) = withContext(Dispatchers.IO) {
-        val logo = invoice.store.logoPath?.let { path -> runCatching {
-            context.contentResolver.openInputStream(Uri.parse(path))?.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = 4 }) }
-        }.getOrNull() }
-        val signature = invoice.seller?.signaturePath?.let { path -> runCatching {
-            context.contentResolver.openInputStream(Uri.parse(path))?.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = 2 }) }
-        }.getOrNull() }
+        val printable = if(selectedSignature != null) invoice.copy(seller = (invoice.seller ?: signer)?.copy(signaturePath = selectedSignature)) else invoice
+        fun decode(path: String): Bitmap? = runCatching {
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            context.contentResolver.openInputStream(Uri.parse(path))?.use { BitmapFactory.decodeStream(it,null,bounds) }
+            var sample = 1
+            while(bounds.outWidth/sample > 1600 || bounds.outHeight/sample > 1600) sample *= 2
+            context.contentResolver.openInputStream(Uri.parse(path))?.use { BitmapFactory.decodeStream(it,null,BitmapFactory.Options().apply { inSampleSize = sample }) }
+        }.getOrNull()
+        val logo = invoice.store.logoPath?.let(::decode)
+        val signature = selectedSignature?.let(::decode)
+        if(selectedSignature != null && signature == null) { logo?.recycle(); error("تصویر امضا در دسترس نیست؛ تصویر فروشنده را دوباره انتخاب کنید") }
         val regular = androidx.core.content.res.ResourcesCompat.getFont(context,ir.siamak.fintrack.R.font.store_regular)
         val bold = androidx.core.content.res.ResourcesCompat.getFont(context,ir.siamak.fintrack.R.font.store_bold)
-        try { requireNotNull(context.contentResolver.openOutputStream(uri)).use { InvoicePdfGenerator().generate(invoice,it,logo,signature,related,regular,bold) } }
+        try { requireNotNull(context.contentResolver.openOutputStream(uri)).use { InvoicePdfGenerator().generate(printable,it,logo,signature,related,regular,bold) } }
         finally { logo?.recycle(); signature?.recycle() }
     }
     fun action(block: suspend () -> Unit) {
@@ -98,9 +112,9 @@ fun paymentLabel(status: PaymentStatus) = when(status) { PaymentStatus.SETTLED -
         write(Uri.fromFile(target))
         return target
     }
-    Button(enabled = !busy, onClick = { action { preview = file() } }) { Text("پیش‌نمایش PDF") }
-    OutlinedButton(enabled = !busy, onClick = { save.launch(ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice) + ".pdf") }) { Text("دانلود / ذخیره PDF") }
-    OutlinedButton(enabled = !busy, onClick = { action {
+    Button(modifier = Modifier.fillMaxWidth(), enabled = !busy, onClick = { action { preview = file() } }) { Text("پیش‌نمایش PDF") }
+    FilledTonalButton(modifier = Modifier.fillMaxWidth(), enabled = !busy, onClick = { save.launch(ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice) + ".pdf") }) { Text("دانلود / ذخیره PDF") }
+    OutlinedButton(modifier = Modifier.fillMaxWidth(), enabled = !busy, onClick = { action {
         val target = file()
         val uri = FileProvider.getUriForFile(context, context.packageName + ".store.files", target)
         val intent = Intent(Intent.ACTION_SEND).apply {

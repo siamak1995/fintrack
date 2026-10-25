@@ -23,7 +23,10 @@ import ir.siamak.fintrack.store.presentation.preorder.customer.PreOrderCustomerS
 
 @Composable fun CreatePreOrderContent(state: CreatePreOrderUiState, onEvent: (CreatePreOrderEvent) -> Unit) {
     val draft = state.draft
-    StorePage("سفارش اختصاصی — مرحله " + (draft.step + 1) + " از ۶", state.loading, state.error) {
+    StorePage("ثبت سفارش اختصاصی", state.loading, state.error) {
+        Text(listOf("مشخصات مشتری", "شرح سفارش", "مواد مصرفی", "قیمت‌گذاری", "پیش‌پرداخت", "تأیید سفارش")[draft.step],style = MaterialTheme.typography.titleLarge)
+        LinearProgressIndicator(progress = { (draft.step+1)/6f },modifier = Modifier.fillMaxWidth())
+        FormSection("مرحله " + (draft.step+1) + " از ۶") {
         when(draft.step) {
             0 -> { PreOrderCustomerScreen(draft, state.workspace, state.preview, state.suggested, { change -> onEvent(CreatePreOrderEvent.Edit(change)) }) }
             1 -> { PreOrderDescriptionScreen(draft, state.workspace, state.preview, state.suggested, { change -> onEvent(CreatePreOrderEvent.Edit(change)) }) }
@@ -32,15 +35,17 @@ import ir.siamak.fintrack.store.presentation.preorder.customer.PreOrderCustomerS
             4 -> { PreOrderPaymentScreen(draft, state.workspace, state.preview, state.suggested, { change -> onEvent(CreatePreOrderEvent.Edit(change)) }) }
             5 -> { PreOrderInvoiceScreen(draft, state.workspace, state.preview, state.suggested, { change -> onEvent(CreatePreOrderEvent.Edit(change)) }) }
         }
-        state.preview?.let { order ->
-            HorizontalDivider()
-            Text("قیمت توافقی: " + money(order.agreedPrice))
-            Text("پیش‌پرداخت: " + money(order.advancePayment))
-            Text("مانده: " + money(ir.siamak.fintrack.store.domain.usecase.invoice.CalculateInvoiceBalanceUseCase()(order)))
         }
-        if(draft.step == 5) Button(enabled = !state.busy && state.preview != null, onClick = { onEvent(CreatePreOrderEvent.Submit) }) { Text(if(state.busy) "در حال ثبت…" else "ثبت سفارش و فاکتور") }
-        else Button(enabled = !state.loading && !state.busy, onClick = { onEvent(CreatePreOrderEvent.Next) }) { Text("مرحله بعد") }
-        if(draft.step > 0) TextButton(enabled = !state.busy, onClick = { onEvent(CreatePreOrderEvent.Back) }) { Text("مرحله قبل") }
+        state.preview?.let { order ->
+            FormSection("خلاصه مالی") {
+                DataRow("قیمت توافقی",money(order.agreedPrice),true)
+                DataRow("پیش‌پرداخت",money(order.advancePayment))
+                DataRow("مانده",money(ir.siamak.fintrack.store.domain.usecase.invoice.CalculateInvoiceBalanceUseCase()(order)))
+            }
+        }
+        if(draft.step == 5) Button(modifier = Modifier.fillMaxWidth(),enabled = !state.busy && state.preview != null, onClick = { onEvent(CreatePreOrderEvent.Submit) }) { Text(if(state.busy) "در حال ثبت…" else "ثبت سفارش و فاکتور") }
+        else Button(modifier = Modifier.fillMaxWidth(),enabled = !state.loading && !state.busy, onClick = { onEvent(CreatePreOrderEvent.Next) }) { Text("ادامه") }
+        if(draft.step > 0) FilledTonalButton(modifier = Modifier.fillMaxWidth(),enabled = !state.busy, onClick = { onEvent(CreatePreOrderEvent.Back) }) { Text("مرحله قبل") }
     }
 }
 

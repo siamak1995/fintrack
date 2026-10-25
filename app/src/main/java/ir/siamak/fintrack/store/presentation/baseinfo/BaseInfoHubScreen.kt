@@ -37,13 +37,12 @@ import ir.siamak.fintrack.store.domain.model.*
                 FilterChip(selected = tab == key, onClick = { tab = key }, label = { Text(label) })
             }
         }
-        Text("برای ویرایش و حذف، کارت را به دو سمت بکشید؛ منوی ⋮ نیز در دسترس است.", style = MaterialTheme.typography.bodySmall)
         if(tab == "store") {
             Button(onClick = { editingId = null; adding = true }, modifier = Modifier.fillMaxWidth()) { Text("افزودن فروشگاه / نمایشگاه") }
             Text("کالاها و موجودی، کاتالوگ مشترک کسب‌وکار هستند. فاکتور و گزارش هر فروشگاه جداست.", style = MaterialTheme.typography.bodySmall)
             if(state.data.stores.isEmpty()) Text("اولین فروشگاه یا نمایشگاه را اضافه کنید.")
             state.data.stores.forEach { store -> key(store.id) {
-                StoreSwipeCard(store.name, listOfNotNull(store.brand.ifBlank { null },store.phone,store.address).joinToString("\n"),
+                StoreSwipeCard(store.name, listOfNotNull(store.brand.takeIf { it.isNotBlank() }?.let { "برند: " + it },store.phone?.let { "تلفن: " + it },store.address?.let { "آدرس: " + it },store.startsOn?.let { "زمان: " + dateLabel(it) + " تا " + dateLabel(store.endsOn.orEmpty()) }).joinToString("\n"),
                     { editingId = store.id; adding = true }, { deleting = store.id to store.name }, store.logoPath,
                     selected = state.data.store?.id == store.id, select = { vm.selectStore(store.id) })
             } }
@@ -71,7 +70,7 @@ import ir.siamak.fintrack.store.domain.model.*
                 "material" -> {
                     if(state.data.materials.isEmpty()) Text("هنوز ماده اولیه‌ای ثبت نشده است.")
                     state.data.materials.forEach { value ->
-                        key(value.id) { StoreSwipeCard(value.name, "موجودی: " + value.quantity + " " + value.unit + "\n" + money(value.pricePerUnit) + "\n" + value.purchaseDate.orEmpty().let(::dateLabel),
+                        key(value.id) { StoreSwipeCard(value.name, "موجودی: " + quantity(value.quantity) + " " + value.unit + "\n" + money(value.pricePerUnit) + "\n" + value.purchaseDate.orEmpty().let(::dateLabel),
                             { editingId = value.id; adding = true }, { deleting = value.id to value.name }) }
                     }
                 }
@@ -82,7 +81,7 @@ import ir.siamak.fintrack.store.domain.model.*
         val dismiss = { adding = false; vm.clearError() }
         val save: (Any) -> Unit = { value -> vm.save(value) { adding = false } }
         when(tab) {
-            "store" -> CatalogEditor("store", editing as? Store, state.busy, state.error, save, dismiss, state.data.brands)
+            "store" -> CatalogEditor("store", editing as? Store, state.busy, state.error, save, dismiss, state.data.brands, state.data.finance)
             "brand" -> BrandEditor(editingBrand, state.busy, state.error, { save(it) }, dismiss)
             "seller" -> ir.siamak.fintrack.store.presentation.baseinfo.seller.SellerManagementScreen(editing as? Seller,state.busy,state.error,{ save(it) },dismiss)
             "product" -> ir.siamak.fintrack.store.presentation.baseinfo.product.ProductManagementScreen(editing as? Product,state.busy,state.error,{ save(it) },dismiss)
@@ -92,7 +91,7 @@ import ir.siamak.fintrack.store.domain.model.*
     deleting?.let { target -> ConfirmDelete(target.second, { vm.delete(tab, target.first) { deleting = null } }, { deleting = null; vm.clearError() }, state.error, state.busy) }
     deletingBrand?.let { brand -> ConfirmDelete(brand.name, { vm.deleteBrand(brand.id) { deletingBrand = null } }, { deletingBrand = null; vm.clearError() }, state.error, state.busy) }
 }
-@Composable internal fun CatalogEditor(kind: String, original: Any?, busy: Boolean, remoteError: String?, save: (Any) -> Unit, dismiss: () -> Unit, brands: List<Brand> = emptyList()) {
+@Composable internal fun CatalogEditor(kind: String, original: Any?, busy: Boolean, remoteError: String?, save: (Any) -> Unit, dismiss: () -> Unit, brands: List<Brand> = emptyList(), finance: StoreFinanceDirectory = StoreFinanceDirectory()) {
     val seed = when(original) {
         is Store -> listOf(original.name, original.brand, original.phone.orEmpty(), original.address.orEmpty(), original.description.orEmpty(), original.logoPath.orEmpty())
         is Seller -> listOf(original.firstName, original.lastName, original.phone, original.address.orEmpty(), original.description.orEmpty(), original.signaturePath.orEmpty(), original.cardNumber.orEmpty(), original.accountNumber.orEmpty())
@@ -102,6 +101,11 @@ import ir.siamak.fintrack.store.domain.model.*
     }
     var fields by rememberSaveable { mutableStateOf(seed) }
     var selectedBrandId by rememberSaveable { mutableStateOf((original as? Store)?.brandId) }
+    var exhibition by rememberSaveable { mutableStateOf((original as? Store)?.startsOn != null) }
+    var startsOn by rememberSaveable { mutableStateOf((original as? Store)?.startsOn ?: java.time.LocalDate.now().toString()) }
+    var endsOn by rememberSaveable { mutableStateOf((original as? Store)?.endsOn ?: java.time.LocalDate.now().toString()) }
+    var walletId by rememberSaveable { mutableStateOf((original as? Store)?.settlement?.walletId) }
+    var memberId by rememberSaveable { mutableStateOf((original as? Store)?.settlement?.memberId) }
     var error by rememberSaveable { mutableStateOf<String?>(null) }
     val labels = when(kind) {
         "store" -> listOf("نام فروشگاه *", "برند", "تلفن", "آدرس", "توضیحات")
@@ -113,19 +117,29 @@ import ir.siamak.fintrack.store.domain.model.*
     Dialog(onDismissRequest = { if(!busy) dismiss() }) {
         Surface(shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth().fillMaxHeight(0.92f)) {
             StorePage("ثبت اطلاعات", error = error ?: remoteError) {
-                if(kind == "store" && brands.isNotEmpty()) {
-                    Text("انتخاب از برندهای ثبت‌شده", style = MaterialTheme.typography.labelLarge)
-                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        brands.forEach { brand -> FilterChip(selectedBrandId == brand.id, { selectedBrandId = brand.id; update(1, brand.name); update(5, brand.image.orEmpty()) }, { Text(brand.name) }) }
-                    }
-                }
                 labels.forEachIndexed { index, label ->
-                    if(kind == "material" && index == 4) { DateEntry(label, fields[index]) { update(index,it) }; TextButton(onClick = { update(index,"") }) { Text("بدون تاریخ خرید") } }
+                    if(kind == "store" && index == 1) {
+                        ChoiceEntry("برند (اختیاری)", fields[1].ifBlank { "بدون برند" }, listOf<String?>(null).map { it to "بدون برند" } + brands.map { it.id to it.name }) { id ->
+                            selectedBrandId = id; val brand = brands.firstOrNull { it.id == id }; update(1,brand?.name.orEmpty()); update(5,brand?.image.orEmpty())
+                        }
+                    }
+                    else if(kind == "material" && index == 4) { DateEntry(label, fields[index]) { update(index,it) }; TextButton(onClick = { update(index,"") }) { Text("بدون تاریخ خرید") } }
                     else Entry(label, fields[index], { if(kind == "store" && index == 1) selectedBrandId = null; update(index,it) }, number = (kind == "product" && index in 4..5) || (kind == "material" && index in listOf(2,3,5)))
+                }
+                if(kind == "store") {
+                    FormSection("زمان نمایشگاه") {
+                        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) { Checkbox(exhibition, { exhibition = it }); Text("نمایشگاه با تاریخ شروع و پایان") }
+                        if(exhibition) { DateEntry("شروع", startsOn) { startsOn = it }; DateEntry("پایان / تمدید", endsOn) { endsOn = it } }
+                    }
+                    FormSection("کیف پول دریافت‌ها") {
+                        ChoiceEntry("کیف پول شخصی", finance.wallets.firstOrNull { it.id == walletId }?.name ?: "بدون اتصال", listOf(null to "بدون اتصال") + finance.wallets.map { it.id to it.name }) { walletId = it; memberId = null }
+                        val wallet = finance.wallets.firstOrNull { it.id == walletId }
+                        if(wallet != null) ChoiceEntry("شخص دریافت‌کننده", finance.members.firstOrNull { it.id == memberId }?.name ?: "انتخاب شخص", finance.members.filter { it.contextId == wallet.contextId }.map { it.id to it.name }) { memberId = it }
+                    }
                 }
                 if(kind == "store" || kind == "product") {
                     val index = if(kind == "store") 5 else 6
-                    ImageEntry(if(kind == "store") "انتخاب نشان فروشگاه" else "انتخاب تصویر کالا", fields[index].ifBlank { null }) { if(kind == "store") selectedBrandId = null; update(index,it.orEmpty()) }
+                    if(kind != "store" || selectedBrandId == null) ImageEntry(if(kind == "store") "انتخاب نشان فروشگاه" else "انتخاب تصویر کالا", fields[index].ifBlank { null }) { update(index,it.orEmpty()) }
                 }
                 if(kind == "seller") {
                     ImageEntry("انتخاب تصویر امضای فروشنده", fields[5].ifBlank { null }) { update(5,it.orEmpty()) }
@@ -136,7 +150,14 @@ import ir.siamak.fintrack.store.domain.model.*
                     try {
                         fun optional(index: Int) = fields[index].trim().ifBlank { null }
                         val value: Any = when(kind) {
-                            "store" -> Store((original as? Store)?.id ?: 0, fields[0].trim(), fields[1].trim(), optional(5), optional(2), optional(3), optional(4), selectedBrandId)
+                            "store" -> {
+                                val account = walletId?.let { id ->
+                                    val wallet = requireNotNull(finance.wallets.firstOrNull { it.id == id }) { "کیف پول انتخاب‌شده در دسترس نیست" }
+                                    StoreSettlementAccount(wallet.contextId,id,requireNotNull(memberId) { "شخص دریافت‌کننده را انتخاب کنید" })
+                                }
+                                Store((original as? Store)?.id ?: 0, fields[0].trim(), fields[1].trim(), optional(5), optional(2), optional(3), optional(4), selectedBrandId,
+                                    if(exhibition) startsOn else null, if(exhibition) endsOn else null, account)
+                            }
                             "seller" -> Seller((original as? Seller)?.id ?: 0, fields[0].trim(), fields[1].trim(), fields[2].trim(), optional(3), optional(4), optional(5), optional(6), optional(7))
                             "product" -> {
                                 val count = whole(fields[4], true); require(count in 0..Int.MAX_VALUE.toLong())
@@ -147,7 +168,7 @@ import ir.siamak.fintrack.store.domain.model.*
                         save(value)
                     } catch(e: Exception) { error = e.message ?: "اطلاعات نامعتبر است" }
                 }, modifier = Modifier.fillMaxWidth()) { Text(if(busy) "در حال ثبت…" else "ذخیره") }
-                TextButton(enabled = !busy, onClick = dismiss) { Text("انصراف") }
+                FilledTonalButton(enabled = !busy, onClick = dismiss, modifier = Modifier.fillMaxWidth()) { Text("انصراف") }
             }
         }
     }

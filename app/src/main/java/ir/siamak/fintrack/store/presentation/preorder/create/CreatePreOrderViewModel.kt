@@ -34,7 +34,12 @@ import java.util.UUID
     init { viewModelScope.launch {
         observe().catch { e -> mutable.update { it.copy(loading = false, error = e.message) } }.collect { workspace ->
             mutable.update { it.copy(workspace = workspace, loading = false) }
-                workspace.invoices.firstOrNull { it.requestId == mutable.value.draft.requestId }?.let { invoice ->
+            if(saved.get<Boolean>("sellerInitialized") != true && workspace.sellers.isNotEmpty()) {
+                saved["sellerInitialized"] = true
+                if(mutable.value.draft.sellerId == null && saved.get<String>("draft") == null)
+                    edit { it.copy(sellerId = (workspace.sellers.firstOrNull { seller -> seller.signaturePath != null } ?: workspace.sellers.first()).id) }
+            }
+                workspace.invoices.firstOrNull { !mutable.value.busy && it.requestId == mutable.value.draft.requestId }?.let { invoice ->
                     saved.remove<String>("draft")
                     mutable.update { it.copy(invoiceId = invoice.id) }
                 }

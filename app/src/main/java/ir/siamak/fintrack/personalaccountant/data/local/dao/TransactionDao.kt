@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.Flow
  */
 @Dao
 interface TransactionDao {
+    @Query("SELECT * FROM transactions WHERE contextId = :contextId AND isDeleted = 0 AND substr(note,1,length(:marker)) = :marker")
+    suspend fun storeReceipts(contextId: Long, marker: String): List<TransactionEntity>
 
     /**
      * یک رابطه بین تراکنش و تگ ذخیره می‌کند.

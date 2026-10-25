@@ -31,7 +31,7 @@ fun PersianText(
     onTextLayout: ((TextLayoutResult) -> Unit)? = null,
     style: TextStyle = LocalTextStyle.current
 ) = androidx.compose.material3.Text(
-    text = PersianNumberFormatter.toPersianDigits(text), modifier = modifier, color = color,
+    text = PersianNumberFormatter.display(text), modifier = modifier, color = color,
     fontSize = fontSize, fontStyle = fontStyle, fontWeight = fontWeight, fontFamily = fontFamily,
     letterSpacing = letterSpacing, textDecoration = textDecoration, textAlign = textAlign,
     lineHeight = lineHeight, overflow = overflow, softWrap = softWrap, maxLines = maxLines,

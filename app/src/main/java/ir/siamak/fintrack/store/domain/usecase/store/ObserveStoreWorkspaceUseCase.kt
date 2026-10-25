@@ -15,11 +15,11 @@ class ObserveStoreWorkspaceUseCase @Inject constructor(
     private val invoices: InvoiceRepository
 ) {
     operator fun invoke(): Flow<StoreWorkspace> {
-        val profiles = combine(stores.observeStores(), stores.observeProfiles()) { all, preferences -> all to preferences }
+        val profiles = combine(stores.observeStores(), stores.observeProfiles(), stores.observeFinanceDirectory()) { all, preferences, finance -> Triple(all, preferences, finance) }
         val catalog = combine(profiles, sellers.observeAll(), products.observeAll(), materials.observeAll()) {
-            (all, preferences), people, goods, stock -> StoreWorkspace(
+            (all, preferences, finance), people, goods, stock -> StoreWorkspace(
                 all.firstOrNull { it.id == preferences.activeStoreId } ?: all.firstOrNull(), people, goods, stock,
-                stores = all, brands = preferences.brands)
+                stores = all, brands = preferences.brands, finance = finance)
         }
         return combine(catalog, sales.observeAll(), orders.observeAll(), invoices.observeAll()) {
             workspace, receipts, custom, documents ->
