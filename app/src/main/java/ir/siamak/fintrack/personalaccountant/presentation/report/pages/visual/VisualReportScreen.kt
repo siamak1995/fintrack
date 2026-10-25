@@ -26,9 +26,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,7 +52,8 @@ import java.time.temporal.ChronoUnit
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VisualReportScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    viewModel: VisualReportViewModel = androidx.hilt.navigation.compose.hiltViewModel()
 ) {
     var showDatePickerRange by remember { mutableStateOf(false) }
     val dateRangePickerState = rememberPersianDateRangePickerState()
@@ -60,9 +62,11 @@ fun VisualReportScreen(
     var previousPeriodText by remember { mutableStateOf("بازه قبلی مشخص نیست") }
     var daysDifference by remember { mutableStateOf(0L) }
 
-    val currentPeriodIncome = remember { listOf(140f, 190f, 110f, 250f, 180f) }
-    val currentPeriodExpense = remember { listOf(90f, 120f, 80f, 150f, 110f) }
-    val previousPeriodIncome = remember { listOf(110f, 160f, 95f, 200f, 140f) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val report = state.report
+    val currentPeriodIncome = report?.buckets.orEmpty().map { it.income.toFloat() }
+    val currentPeriodExpense = report?.buckets.orEmpty().map { it.expense.toFloat() }
+    val previousPeriodIncome = report?.buckets.orEmpty().map { it.previousIncome.toFloat() }
 
     Scaffold(
         topBar = {
@@ -86,6 +90,9 @@ fun VisualReportScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            if(state.loading) item { androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth()) }
+            state.error?.let { message -> item { Text(message, color = MaterialTheme.colorScheme.error) } }
+            if(!state.loading && report?.transactionCount == 0) item { Text("در این بازه تراکنش درآمد یا هزینه ثبت نشده است. انتقال بین حساب‌ها درآمد یا هزینه نیست.") }
             item {
                 FTCard(onClick = { showDatePickerRange = true }) {
                     Row(
@@ -106,7 +113,7 @@ fun VisualReportScreen(
                             val dateLabel = if (!confirmedRange.isEmpty) {
                                 PersianCalendarFormatter.formatRange(confirmedRange)
                             } else {
-                                "انتخاب بازه زمانی"
+                                report?.let { ir.siamak.fintrack.common.core.formatter.DateFormatter.formatJalali(it.from) + " تا " + ir.siamak.fintrack.common.core.formatter.DateFormatter.formatJalali(it.to) } ?: "انتخاب بازه زمانی"
                             }
 
                             Text(
@@ -134,8 +141,13 @@ fun VisualReportScreen(
                         CustomBarChart(
                             incomeData = currentPeriodIncome,
                             expenseData = currentPeriodExpense,
-                            labels = listOf("بخش ۱", "بخش ۲", "بخش ۳", "بخش ۴", "بخش ۵")
+                            labels = report?.buckets.orEmpty().map { ir.siamak.fintrack.common.core.formatter.DateFormatter.formatJalali(it.from).takeLast(5) }
                         )
+                        Text("واحد نمودار: تومان؛ مبنا صفر است. جمع دقیق هر بخش در جدول پایین آمده است.", style = MaterialTheme.typography.bodySmall)
+                        report?.buckets.orEmpty().forEach { bucket ->
+                            Text(ir.siamak.fintrack.common.core.formatter.DateFormatter.formatJalali(bucket.from) + " تا " + ir.siamak.fintrack.common.core.formatter.DateFormatter.formatJalali(bucket.to) +
+                                " | درآمد: " + bucket.income.toPlainString() + " | هزینه: " + bucket.expense.toPlainString(), style = MaterialTheme.typography.bodySmall)
+                        }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -169,7 +181,7 @@ fun VisualReportScreen(
                             text = if (daysDifference > 0) {
                                 "مقایسه بر اساس $daysDifference روز قبل از بازه جاری:\n($previousPeriodText)"
                             } else {
-                                "برای مقایسه، بازه تاریخ را مشخص کنید."
+                                report?.let { "دورهٔ قبل: " + ir.siamak.fintrack.common.core.formatter.DateFormatter.formatJalali(it.previousFrom) + " تا " + ir.siamak.fintrack.common.core.formatter.DateFormatter.formatJalali(it.previousTo) } ?: "برای مقایسه، بازه تاریخ را مشخص کنید."
                             },
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.Gray,
@@ -182,6 +194,7 @@ fun VisualReportScreen(
                             currentValues = currentPeriodIncome,
                             previousValues = previousPeriodIncome
                         )
+                        report?.buckets.orEmpty().forEachIndexed { index,bucket -> Text("بخش " + (index+1) + " | درآمد جاری: " + bucket.income.toPlainString() + " | درآمد قبل: " + bucket.previousIncome.toPlainString() + " تومان", style = MaterialTheme.typography.bodySmall) }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -208,6 +221,7 @@ fun VisualReportScreen(
                 if (start != null && end != null) {
                     val startLocalDate = JalaliDateConverter.toGregorian(start)
                     val endLocalDate = JalaliDateConverter.toGregorian(end)
+                    viewModel.range(startLocalDate,endLocalDate)
 
                     daysDifference =
                         ChronoUnit.DAYS.between(startLocalDate, endLocalDate) + 1L
@@ -243,7 +257,7 @@ fun CustomBarChart(
     expenseData: List<Float>,
     labels: List<String>
 ) {
-    val maxValue = (incomeData + expenseData).maxOrNull() ?: 1f
+    val maxValue = ((incomeData + expenseData).maxOrNull() ?: 1f).coerceAtLeast(1f)
 
     Row(
         modifier = Modifier
@@ -311,7 +325,7 @@ fun ComparisonChart(
     currentValues: List<Float>,
     previousValues: List<Float>
 ) {
-    val maxValue = (currentValues + previousValues).maxOrNull() ?: 1f
+    val maxValue = ((currentValues + previousValues).maxOrNull() ?: 1f).coerceAtLeast(1f)
     val itemCount = maxOf(currentValues.size, previousValues.size)
 
     Row(

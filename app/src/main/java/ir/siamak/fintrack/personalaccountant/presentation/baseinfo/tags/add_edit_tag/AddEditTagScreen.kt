@@ -19,7 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -88,6 +88,7 @@ private fun AddEditTagContent(
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
+            visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
             value = state.name,
             onValueChange = onNameChange,
             modifier = Modifier.fillMaxWidth(),

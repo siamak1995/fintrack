@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +50,7 @@ fun PersianDayCell(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = item.date.day.toString(),
+            text = ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter.format(item.date.day.toLong()),
             color = contentColor,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = if (item.isToday || item.isSelected) FontWeight.Bold else FontWeight.Normal

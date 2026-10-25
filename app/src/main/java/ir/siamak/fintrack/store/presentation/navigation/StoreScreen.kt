@@ -9,4 +9,5 @@ sealed class StoreScreen(val route: String) {
     data object StorePreOrders : StoreScreen("store_pre_orders")
     data object StoreSaleInvoices : StoreScreen("store_sale_invoices")
     data object StorePreOrderInvoices : StoreScreen("store_preorder_invoices")
+    data object StoreReports : StoreScreen("store_reports")
 }

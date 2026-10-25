@@ -64,6 +64,7 @@ fun DashboardScreen(
 
             item {
                 FinancialSummarySection(
+                    onOpenReports = { onAction(DashboardUiAction.OpenReports) },
                     totalBalance = state.totalBalance,
                     walletBalance = state.walletBalance,
                     income = state.monthlyIncome,
@@ -90,7 +91,8 @@ fun DashboardScreen(
 
             item {
                 RecentTransactionsSection(
-                    transactions = state.recentTransactions
+                    transactions = state.recentTransactions,
+                    onShowAll = { onAction(DashboardUiAction.OpenTransactions) }
                 )
             }
 

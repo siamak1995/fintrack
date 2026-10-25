@@ -22,7 +22,7 @@ class InvoicePdfGenerator {
         var page = document.startPage(PdfDocument.PageInfo.Builder(595, 842, pageNumber).create())
         var y = 40f
         fun finish() {
-            page.canvas.drawText(pageNumber.toString(), 290f, 820f, paint)
+            page.canvas.drawText(ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter.format(pageNumber.toLong()), 290f, 820f, paint)
             document.finishPage(page)
         }
         fun nextPage() {
@@ -30,7 +30,8 @@ class InvoicePdfGenerator {
             page = document.startPage(PdfDocument.PageInfo.Builder(595, 842, pageNumber).create()); y = 40f
         }
         fun line(text: String) {
-            val layout = StaticLayout.Builder.obtain(text, 0, text.length, paint, 515)
+            val displayed = ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter.toPersianDigits(text)
+            val layout = StaticLayout.Builder.obtain(displayed, 0, displayed.length, paint, 515)
                 .setAlignment(Layout.Alignment.ALIGN_NORMAL).setTextDirection(TextDirectionHeuristics.RTL)
                 .setLineSpacing(4f, 1f).setIncludePad(true).build()
             // Draw whole layout lines; never clip a Persian baseline at the page boundary.

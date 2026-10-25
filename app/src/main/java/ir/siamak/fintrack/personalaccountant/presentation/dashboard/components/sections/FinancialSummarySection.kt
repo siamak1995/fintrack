@@ -1,6 +1,7 @@
 package ir.siamak.fintrack.personalaccountant.presentation.dashboard.components.sections
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,7 +20,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +35,7 @@ import java.text.DecimalFormat
 
 @Composable
 fun FinancialSummarySection(
+    onOpenReports: () -> Unit = {},
     totalBalance: Double,
     walletBalance: Double,
     income: Double,
@@ -55,6 +57,7 @@ fun FinancialSummarySection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onOpenReports)
             .padding(horizontal = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

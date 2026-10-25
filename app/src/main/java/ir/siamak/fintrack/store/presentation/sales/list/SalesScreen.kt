@@ -1,5 +1,6 @@
 package ir.siamak.fintrack.store.presentation.sales.list
 import androidx.compose.material3.*
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle

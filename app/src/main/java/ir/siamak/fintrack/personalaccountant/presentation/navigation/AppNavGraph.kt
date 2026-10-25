@@ -4,7 +4,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Settings
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +62,7 @@ import ir.siamak.fintrack.store.presentation.navigation.storeNavGraph
  * @param navController کنترلر ناوبری برنامه
  */
 @Composable
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 fun AppNavGraph(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -73,6 +80,20 @@ fun AppNavGraph(navController: NavHostController) {
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Scaffold(
+            topBar = {
+                val route = currentDestination?.route
+                val storeRoot = route in listOf(StoreScreen.StoreDashboard.route, StoreScreen.StoreBaseInfo.route,
+                    StoreScreen.StoreSales.route, StoreScreen.StoreMaterials.route, StoreScreen.StorePreOrders.route)
+                if(showBottomBar || storeRoot) TopAppBar(
+                    title = { Text(if(storeRoot) "حسابدار فروشگاه" else "حسابدار شخصی") },
+                    navigationIcon = { TextButton(onClick = {
+                        navController.navigate(Screen.Landing) { popUpTo(navController.graph.id); launchSingleTop = true }
+                    }) { Text("انتخاب حسابدار") } },
+                    actions = { IconButton(onClick = { navController.navigate(Screen.Settings) { launchSingleTop = true } }) {
+                        Icon(Icons.Outlined.Settings,"تنظیمات و پشتیبان‌گیری")
+                    } }
+                )
+            },
             bottomBar = {
                 val currentRoute = currentDestination?.route
                 val isStoreScreen = currentRoute in listOf(
@@ -129,7 +150,7 @@ fun AppNavGraph(navController: NavHostController) {
                             navController.navigate(Screen.Dashboard) {
 
                                 popUpTo(Screen.Landing) {
-                                    inclusive = true
+                                    inclusive = false
                                 }
 
                             }
@@ -138,7 +159,7 @@ fun AppNavGraph(navController: NavHostController) {
                         onEnterStoreDashboard = {
                             navController.navigate(StoreScreen.StoreDashboard.route) {
                                 popUpTo(Screen.Landing) {
-                                    inclusive = true
+                                    inclusive = false
                                 }
                             }
                         }
@@ -151,7 +172,17 @@ fun AppNavGraph(navController: NavHostController) {
                  */
                 composable<Screen.Dashboard> {
                     DashboardRoute(
-
+                        onAction = { action ->
+                            when(action) {
+                                ir.siamak.fintrack.personalaccountant.presentation.dashboard.DashboardUiAction.AddWallet -> navController.navigate(Screen.AddEditWallet())
+                                ir.siamak.fintrack.personalaccountant.presentation.dashboard.DashboardUiAction.AddTransaction -> navController.navigate(Screen.AddEditTransaction())
+                                ir.siamak.fintrack.personalaccountant.presentation.dashboard.DashboardUiAction.OpenMembers -> navController.navigate(Screen.Members)
+                                ir.siamak.fintrack.personalaccountant.presentation.dashboard.DashboardUiAction.OpenReports -> navController.navigate(Screen.Reports)
+                                ir.siamak.fintrack.personalaccountant.presentation.dashboard.DashboardUiAction.OpenTransactions -> navController.navigate(Screen.Transactions)
+                                ir.siamak.fintrack.personalaccountant.presentation.dashboard.DashboardUiAction.OpenInstallments -> navController.navigate(Screen.Installments)
+                                is ir.siamak.fintrack.personalaccountant.presentation.dashboard.DashboardUiAction.EditWallet -> navController.navigate(Screen.AddEditWallet(action.id))
+                            }
+                        }
                     )
                 }
 

@@ -37,6 +37,16 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+            val restore by FinTrackApplication.restoreState.collectAsStateWithLifecycle()
+            if(restore.checking || restore.error != null) {
+                FinTrackTheme { Surface {
+                    androidx.compose.foundation.layout.Column {
+                        if(restore.checking) androidx.compose.material3.LinearProgressIndicator()
+                        ir.siamak.fintrack.common.core.formatter.PersianText(restore.error ?: "بررسی ایمنی داده‌ها و بازیابی…")
+                    }
+                } }
+                return@setContent
+            }
             val settings by appSettingsViewModel.settings.collectAsStateWithLifecycle()
             val lockState by lockViewModel.state.collectAsStateWithLifecycle()
 

@@ -14,7 +14,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -120,6 +120,10 @@ fun SettingsScreen(
 //                    onFirstDayChanged = { onEvent(SettingsEvent.ChangeFirstDay(it)) }
 //                )
 //            }
+
+            item {
+                ir.siamak.fintrack.common.core.backup.BackupSection()
+            }
 
             item {
                 AboutSection(version = state.appVersion)

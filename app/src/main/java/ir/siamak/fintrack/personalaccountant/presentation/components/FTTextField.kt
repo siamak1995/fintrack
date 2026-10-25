@@ -2,7 +2,7 @@ package ir.siamak.fintrack.personalaccountant.presentation.components
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
@@ -15,6 +15,7 @@ fun FTTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     OutlinedTextField(
+        visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
         value = value,
         onValueChange = onValueChange,
         label = { Text(text = label) },

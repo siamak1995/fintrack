@@ -14,11 +14,12 @@ import ir.siamak.fintrack.personalaccountant.presentation.dashboard.DashboardVie
  */
 @Composable
 fun DashboardRoute(
+    onAction: (ir.siamak.fintrack.personalaccountant.presentation.dashboard.DashboardUiAction) -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
 
     val state by viewModel.state.collectAsState()
 
-    DashboardScreen(state = state)
+    DashboardScreen(state = state, onAction = onAction)
 
 }

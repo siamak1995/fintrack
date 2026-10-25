@@ -21,7 +21,7 @@ data class SettingsState(
     val budgetReminder: Boolean = true,
     val dynamicColor: Boolean = true,
     val firstDayOfWeek: FirstDayOfWeek = FirstDayOfWeek.SATURDAY,
-    val appVersion: String = "1.2.0",
+    val appVersion: String = "",
     val message: String? = null,
     val error: String? = null,
 

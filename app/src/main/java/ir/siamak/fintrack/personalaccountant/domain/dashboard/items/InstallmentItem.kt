@@ -7,7 +7,7 @@ package ir.siamak.fintrack.personalaccountant.domain.dashboard.items
     import androidx.compose.foundation.layout.padding
     import androidx.compose.material3.LinearProgressIndicator
     import androidx.compose.material3.MaterialTheme
-    import androidx.compose.material3.Text
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
     import androidx.compose.runtime.Composable
     import androidx.compose.ui.Modifier
     import androidx.compose.ui.unit.dp

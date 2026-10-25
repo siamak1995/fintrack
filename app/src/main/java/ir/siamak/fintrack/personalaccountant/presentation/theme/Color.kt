@@ -34,24 +34,24 @@ val ErrorRed = AccentRed
 val Info = PrimaryBlue
 
 // Light Theme
-val LightPrimary = PrimaryBlue
+val LightPrimary = Color(0xFF245B63)
 val LightOnPrimary = White
-val LightPrimaryContainer = Color(0xFFDBEAFE)
-val LightOnPrimaryContainer = Color(0xFF1E3A8A)
+val LightPrimaryContainer = Color(0xFFD9ECEC)
+val LightOnPrimaryContainer = Color(0xFF123D43)
 
-val LightSecondary = SecondaryTeal
+val LightSecondary = Color(0xFF526760)
 val LightOnSecondary = White
 val LightSecondaryContainer = Color(0xFFCCFBF1)
 val LightOnSecondaryContainer = Color(0xFF134E4A)
 
-val LightBackground = Gray50
+val LightBackground = Color(0xFFF7F9FA)
 val LightOnBackground = Gray900
 val LightSurface = White
 val LightOnSurface = Gray900
-val LightSurfaceVariant = Gray100
+val LightSurfaceVariant = Color(0xFFEEF3F4)
 val LightOnSurfaceVariant = Gray600
 val LightOutline = Gray300
-val LightError = ErrorRed
+val LightError = Color(0xFFB3261E)
 val LightOnError = White
 
 // Dark Theme

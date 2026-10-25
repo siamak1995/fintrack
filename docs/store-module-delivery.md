@@ -2,6 +2,8 @@
 
 شروع بررسی: ۲۰۲۶/۱۰/۲۳ — تکمیل اعتبارسنجی: ۲۰۲۶/۱۰/۲۴ (Asia/Tehran) — شاخه: `secondMadule` — مبنای کار: `ca3e6bc`
 
+در بررسی پایانی، HEAD شاخه روی `6bcd534` دیده شد و تغییرات پیاده‌سازی در آن ثبت شده‌اند؛ عامل حاضر هیچ دستور Commit یا Push اجرا نکرده است. پس از نصب APK نهایی، اجرای دستی مجدد با timeout راه‌اندازی و ناپایداری System UI شبیه‌ساز روبه‌رو شد؛ بنابراین اجرای دستی اخیر موفق اعلام نمی‌شود. نتایج موفق ۲۲ تست دستگاه و ۲۷ تست Unit مربوط به اعتبارسنجی تکمیل‌شدهٔ همین سورس هستند.
+
 ## دامنهٔ پیاده‌سازی
 
 - مدیریت مشخصات فروشگاه، برند، لوگو، فروشندگان، کالا و تصویر کالا، مواد اولیه، خرید و هزینه ارسال.
@@ -37,6 +39,7 @@
 - Unit: ۲۷ تست، صفر شکست/خطا (محاسبات، اعتبارسنجی، snapshot و regressionهای موجود).
 - دستگاه: ۲۲ تست روی Pixel_8 / Android 15 / API 35، صفر شکست/خطا؛ شامل چهار تست Migration فروشگاه، تراکنش اتمیک، rollback، رقابت موجودی، پیش‌پرداخت، لغو، snapshot، بازیابی فرم، PDF و UI/Navigation و regressionهای موجود.
 - هر دو نتیجهٔ Unit و دستگاه با XML بررسی شدند. یک اجرای هم‌زمان Build/Lint/Device پیش از شروع تست به startup ANR شبیه‌ساز خورد؛ بعد از بستن daemon سنگین، اجرای مستقل instrumentation و سپس Gradle تک‌worker هر دو ۲۲ تست را کامل و بدون شکست اجرا کردند. فرمان Gradle دستگاه با `BUILD SUCCESSFUL` تمام شد.
+- گزارش نهایی Lint هیچ issue در مسیر کد `store` ندارد. برای شبیه‌ساز، اجرای تست دستگاه و Lint به‌صورت جداگانه توصیه می‌شود؛ در اجرای طولانی هم‌زمان، System UI شبیه‌ساز نیز ANR نشان داد.
 - Debug APK و AndroidTest APK با آخرین اصلاح Migration ساخته شدند؛ Release unsigned نهایی نیز ساخته شد. اجرای `lintVitalRelease` و سپس `assembleRelease` بدون استثناکردن هیچ task موفق شد.
 - موتور همراه AGP 8.7.3 ابتدا به خطای داخلی `IncompatibleClassChangeError` در `NonNullableMutableLiveDataDetector` کتابخانه Lifecycle رسید. موتور مستقل Lint در `gradle.properties` روی 8.8.2 تنظیم شد؛ هیچ قانون خاموش و هیچ کتابخانه runtime یا AGP ارتقا داده نشد. خطای قدیمی InstallmentRoute و پیشنهاد State عددی فیلتر فروشگاه اصلاح شدند. اجرای نهایی Unit/Debug/Release/Lint با `BUILD SUCCESSFUL` تمام شد؛ نتیجهٔ Lint جامع: صفر خطا، ۶۲ هشدار و یک مورد Information. هشدارهای باقی‌مانده در HTML/XML کامل گزارش شده‌اند و suppress یا baseline نشده‌اند.
 - PDF چندصفحه‌ای روی Android PdfRenderer رندر و تصویر فارسی از نظر خوانایی و بریدگی بررسی شد.
@@ -67,7 +70,7 @@ app/build/reports/store/dashboard.png
 SHA-256 خروجی نهایی:
 
 ```text
-Debug: 3B7A69CC4F0C21A0DC7B1588E952B4A9917BE0E57ED4925510B0BD81FE8683D8
+Debug (فایل موجود در بررسی پایانی): E1F986A29D53825B72123D0E05C241F57B01C2672DAC7753584D76BFFE39957B
 Release unsigned: 86F23E62838AE6BA87F51E3F247BE4BD8D263F75FF1B9AAFEEE7DD389F632B58
 ```
 

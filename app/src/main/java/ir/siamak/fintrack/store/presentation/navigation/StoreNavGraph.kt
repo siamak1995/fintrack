@@ -18,7 +18,13 @@ private const val DETAIL = "store_invoice/{id}"
 fun NavGraphBuilder.storeNavGraph(navController: NavHostController) {
     fun detail(id: Long) { navController.navigate("store_invoice/" + id) }
     composable(StoreScreen.StoreDashboard.route) { StoreDashboardScreen(
-        onSales = { navController.navigate(StoreScreen.StoreSales.route) }, onPreOrders = { navController.navigate(StoreScreen.StorePreOrders.route) }) }
+        onSales = { navController.navigate(StoreScreen.StoreSales.route) }, onPreOrders = { navController.navigate(StoreScreen.StorePreOrders.route) },
+        onReports = { navController.navigate(StoreScreen.StoreReports.route) },
+        onCatalog = { navController.navigate(StoreScreen.StoreBaseInfo.route) },
+        onMaterials = { navController.navigate(StoreScreen.StoreMaterials.route) }) }
+    composable(StoreScreen.StoreReports.route) {
+        ir.siamak.fintrack.store.presentation.reports.StoreReportsScreen(::detail, { navController.popBackStack() })
+    }
     composable(StoreScreen.StoreBaseInfo.route) { BaseInfoHubScreen() }
     composable(StoreScreen.StoreMaterials.route) { MaterialListScreen() }
     composable(StoreScreen.StoreSales.route) { SalesScreen(

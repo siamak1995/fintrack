@@ -22,6 +22,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    @dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context,
     private val getSettingsUseCase: GetSettingsUseCase,
     private val saveSettingsUseCase: SaveSettingsUseCase,
     private val resetSettingsUseCase: ResetSettingsUseCase,
@@ -30,7 +31,9 @@ class SettingsViewModel @Inject constructor(
     private val setBiometricEnabledUseCase: SetBiometricEnabledUseCase
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(SettingsState())
+    private val _state = MutableStateFlow(SettingsState(
+        appVersion = context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()
+    ))
     val state = _state.asStateFlow()
 
     private var persistedSettings: AppSettings = AppSettings()

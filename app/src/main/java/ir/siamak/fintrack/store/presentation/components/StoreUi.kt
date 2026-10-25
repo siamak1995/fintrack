@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -33,7 +34,8 @@ fun decimal(value: String): Double = numeric(value).replace('٫','.').toDoubleOr
 
 @Composable fun StorePage(title: String, loading: Boolean = false, error: String? = null, retry: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        Column(Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.TopCenter) {
+        Column(Modifier.widthIn(max = 960.dp).fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(title, style = MaterialTheme.typography.headlineSmall)
             if(loading) LinearProgressIndicator(Modifier.fillMaxWidth())
             if(error != null) {
@@ -43,10 +45,12 @@ fun decimal(value: String): Double = numeric(value).replace('٫','.').toDoubleOr
             content()
             Spacer(Modifier.height(24.dp))
         }
+        }
     }
 }
 @Composable fun Entry(label: String, value: String, change: (String) -> Unit, number: Boolean = false, lines: Int = 1) =
     OutlinedTextField(value = value, onValueChange = change, label = { Text(label) }, modifier = Modifier.fillMaxWidth(),
+        visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
         singleLine = lines == 1, minLines = lines, keyboardOptions = KeyboardOptions(keyboardType = if(number) KeyboardType.Decimal else KeyboardType.Text))
 
 

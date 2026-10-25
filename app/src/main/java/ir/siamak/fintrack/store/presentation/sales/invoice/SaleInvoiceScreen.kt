@@ -1,6 +1,7 @@
 package ir.siamak.fintrack.store.presentation.sales.invoice
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp

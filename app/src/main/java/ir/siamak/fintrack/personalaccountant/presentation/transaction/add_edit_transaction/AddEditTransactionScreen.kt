@@ -33,7 +33,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -146,6 +146,7 @@ fun AddEditTransactionScreen(
                             onExpandedChange = { walletDropdownExpanded = it }
                         ) {
                             OutlinedTextField(
+                                visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
                                 value = selectedWalletName,
                                 onValueChange = {},
                                 readOnly = true,
@@ -185,6 +186,7 @@ fun AddEditTransactionScreen(
                                 onExpandedChange = { toWalletDropdownExpanded = it }
                             ) {
                                 OutlinedTextField(
+                                    visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
                                     value = selectedToWalletName,
                                     onValueChange = {},
                                     readOnly = true,
@@ -224,6 +226,7 @@ fun AddEditTransactionScreen(
                             onExpandedChange = { memberDropdownExpanded = it }
                         ) {
                             OutlinedTextField(
+                                visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
                                 value = selectedMemberName,
                                 onValueChange = {},
                                 readOnly = true,

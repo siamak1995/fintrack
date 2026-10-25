@@ -330,7 +330,6 @@ object DatabaseModule {
                 MIGRATION_6_7,
                 MIGRATION_7_8
             )
-            .fallbackToDestructiveMigrationOnDowngrade()
             .build()
 
     }

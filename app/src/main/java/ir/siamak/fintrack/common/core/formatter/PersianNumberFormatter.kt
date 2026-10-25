@@ -23,7 +23,13 @@ object PersianNumberFormatter {
 
     /** Renders all Latin digits in [input] using Persian digits. */
     fun toPersianDigits(input: String): String = buildString(input.length) {
-        input.forEach { character -> append(if (character in LATIN_DIGITS) PERSIAN_DIGITS[LATIN_DIGITS.indexOf(character)] else character) }
+        input.forEach { character ->
+            append(when {
+                character in LATIN_DIGITS -> PERSIAN_DIGITS[LATIN_DIGITS.indexOf(character)]
+                character in ARABIC_DIGITS -> PERSIAN_DIGITS[ARABIC_DIGITS.indexOf(character)]
+                else -> character
+            })
+        }
     }
 
     /** Formats an integer with Persian numerals while retaining a numeric source of truth. */

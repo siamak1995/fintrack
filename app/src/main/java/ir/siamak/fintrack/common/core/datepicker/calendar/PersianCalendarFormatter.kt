@@ -43,20 +43,20 @@ object PersianCalendarFormatter {
     )
 
     fun formatMonthYear(month: PersianMonth): String {
-        return "${getMonthName(month.month)} ${month.year}"
+        return digits("${getMonthName(month.month)} ${month.year}")
     }
 
     fun formatDate(date: PersianDate): String {
-        return "%04d/%02d/%02d".format(date.year, date.month, date.day)
+        return digits("%04d/%02d/%02d".format(java.util.Locale.ROOT, date.year, date.month, date.day))
     }
 
     fun formatShortDate(date: PersianDate): String {
-        return "%02d/%02d".format(date.month, date.day)
+        return digits("%02d/%02d".format(java.util.Locale.ROOT, date.month, date.day))
     }
 
     fun formatFullDate(date: PersianDate): String {
         val weekDay = JalaliMonthCalculator.getWeekDay(date)
-        return "${getFullWeekDayName(weekDay)} ${date.day} ${getMonthName(date.month)} ${date.year}"
+        return digits("${getFullWeekDayName(weekDay)} ${date.day} ${getMonthName(date.month)} ${date.year}")
     }
 
     fun formatRange(range: PersianDateRange): String {
@@ -83,5 +83,7 @@ object PersianCalendarFormatter {
     fun getFullWeekDayName(day: PersianWeekDay): String {
         return fullWeekDayNames.getValue(day)
     }
+
+    private fun digits(value: String) = ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter.toPersianDigits(value)
 }
 

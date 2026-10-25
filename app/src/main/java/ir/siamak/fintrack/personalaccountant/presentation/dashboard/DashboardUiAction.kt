@@ -9,6 +9,7 @@ sealed interface DashboardUiAction {
     data object OpenMembers : DashboardUiAction
 
     data object OpenReports : DashboardUiAction
+    data object OpenTransactions : DashboardUiAction
 
     data object OpenInstallments : DashboardUiAction
 

@@ -24,7 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -79,6 +79,7 @@ fun AddEditWalletScreen(
                     .padding(24.dp)
             ) {
                 OutlinedTextField(
+                    visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
                     value = state.name,
                     onValueChange = {
                         viewModel.onEvent(AddEditWalletEvent.EnteredName(it))
@@ -92,6 +93,7 @@ fun AddEditWalletScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
+                    visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
                     value = state.balance,
                     onValueChange = {
                         viewModel.onEvent(AddEditWalletEvent.EnteredBalance(it))
