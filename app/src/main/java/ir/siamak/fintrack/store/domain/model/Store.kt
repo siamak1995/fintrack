@@ -11,5 +11,6 @@ data class Store(
     val logoPath: String? = null,
     val phone: String? = null,
     val address: String? = null,
-    val description: String? = null
+    val description: String? = null,
+    val brandId: String? = null
 )

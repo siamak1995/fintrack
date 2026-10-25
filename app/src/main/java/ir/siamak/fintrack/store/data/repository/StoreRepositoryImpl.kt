@@ -8,12 +8,58 @@ import ir.siamak.fintrack.store.domain.model.*
 import ir.siamak.fintrack.store.domain.model.Invoice.PaymentStatus
 import ir.siamak.fintrack.store.domain.repository.StoreRepository
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class StoreRepositoryImpl(private val db: StoreDatabase) : StoreRepository {
-    override fun observeStore() = db.storeDao().observe().map { it?.toDomain() }
-    override suspend fun save(store: Store) = db.storeDao().upsert(store.toEntity())
+class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: StoreProfilesDataSource? = null) : StoreRepository {
+    override fun observeStores() = combine(db.storeDao().observeAll(), observeProfiles()) { rows, settings -> rows.map { row ->
+        val brand = settings.brands.firstOrNull { it.id == settings.storeBrands[row.id] }
+        row.toDomain().let { if(brand == null) it else it.copy(brand = brand.name, logoPath = brand.image, brandId = brand.id) }
+    } }
+    override fun observeProfiles() = profiles?.profiles ?: kotlinx.coroutines.flow.flowOf(StoreProfiles())
+    override fun observeStore() = combine(observeStores(), observeProfiles()) { all, settings ->
+        all.firstOrNull { it.id == settings.activeStoreId } ?: all.firstOrNull()
+    }
+    override suspend fun save(store: Store) {
+        val id = db.withTransaction {
+            val id = store.id.takeIf { it > 0 } ?: db.storeDao().nextId()
+            db.storeDao().upsert(store.copy(id = id).toEntity()); id
+        }
+        profiles?.update { it.copy(activeStoreId = if(store.id == 0L) id else it.activeStoreId,
+            storeBrands = it.storeBrands - id + listOfNotNull(store.brandId?.let { brand -> id to brand }).toMap()) }
+    }
+    override suspend fun selectStore(id: Long) {
+        require(observeStores().first().any { it.id == id }) { "فروشگاه یافت نشد" }
+        requireNotNull(profiles).update { it.copy(activeStoreId = id) }
+    }
+    override suspend fun deleteStore(id: Long) {
+        db.withTransaction {
+            val first = db.storeDao().records().firstOrNull()?.id
+            val used = db.invoiceDao().records().any {
+                val owner = Json.decodeFromString<Invoice>(it.payload).store.id
+                owner == id || (owner == 0L && first == id)
+            }
+            require(!used) { "فروشگاه دارای فاکتور قابل حذف نیست؛ سابقهٔ مالی باید حفظ شود" }
+            db.storeDao().delete(id)
+        }
+        profiles?.update { it.copy(activeStoreId = if(it.activeStoreId == id) null else it.activeStoreId, storeBrands = it.storeBrands-id) }
+    }
+    override suspend fun saveBrand(brand: Brand) {
+        require(brand.name.isNotBlank()) { "نام برند الزامی است" }
+        requireNotNull(profiles).update { settings ->
+            require(settings.brands.none { it.id != brand.id && it.name.equals(brand.name.trim(), true) }) { "برند تکراری است" }
+            settings.copy(brands = settings.brands.filterNot { it.id == brand.id } + brand.copy(name = brand.name.trim()))
+        }
+    }
+    override suspend fun deleteBrand(id: String) {
+        // Historical store/invoice snapshots deliberately keep their name and image.
+        requireNotNull(profiles).update {
+            require(id !in it.storeBrands.values) { "این برند به فروشگاه متصل است؛ ابتدا برند فروشگاه را تغییر دهید" }
+            it.copy(brands = it.brands.filterNot { brand -> brand.id == id })
+        }
+    }
 
     override suspend fun checkout(sale: Sale, invoice: Invoice, requestId: String): Long = db.withTransaction {
         require(requestId.isNotBlank() && invoice.requestId == requestId && invoice.invoiceNumber == "S-" + requestId)

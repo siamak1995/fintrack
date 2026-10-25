@@ -8,7 +8,9 @@ data class StoreWorkspace(
     val materials: List<RawMaterial> = emptyList(),
     val sales: List<Sale> = emptyList(),
     val orders: List<PreOrder> = emptyList(),
-    val invoices: List<Invoice> = emptyList()
+    val invoices: List<Invoice> = emptyList(),
+    val stores: List<Store> = emptyList(),
+    val brands: List<Brand> = emptyList()
 )
 
 /** Validated sale request; product prices are resolved from the persisted catalog. */
@@ -36,5 +38,6 @@ data class PreOrderRequest(
     val agreedPrice: Long,
     val advance: Long,
     val advanceIsPercent: Boolean,
-    val requestId: String
+    val requestId: String,
+    val sellerId: Long? = null
 )

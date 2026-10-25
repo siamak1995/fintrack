@@ -11,21 +11,24 @@ class StoreNavigationTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
     @Test fun landingOpensStoreAndSalesWizard() {
         enterStore()
-        compose.onNodeWithText("داشبورد فروشگاه").assertIsDisplayed()
-        compose.onNodeWithText("ثبت فروش / فاکتورهای فروش").performScrollTo().performClick()
+        compose.onNodeWithText("نمای کلی کسب‌وکار").assertIsDisplayed()
+        compose.onNodeWithText("فروش").performClick()
+        compose.onNodeWithText("داشبورد").performClick()
+        compose.onNodeWithText("نمای کلی کسب‌وکار").assertIsDisplayed()
+        compose.onNodeWithText("فروش جدید و فاکتورها").performScrollTo().performClick()
         compose.onNodeWithText("ثبت فروش جدید").performScrollTo().performClick()
         compose.onNodeWithText("نام مشتری *").assertIsDisplayed()
     }
     @Test fun storeReportsAndModuleSelectionRemainReachable() {
         enterStore()
-        compose.onNodeWithText("گزارش‌ها و تحلیل فروشگاه").performScrollTo().performClick()
+        compose.onNodeWithText("گزارش‌ها").performClick()
         compose.onNodeWithText("گزارش‌های فروشگاه").assertIsDisplayed()
-        compose.waitUntil(15000) { compose.onAllNodesWithText("شاخص‌های فاکتورهای این بازه").fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(15000) { compose.onAllNodesWithText("فیلتر و بازه زمانی").fetchSemanticsNodes().isNotEmpty() }
         screenshot("reports.png")
-        compose.onNodeWithText("بازگشت").performScrollTo().performClick()
-        compose.onNodeWithText("داشبورد فروشگاه").assertIsDisplayed()
+        compose.onNodeWithText("داشبورد").performClick()
+        compose.onNodeWithText("نمای کلی کسب‌وکار").assertIsDisplayed()
         screenshot("dashboard.png")
-        compose.onNodeWithText("انتخاب حسابدار").performClick()
+        compose.onNodeWithContentDescription("انتخاب حسابدار").performClick()
         compose.onNodeWithText("ورود به حسابدار").performScrollTo().assertIsDisplayed()
         screenshot("landing.png")
     }

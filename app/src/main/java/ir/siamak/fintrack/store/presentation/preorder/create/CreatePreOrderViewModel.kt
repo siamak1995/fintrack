@@ -19,11 +19,12 @@ import java.util.UUID
     val deliveryDate: String = LocalDate.now().plusWeeks(1).toString(), val quantities: Map<Long,String> = emptyMap(),
     val productionCost: String = "0", val profit: String = "0", val shippingCost: String = "0", val agreedPrice: String = "0",
     val advance: String = "0", val advanceIsPercent: Boolean = false, val step: Int = 0,
-    val requestId: String = UUID.randomUUID().toString()
+    val requestId: String = UUID.randomUUID().toString(),
+    val sellerId: Long? = null
 ) {
     fun request() = PreOrderRequest(Customer(name = name.trim(), phone = phone.trim(), address = address.ifBlank { null }), description.trim(), deliveryDate,
         quantities.filterValues { it.isNotBlank() && decimal(it) != 0.0 }.mapValues { decimal(it.value) },
-        whole(productionCost), whole(profit), whole(shippingCost), whole(agreedPrice), whole(advance), advanceIsPercent, requestId)
+        whole(productionCost), whole(profit), whole(shippingCost), whole(agreedPrice), whole(advance), advanceIsPercent, requestId, sellerId)
 }
 @HiltViewModel class CreatePreOrderViewModel @Inject constructor(
     private val saved: SavedStateHandle, observe: ObserveStoreWorkspaceUseCase, private val place: CreatePreOrderUseCase

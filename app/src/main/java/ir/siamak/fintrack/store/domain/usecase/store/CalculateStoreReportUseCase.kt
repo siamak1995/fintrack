@@ -34,7 +34,7 @@ class CalculateStoreReportUseCase @Inject constructor() {
                     ReportSettlement.SETTLED -> remaining == 0L
                     ReportSettlement.OUTSTANDING -> remaining > 0
                     ReportSettlement.INSTALLMENT -> invoice.payment?.type == Payment.PaymentType.INSTALLMENT
-                } && (search.isBlank() || listOf(invoice.invoiceNumber, invoice.customer.name, invoice.customer.phone,
+                } && (search.isBlank() || listOf(invoice.invoiceNumber, ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice), invoice.customer.name, invoice.customer.phone,
                     invoice.description.orEmpty(), invoice.items.joinToString { it.productName })
                     .any { PersianNumberFormatter.normalize(it).lowercase().contains(search) })
         }

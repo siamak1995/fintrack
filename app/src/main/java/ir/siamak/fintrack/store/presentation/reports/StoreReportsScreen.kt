@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,8 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
     var exporting by remember { mutableStateOf(false) }
     var exportMessage by remember { mutableStateOf<String?>(null) }
     var exportSnapshot by remember { mutableStateOf<StoreReport?>(null) }
+    var filtersOpen by rememberSaveable { mutableStateOf(false) }
+    var section by rememberSaveable { mutableIntStateOf(0) }
     val save = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
         val snapshot = exportSnapshot
         if(uri != null && snapshot != null) scope.launch {
@@ -42,13 +45,18 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
         }
     }
     StorePage("گزارش‌های فروشگاه", state.loading, state.error, vm::retry) {
-        TextButton(onClick = onBack) { Text("بازگشت") }
         report?.let { result ->
             val filter = result.filter
+            Text("خلاصهٔ عملکرد فروشگاه فعال", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(filter.document == ReportDocument.SALE, { vm.change { it.copy(document = ReportDocument.SALE, productId = null) } }, { Text("فروش") })
                 FilterChip(filter.document == ReportDocument.PREORDER, { vm.change { it.copy(document = ReportDocument.PREORDER, productId = null) } }, { Text("پیش‌سفارش") })
             }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(dateLabel(filter.from.toString()) + " تا " + dateLabel(filter.to.toString()), style = MaterialTheme.typography.labelLarge)
+                TextButton(onClick = { filtersOpen = !filtersOpen }) { Text(if(filtersOpen) "بستن فیلترها" else "فیلتر و بازه زمانی") }
+            }
+            if(filtersOpen) OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             DateEntry("از تاریخ", filter.from.toString()) { value -> vm.change { it.copy(from = java.time.LocalDate.parse(value)) } }
             DateEntry("تا تاریخ", filter.to.toString()) { value -> vm.change { it.copy(to = java.time.LocalDate.parse(value)) } }
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -63,14 +71,24 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
                 listOf(null to "همه") + state.invoices.flatMap { it.items }.distinctBy { it.productId }.map { it.productId to it.productName }) { id -> vm.change { it.copy(productId = id) } }
             ReportChoice("تسویه", settlement(filter.settlement), ReportSettlement.entries.map { it to settlement(it) }) { value -> vm.change { it.copy(settlement = value) } }
             ReportChoice("ترتیب", order(filter.order), ReportOrder.entries.map { it to order(it) }) { value -> vm.change { it.copy(order = value) } }
-            Text("شاخص‌های فاکتورهای این بازه", style = MaterialTheme.typography.titleLarge)
+            TextButton(onClick = { filtersOpen = false }) { Text("مشاهدهٔ نتیجه") }
+            } }
             Summary(result.totals)
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("فاکتورها", "روند و مقایسه", "کالا و مشتری", "مبنای محاسبه").forEachIndexed { index, label ->
+                    FilterChip(section == index, { section = index }, { Text(label) })
+                }
+            }
+            if(section == 3) {
             Text("دریافتی و مانده، وضعیت فعلی فاکتورهای صادرشده در این بازه‌اند؛ گزارش گردش وجه در تاریخ دریافت نیستند.", style = MaterialTheme.typography.bodySmall)
             if(filter.productId != null) Text("فیلتر کالا، فاکتورهای حاوی آن کالا را انتخاب می‌کند. مبالغ بالا مربوط به کل همان فاکتورهاست؛ سهم تخفیف یا مالیات به کالا تخصیص داده نشده است.")
             if(result.excludedCancelled > 0) Text("فاکتور لغوشدهٔ خارج از جمع‌ها: " + fa(result.excludedCancelled))
             if(result.invalidDates > 0) Text("فاکتور دارای تاریخ ذخیره‌شدهٔ غیرقابل‌تفسیر: " + fa(result.invalidDates) + "؛ در جمع دوره لحاظ نشده و از فهرست فاکتورها قابل بررسی است.", color = MaterialTheme.colorScheme.error)
             Text("فاکتور دارای برنامهٔ سررسید گذشته و مانده: " + fa(result.totals.dueScheduleInvoices))
             Text("پرداخت هر قسط جداگانه ثبت نمی‌شود؛ این شمارش به معنی مبلغ دقیق معوق نیست.", style = MaterialTheme.typography.bodySmall)
+            Text("تخفیف اقلام، گروه کالا، پرداخت‌های خروجی و تاریخ تک‌تک دریافت‌ها در مدل فعلی ثبت نمی‌شوند.", style = MaterialTheme.typography.bodySmall)
+            }
+            if(section == 1) {
             Text("مقایسهٔ دوره‌ها", style = MaterialTheme.typography.titleLarge)
             DateEntry("شروع دورهٔ مقایسه", result.comparisonFrom.toString()) { date -> vm.change { it.copy(comparisonFrom = java.time.LocalDate.parse(date), comparisonTo = result.comparisonTo) } }
             DateEntry("پایان دورهٔ مقایسه", result.comparisonTo.toString()) { date -> vm.change { it.copy(comparisonFrom = result.comparisonFrom, comparisonTo = java.time.LocalDate.parse(date)) } }
@@ -85,18 +103,22 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
                 LinearProgressIndicator(progress = { (bucket.amount.toDouble() / max).toFloat().coerceIn(0f,1f) }, modifier = Modifier.fillMaxWidth())
             }
             if(result.trend.isNotEmpty()) Text("طول میله از صفر تا " + money(max) + " است؛ تاریخ‌ها شمسی و شروع هفته شنبه است.", style = MaterialTheme.typography.bodySmall)
+            }
+            if(section == 2) {
             if(filter.document == ReportDocument.SALE) {
                 Text("کالاها — مبلغ ناخالص پیش از تخفیف و مالیات", style = MaterialTheme.typography.titleMedium)
                 result.products.forEach { item -> Text(item.name + " | " + fa(item.quantity) + " عدد | " + money(item.gross)) }
             }
             Text("مشتریان — جمع فاکتور و مانده", style = MaterialTheme.typography.titleMedium)
             result.customers.forEach { customer -> Text(customer.name + " | " + fa(customer.count) + " فاکتور | " + money(customer.payable) + " | مانده: " + money(customer.balance)) }
+            }
+            if(section == 0) {
             Text("جزئیات فاکتورها", style = MaterialTheme.typography.titleLarge)
             if(result.rows.isEmpty()) Text("فاکتوری مطابق این فیلترها پیدا نشد.")
             result.rows.forEach { invoice ->
                 OutlinedCard(onClick = { onDetail(invoice.id) }, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(PersianNumberFormatter.toPersianDigits(invoice.invoiceNumber), style = MaterialTheme.typography.titleSmall)
+                        Text(ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice), style = MaterialTheme.typography.titleSmall)
                         Text(invoice.customer.name + " — " + dateLabel(invoice.date))
                         Text("قابل پرداخت: " + money(invoice.finalAmount))
                         Text("دریافت: " + money(invoice.payment?.paidAmount ?: 0) + " — مانده: " + money(invoice.finalAmount - (invoice.payment?.paidAmount ?: 0)))
@@ -108,22 +130,26 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
                 Text("صفحهٔ " + fa(filter.page + 1) + " از " + fa(result.pages))
                 TextButton(enabled = filter.page + 1 < result.pages, onClick = { vm.page(filter.page + 1) }) { Text("بعدی") }
             }
+            }
             Button(enabled = !exporting, onClick = { exportSnapshot = result; save.launch("store-report.pdf") }) { Text("ذخیرهٔ PDF گزارش کامل") }
             if(exporting) LinearProgressIndicator(Modifier.fillMaxWidth())
             exportMessage?.let { Text(it) }
-            Text("تخفیف اقلام، گروه کالا، پرداخت‌های خروجی و تاریخ تک‌تک دریافت‌ها در مدل فعلی ثبت نمی‌شوند؛ گزارش ساختگی برای آن‌ها تولید نشده است.", style = MaterialTheme.typography.bodySmall)
         }
     }
 }
 
 @Composable private fun Summary(t: StoreReportTotals) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
     OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("تعداد فاکتور: " + fa(t.count))
         Text("مبلغ قابل پرداخت: " + money(t.payable), style = MaterialTheme.typography.titleLarge)
         Text("دریافتی فعلی: " + money(t.received) + " — مانده: " + money(t.balance))
+        TextButton(onClick = { expanded = !expanded }) { Text(if(expanded) "خلاصه‌تر" else "جزئیات مبالغ") }
+        if(expanded) {
         Text("ناخالص کالا: " + money(t.grossItems))
         Text("تخفیف فاکتور: " + money(t.discount) + " — مالیات: " + money(t.tax))
         Text("افزودهٔ اقساط: " + money(t.financeCharge))
+        }
         if(t.unreconciledInvoices > 0) Text("فاکتور با اقلام ناقص یا اختلاف مبلغ: " + fa(t.unreconciledInvoices) +
             "؛ جمع قابل پرداخت از سند ذخیره‌شده است. اختلاف نقدی یا سند فاقد اقلام، سود اقساط شمرده نشده است.", color = MaterialTheme.colorScheme.error)
     } }

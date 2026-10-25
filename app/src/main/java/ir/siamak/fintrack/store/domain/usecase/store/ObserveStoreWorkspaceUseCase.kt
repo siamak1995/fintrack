@@ -15,11 +15,22 @@ class ObserveStoreWorkspaceUseCase @Inject constructor(
     private val invoices: InvoiceRepository
 ) {
     operator fun invoke(): Flow<StoreWorkspace> {
-        val catalog = combine(stores.observeStore(), sellers.observeAll(), products.observeAll(), materials.observeAll()) {
-            store, people, goods, stock -> StoreWorkspace(store, people, goods, stock)
+        val profiles = combine(stores.observeStores(), stores.observeProfiles()) { all, preferences -> all to preferences }
+        val catalog = combine(profiles, sellers.observeAll(), products.observeAll(), materials.observeAll()) {
+            (all, preferences), people, goods, stock -> StoreWorkspace(
+                all.firstOrNull { it.id == preferences.activeStoreId } ?: all.firstOrNull(), people, goods, stock,
+                stores = all, brands = preferences.brands)
         }
         return combine(catalog, sales.observeAll(), orders.observeAll(), invoices.observeAll()) {
-            workspace, receipts, custom, documents -> workspace.copy(sales = receipts, orders = custom, invoices = documents)
+            workspace, receipts, custom, documents ->
+            val scoped = documents.forStore(workspace.store, workspace.stores)
+            val saleIds = scoped.mapNotNull { it.saleId }.toSet()
+            val orderIds = scoped.mapNotNull { it.preOrderId }.toSet()
+            val legacyStore = workspace.store == null || workspace.store.id == workspace.stores.firstOrNull()?.id
+            val allSaleIds = documents.mapNotNull { it.saleId }.toSet()
+            val allOrderIds = documents.mapNotNull { it.preOrderId }.toSet()
+            workspace.copy(sales = receipts.filter { it.id in saleIds || (legacyStore && it.id !in allSaleIds) },
+                orders = custom.filter { it.id in orderIds || (legacyStore && it.id !in allOrderIds) }, invoices = scoped)
         }
     }
 }

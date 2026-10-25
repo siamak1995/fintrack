@@ -41,10 +41,14 @@ import java.io.File
         invoice?.let {
             Picture(it.store.logoPath)
             Text(it.store.name + " — " + it.store.brand)
-            Text(it.invoiceNumber); Text(dateLabel(it.date))
+            Text("کد رهگیری", style = MaterialTheme.typography.labelLarge)
+            androidx.compose.foundation.text.selection.SelectionContainer {
+                Text(ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(it), style = MaterialTheme.typography.titleMedium)
+            }
+            Text(dateLabel(it.date))
             Text("مشتری: " + it.customer.name + " — " + it.customer.phone)
             it.customer.address?.let { address -> Text(address) }
-            it.seller?.let { seller -> Text("فروشنده: " + seller.fullName) }
+            it.seller?.let { seller -> Text("فروشنده: " + seller.fullName); Picture(seller.signaturePath) }
             it.description?.let { description -> Text(description) }
             it.deliveryDate?.let { date -> Text("تحویل: " + dateLabel(date) + " — " + remainingDays(date)) }
             it.items.forEach { item -> Text(item.productName + " × " + item.quantity + " — " + money(item.unitPrice)) }
@@ -64,7 +68,7 @@ import java.io.File
             it.payment?.installments?.forEach { installment -> Text("قسط " + installment.monthNumber + " — " + dateLabel(installment.dueDate) + " — " + money(installment.amount)) }
             val cancelled = state.data.orders.firstOrNull { order -> order.id == it.preOrderId }?.status == PreOrderStatus.CANCELLED
             if(it.paymentStatus != PaymentStatus.SETTLED && !cancelled && !it.cancelled) Button(enabled = !state.busy, onClick = { receiving = true }) { Text("ثبت دریافت وجه") }
-            InvoiceActions(it)
+            InvoiceActions(it, state.data.invoices)
         }
     }
     if(receiving && invoice != null) AlertDialog(onDismissRequest = { if(!state.busy) receiving = false },

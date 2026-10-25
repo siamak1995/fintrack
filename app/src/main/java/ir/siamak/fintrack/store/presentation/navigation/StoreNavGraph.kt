@@ -21,12 +21,13 @@ fun NavGraphBuilder.storeNavGraph(navController: NavHostController) {
         onSales = { navController.navigate(StoreScreen.StoreSales.route) }, onPreOrders = { navController.navigate(StoreScreen.StorePreOrders.route) },
         onReports = { navController.navigate(StoreScreen.StoreReports.route) },
         onCatalog = { navController.navigate(StoreScreen.StoreBaseInfo.route) },
-        onMaterials = { navController.navigate(StoreScreen.StoreMaterials.route) }) }
+        onMaterials = { navController.navigate(StoreScreen.StoreBaseInfo.route + "/material") }) }
     composable(StoreScreen.StoreReports.route) {
         ir.siamak.fintrack.store.presentation.reports.StoreReportsScreen(::detail, { navController.popBackStack() })
     }
     composable(StoreScreen.StoreBaseInfo.route) { BaseInfoHubScreen() }
-    composable(StoreScreen.StoreMaterials.route) { MaterialListScreen() }
+    composable(StoreScreen.StoreBaseInfo.route + "/material") { BaseInfoHubScreen(initialTab = "material") }
+    composable(StoreScreen.StoreMaterials.route) { BaseInfoHubScreen(initialTab = "material") }
     composable(StoreScreen.StoreSales.route) { SalesScreen(
         onInvoices = { navController.navigate(StoreScreen.StoreSaleInvoices.route) }, onCreate = { navController.navigate(CREATE_SALE) }) }
     composable(StoreScreen.StorePreOrders.route) { PreOrderListScreen(

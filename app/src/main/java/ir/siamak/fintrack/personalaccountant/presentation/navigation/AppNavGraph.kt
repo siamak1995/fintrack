@@ -10,6 +10,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import ir.siamak.fintrack.store.presentation.components.StoreDesign
 import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -79,28 +81,31 @@ fun AppNavGraph(navController: NavHostController) {
     val showBottomBar = currentBottomScreen != null
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        StoreDesign(currentDestination?.route?.startsWith("store_") == true) {
         Scaffold(
             topBar = {
-                val route = currentDestination?.route
+                val rawRoute = currentDestination?.route
+                val route = if(rawRoute?.startsWith(StoreScreen.StoreBaseInfo.route + "/") == true || rawRoute == StoreScreen.StoreMaterials.route) StoreScreen.StoreBaseInfo.route else rawRoute
                 val storeRoot = route in listOf(StoreScreen.StoreDashboard.route, StoreScreen.StoreBaseInfo.route,
-                    StoreScreen.StoreSales.route, StoreScreen.StoreMaterials.route, StoreScreen.StorePreOrders.route)
+                    StoreScreen.StoreSales.route, StoreScreen.StoreReports.route, StoreScreen.StorePreOrders.route)
                 if(showBottomBar || storeRoot) TopAppBar(
                     title = { Text(if(storeRoot) "حسابدار فروشگاه" else "حسابدار شخصی") },
-                    navigationIcon = { TextButton(onClick = {
+                    navigationIcon = { IconButton(onClick = {
                         navController.navigate(Screen.Landing) { popUpTo(navController.graph.id); launchSingleTop = true }
-                    }) { Text("انتخاب حسابدار") } },
+                    }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack,"انتخاب حسابدار") } },
                     actions = { IconButton(onClick = { navController.navigate(Screen.Settings) { launchSingleTop = true } }) {
                         Icon(Icons.Outlined.Settings,"تنظیمات و پشتیبان‌گیری")
                     } }
                 )
             },
             bottomBar = {
-                val currentRoute = currentDestination?.route
+                val rawRoute = currentDestination?.route
+                val currentRoute = if(rawRoute?.startsWith(StoreScreen.StoreBaseInfo.route + "/") == true || rawRoute == StoreScreen.StoreMaterials.route) StoreScreen.StoreBaseInfo.route else rawRoute
                 val isStoreScreen = currentRoute in listOf(
                     StoreScreen.StoreDashboard.route,
                     StoreScreen.StoreBaseInfo.route,
                     StoreScreen.StoreSales.route,
-                    StoreScreen.StoreMaterials.route,
+                    StoreScreen.StoreReports.route,
                     StoreScreen.StorePreOrders.route
                 )
 
@@ -123,10 +128,10 @@ fun AppNavGraph(navController: NavHostController) {
                         onItemClick = { screen ->
                             navController.navigate(screen.route) {
                                 popUpTo(StoreScreen.StoreDashboard.route) {
-                                    saveState = true
+                                    saveState = false
                                 }
                                 launchSingleTop = true
-                                restoreState = true
+                                restoreState = false
                             }
                         }
                     )
@@ -399,6 +404,7 @@ fun AppNavGraph(navController: NavHostController) {
 
                 storeNavGraph(navController)
             }
+        }
         }
     }
 }

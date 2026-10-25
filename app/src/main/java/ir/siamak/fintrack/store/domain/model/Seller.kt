@@ -10,7 +10,10 @@ data class Seller(
     val lastName: String,
     val phone: String,
     val address: String? = null,
-    val description: String? = null
+    val description: String? = null,
+    val signaturePath: String? = null,
+    val cardNumber: String? = null,
+    val accountNumber: String? = null
 ) {
     val fullName: String get() = listOf(firstName, lastName).filter(String::isNotBlank).joinToString(" ")
 }

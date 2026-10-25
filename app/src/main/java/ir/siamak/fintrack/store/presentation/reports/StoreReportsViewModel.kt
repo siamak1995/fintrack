@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.siamak.fintrack.store.domain.model.*
 import ir.siamak.fintrack.store.domain.repository.InvoiceRepository
+import ir.siamak.fintrack.store.domain.repository.StoreRepository
+import ir.siamak.fintrack.store.domain.usecase.store.forStore
 import ir.siamak.fintrack.store.domain.usecase.store.CalculateStoreReportUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.CancellationException
@@ -14,10 +16,11 @@ data class StoreReportsUiState(val loading: Boolean = true, val invoices: List<I
 
 @HiltViewModel
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-class StoreReportsViewModel @Inject constructor(repository: InvoiceRepository, calculator: CalculateStoreReportUseCase) : ViewModel() {
+class StoreReportsViewModel @Inject constructor(repository: InvoiceRepository, calculator: CalculateStoreReportUseCase, stores: StoreRepository) : ViewModel() {
     private val filter = MutableStateFlow(StoreReportFilter())
     private val reload = MutableStateFlow(0L)
-    val state = reload.flatMapLatest { combine(repository.observeAll(), filter) { invoices, query ->
+    private val scopedInvoices = combine(repository.observeAll(), stores.observeStore(), stores.observeStores()) { all, active, profiles -> all.forStore(active, profiles) }
+    val state = reload.flatMapLatest { combine(scopedInvoices, filter) { invoices, query ->
         try { StoreReportsUiState(false, invoices, calculator(invoices, query)) }
         catch(cancelled: CancellationException) { throw cancelled }
         catch(error: Exception) { StoreReportsUiState(false, invoices, error = error.message ?: "گزارش قابل محاسبه نیست") }

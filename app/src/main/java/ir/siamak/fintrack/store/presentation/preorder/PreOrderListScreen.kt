@@ -29,7 +29,8 @@ fun remainingDays(value: String): String = runCatching {
         if(state.data.orders.isEmpty()) Text("هنوز سفارشی ثبت نشده است.")
         state.data.orders.forEach { order ->
             Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("سفارش " + order.id + " — " + statusLabel(order.status), style = MaterialTheme.typography.titleMedium)
+                Text(state.data.invoices.firstOrNull { it.preOrderId == order.id }?.let { ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(it) } ?: "سفارش اختصاصی", style = MaterialTheme.typography.titleMedium)
+                Text(statusLabel(order.status))
                 Text(order.description); Text("تحویل: " + dateLabel(order.deliveryDate) + " — " + remainingDays(order.deliveryDate))
                 Text(money(order.agreedPrice) + " | مانده: " + money(ir.siamak.fintrack.store.domain.usecase.invoice.CalculateInvoiceBalanceUseCase()(order)))
                 val next = when(order.status) {

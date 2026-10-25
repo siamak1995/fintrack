@@ -14,7 +14,8 @@ import ir.siamak.fintrack.store.presentation.sales.create.SaleDraft
                 Entry("نام مشتری *", draft.name, { v -> onChange { it.copy(name = v) } })
                 Entry("تلفن *", draft.phone, { v -> onChange { it.copy(phone = v) } })
                 Entry("آدرس", draft.address, { v -> onChange { it.copy(address = v) } })
-                Text("فروشنده")
+                Text(workspace.store?.name ?: "فروشگاه انتخاب نشده", style = MaterialTheme.typography.labelLarge)
+                Text("فروشنده و امضای فاکتور", style = MaterialTheme.typography.titleSmall)
                 FilterChip(selected = draft.sellerId == null, onClick = { onChange { it.copy(sellerId = null) } }, label = { Text("بدون فروشنده") })
                 workspace.sellers.forEach { seller ->
                     FilterChip(selected = draft.sellerId == seller.id, onClick = { onChange { it.copy(sellerId = seller.id) } }, label = { Text(seller.fullName) })

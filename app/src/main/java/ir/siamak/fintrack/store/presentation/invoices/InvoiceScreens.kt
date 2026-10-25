@@ -51,7 +51,7 @@ fun paymentLabel(status: PaymentStatus) = when(status) { PaymentStatus.SETTLED -
         records.forEach { invoice ->
             OutlinedCard(onClick = { onDetail(invoice.id) }, modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(invoice.invoiceNumber, style = MaterialTheme.typography.titleMedium)
+                    Text(ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice), style = MaterialTheme.typography.titleMedium)
                     Text(invoice.customer.name + " — " + money(invoice.finalAmount))
                     Text(dateLabel(invoice.date) + " — " + if(invoice.cancelled) "لغوشده" else paymentLabel(invoice.paymentStatus))
                     invoice.deliveryDate?.let { Text("تحویل: " + dateLabel(it) + " — " + remainingDays(it)) }
@@ -62,7 +62,7 @@ fun paymentLabel(status: PaymentStatus) = when(status) { PaymentStatus.SETTLED -
     }
 }
 
-@Composable internal fun InvoiceActions(invoice: Invoice) {
+@Composable internal fun InvoiceActions(invoice: Invoice, related: List<Invoice>? = null) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
@@ -72,8 +72,13 @@ fun paymentLabel(status: PaymentStatus) = when(status) { PaymentStatus.SETTLED -
         val logo = invoice.store.logoPath?.let { path -> runCatching {
             context.contentResolver.openInputStream(Uri.parse(path))?.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = 4 }) }
         }.getOrNull() }
-        try { requireNotNull(context.contentResolver.openOutputStream(uri)).use { InvoicePdfGenerator().generate(invoice,it,logo) } }
-        finally { logo?.recycle() }
+        val signature = invoice.seller?.signaturePath?.let { path -> runCatching {
+            context.contentResolver.openInputStream(Uri.parse(path))?.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = 2 }) }
+        }.getOrNull() }
+        val regular = androidx.core.content.res.ResourcesCompat.getFont(context,ir.siamak.fintrack.R.font.store_regular)
+        val bold = androidx.core.content.res.ResourcesCompat.getFont(context,ir.siamak.fintrack.R.font.store_bold)
+        try { requireNotNull(context.contentResolver.openOutputStream(uri)).use { InvoicePdfGenerator().generate(invoice,it,logo,signature,related,regular,bold) } }
+        finally { logo?.recycle(); signature?.recycle() }
     }
     fun action(block: suspend () -> Unit) {
         if(busy) return
@@ -89,12 +94,12 @@ fun paymentLabel(status: PaymentStatus) = when(status) { PaymentStatus.SETTLED -
     }
     suspend fun file(): File {
         val directory = File(context.cacheDir,"store-invoices").apply { mkdirs() }
-        val target = File(directory,"invoice-" + invoice.id + ".pdf")
+        val target = File(directory, ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice) + ".pdf")
         write(Uri.fromFile(target))
         return target
     }
     Button(enabled = !busy, onClick = { action { preview = file() } }) { Text("پیش‌نمایش PDF") }
-    OutlinedButton(enabled = !busy, onClick = { save.launch("invoice-" + invoice.id + ".pdf") }) { Text("دانلود / ذخیره PDF") }
+    OutlinedButton(enabled = !busy, onClick = { save.launch(ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice) + ".pdf") }) { Text("دانلود / ذخیره PDF") }
     OutlinedButton(enabled = !busy, onClick = { action {
         val target = file()
         val uri = FileProvider.getUriForFile(context, context.packageName + ".store.files", target)

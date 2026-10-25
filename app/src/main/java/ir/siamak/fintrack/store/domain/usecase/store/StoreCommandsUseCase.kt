@@ -13,8 +13,12 @@ class StoreCommandsUseCase @Inject constructor(
 ) {
     suspend fun saveStore(value: Store) {
         require(value.name.isNotBlank()) { "نام فروشگاه الزامی است" }
-        stores.save(value.copy(id = value.id.takeIf { it > 0 } ?: 1))
+        stores.save(value)
     }
+    suspend fun selectStore(id: Long) = stores.selectStore(id)
+    suspend fun deleteStore(id: Long) = stores.deleteStore(id)
+    suspend fun saveBrand(value: Brand) = stores.saveBrand(value)
+    suspend fun deleteBrand(id: String) = stores.deleteBrand(id)
     suspend fun saveSeller(value: Seller) {
         require(value.firstName.isNotBlank() && value.lastName.isNotBlank() && value.phone.isNotBlank()) { "نام، نام خانوادگی و تلفن فروشنده الزامی است" }
         sellers.save(value)

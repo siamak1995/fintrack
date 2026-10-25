@@ -11,6 +11,7 @@ import java.math.RoundingMode
 class PlacePreOrderUseCase @Inject constructor(private val repository: StoreRepository) {
     fun preview(request: PreOrderRequest, workspace: StoreWorkspace): PreOrder {
         require(workspace.store != null) { "ابتدا اطلاعات فروشگاه را ثبت کنید" }
+        require(request.sellerId == null || workspace.sellers.any { it.id == request.sellerId }) { "فروشنده نامعتبر است" }
         require(request.customer.name.isNotBlank() && request.customer.phone.isNotBlank()) { "نام و تلفن مشتری الزامی است" }
         require(request.description.isNotBlank()) { "شرح سفارش الزامی است" }
         require(!LocalDate.parse(request.deliveryDate).isBefore(LocalDate.now())) { "تاریخ تحویل نامعتبر است" }
@@ -42,6 +43,7 @@ class PlacePreOrderUseCase @Inject constructor(private val repository: StoreRepo
     suspend operator fun invoke(request: PreOrderRequest, workspace: StoreWorkspace): Long {
         val order = preview(request, workspace)
         val invoice = Invoice(invoiceNumber = "P-" + request.requestId, date = LocalDate.now().toString(), store = requireNotNull(workspace.store),
+            seller = workspace.sellers.firstOrNull { it.id == request.sellerId },
             customer = request.customer, finalAmount = order.agreedPrice, description = order.description, deliveryDate = order.deliveryDate,
             materialItems = order.items, pricing = PreOrderPricing(materialCost(request,workspace),request.productionCost,request.profit,request.shippingCost,suggested(request,workspace)), payment = Payment(Payment.PaymentType.CASH, order.advancePayment), requestId = request.requestId,
             paymentStatus = if (order.advancePayment == order.agreedPrice) PaymentStatus.SETTLED else PaymentStatus.UNSETTLED)

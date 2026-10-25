@@ -32,6 +32,7 @@ abstract class StoreFeatureViewModel(
             is Seller -> commands.saveSeller(value)
             is Product -> commands.saveProduct(value)
             is RawMaterial -> commands.saveMaterial(value)
+            is Brand -> commands.saveBrand(value)
             else -> error("نوع اطلاعات نامعتبر است")
         }
     }
@@ -40,9 +41,12 @@ abstract class StoreFeatureViewModel(
             "product" -> commands.deleteProduct(id)
             "seller" -> commands.deleteSeller(id)
             "material" -> commands.deleteMaterial(id)
+            "store" -> commands.deleteStore(id)
             else -> error("حذف مجاز نیست")
         }
     }
+    fun selectStore(id: Long) = execute { commands.selectStore(id) }
+    fun deleteBrand(id: String, done: () -> Unit) = execute(done) { commands.deleteBrand(id) }
     fun status(id: Long, value: PreOrderStatus) = execute { commands.changeStatus(id, value) }
     fun receive(id: Long, amount: Long, done: () -> Unit) = execute(done) { commands.receivePayment(id, amount) }
     private fun execute(done: () -> Unit = {}, block: suspend () -> Unit) {

@@ -34,9 +34,10 @@ fun decimal(value: String): Double = numeric(value).replace('٫','.').toDoubleOr
 
 @Composable fun StorePage(title: String, loading: Boolean = false, error: String? = null, retry: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        Surface(color = MaterialTheme.colorScheme.surfaceContainerLowest, modifier = Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.TopCenter) {
-        Column(Modifier.widthIn(max = 960.dp).fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(title, style = MaterialTheme.typography.headlineSmall)
+        Column(Modifier.widthIn(max = 760.dp).fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(title, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
             if(loading) LinearProgressIndicator(Modifier.fillMaxWidth())
             if(error != null) {
                 Text(error, color = MaterialTheme.colorScheme.error)
@@ -44,6 +45,7 @@ fun decimal(value: String): Double = numeric(value).replace('٫','.').toDoubleOr
             }
             content()
             Spacer(Modifier.height(24.dp))
+        }
         }
         }
     }
@@ -97,9 +99,11 @@ fun decimal(value: String): Double = numeric(value).replace('٫','.').toDoubleOr
     }
     error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 }
-@Composable fun ConfirmDelete(name: String, confirm: () -> Unit, dismiss: () -> Unit) =
-    AlertDialog(onDismissRequest = dismiss, title = { Text("حذف " + name) }, text = { Text("اطلاعات فاکتورهای قبلی محفوظ می‌ماند. حذف شود؟") },
-        confirmButton = { TextButton(onClick = confirm) { Text("حذف") } }, dismissButton = { TextButton(onClick = dismiss) { Text("انصراف") } })
+@Composable fun ConfirmDelete(name: String, confirm: () -> Unit, dismiss: () -> Unit, error: String? = null, busy: Boolean = false) =
+    AlertDialog(onDismissRequest = { if(!busy) dismiss() }, title = { Text("حذف " + name) }, text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("اطلاعات فاکتورهای قبلی محفوظ می‌ماند. حذف شود؟")
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+    } }, confirmButton = { TextButton(enabled = !busy, onClick = confirm) { Text("حذف") } }, dismissButton = { TextButton(enabled = !busy, onClick = dismiss) { Text("انصراف") } })
 
 @androidx.compose.ui.tooling.preview.Preview(showBackground = true)
 @Composable private fun StorePagePreview() { MaterialTheme { StorePage("حسابدار فروشگاه") { Text("اطلاعات فروشگاه") } } }

@@ -106,7 +106,7 @@ class StoreReportPdfGenerator {
             if(report.allRows.isEmpty()) line("هیچ فاکتوری مطابق فیلترها وجود ندارد.")
             report.allRows.forEach { invoice ->
                 if(y + 100 > 792) { nextPage(); tableRow(header,true) }
-                tableRow(listOf(invoice.invoiceNumber,DateFormatter.formatJalali(java.time.LocalDate.parse(invoice.date.take(10))),invoice.customer.name,
+                tableRow(listOf(ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode.of(invoice),DateFormatter.formatJalali(java.time.LocalDate.parse(invoice.date.take(10))),invoice.customer.name,
                     MoneyFormatter.format(invoice.finalAmount,""),MoneyFormatter.format(invoice.payment?.paidAmount ?: 0,""),MoneyFormatter.format(invoice.finalAmount - (invoice.payment?.paidAmount ?: 0),"")),false)
             }
             y += 14

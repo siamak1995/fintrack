@@ -25,7 +25,8 @@ data class Invoice(
     val materialItems: List<PreOrderItem> = emptyList(),
     val requestId: String = "",
     val cancelled: Boolean = false,
-    val paymentStatus: PaymentStatus
+    val paymentStatus: PaymentStatus,
+    val saleId: Long? = null
 ) {
     enum class PaymentStatus { SETTLED, UNSETTLED, INSTALLMENT }
 }
