@@ -9,7 +9,7 @@ fun WalletEntity.toModel(): Wallet {
         contextId = contextId,
         name = name,
         balance = balance,
-        color = color
+        color = color, cardNumber = cardNumber, accountNumber = accountNumber, isCash = isCash
     )
 }
 
@@ -19,7 +19,7 @@ fun Wallet.toEntity(): WalletEntity {
         contextId = contextId,
         name = name,
         balance = balance,
-        color = color
+        color = color, cardNumber = cardNumber, accountNumber = accountNumber, isCash = isCash
     )
 }
 

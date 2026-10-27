@@ -23,19 +23,24 @@ class StorePersistenceTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private lateinit var db: StoreDatabase
     private lateinit var repository: StoreRepositoryImpl
+    private lateinit var personal: ir.siamak.fintrack.personalaccountant.data.local.database.AppDatabase
     private val workspace = StoreWorkspace(store = Store(1,"فروشگاه"),
         products = listOf(Product(1,"ماگ",stock = 5,price = 100_000),Product(2,"بشقاب",stock = 0,price = 200_000)),
-        materials = listOf(RawMaterial(1,"خاک","کیلو",10_000,5.0)))
+        materials = listOf(RawMaterial(1,"خاک","کیلو",10_000,5.0)),
+        finance = StoreFinanceDirectory(wallets = listOf(FinanceChoice(1,1,"نقد")),members = listOf(FinanceChoice(1,1,"خودم"))))
     @Before fun setup() = runBlocking {
         db = Room.inMemoryDatabaseBuilder(context,StoreDatabase::class.java).build()
-        repository = StoreRepositoryImpl(db)
+        personal = Room.inMemoryDatabaseBuilder(context,ir.siamak.fintrack.personalaccountant.data.local.database.AppDatabase::class.java).build()
+        personal.walletDao().insertWallet(ir.siamak.fintrack.personalaccountant.data.local.entity.WalletEntity(id = 1,name = "نقد",balance = 0.0,color = "#008577",isCash = true))
+        personal.memberDao().insertMember(ir.siamak.fintrack.personalaccountant.data.local.entity.MemberEntity(id = 1,name = "خودم",relation = "self",color = "#000000",icon = "person"))
+        repository = StoreRepositoryImpl(db,ledger = StorePersonalLedger(personal))
         repository.save(requireNotNull(workspace.store))
         db.productDao().upsert(ProductEntity(1,"ماگ",null,null,null,5,100_000,null))
         db.productDao().upsert(ProductEntity(2,"بشقاب",null,null,null,0,200_000,null))
         db.rawMaterialDao().upsert(RawMaterialEntity(1,"خاک","کیلو",10_000,5.0,null,null))
     }
-    @After fun close() { db.close() }
-    private fun request(id: String = "test", count: Int = 1) = SaleRequest(Customer(name = "مشتری",phone = "0912"),null,mapOf(1L to count),requestId = id)
+    @After fun close() { db.close(); personal.close() }
+    private fun request(id: String = "test", count: Int = 1) = SaleRequest(Customer(name = "مشتری",phone = "0912"),null,mapOf(1L to count),requestId = id,settlement = StoreSettlementAccount(1,1,1))
     @Test fun salePersistsItemsPaymentScheduleAndSnapshotExactlyOnce() = runBlocking {
         val checkout = CheckoutSaleUseCase(repository)
         val request = request().copy(installmentMonths = 3,monthlyPercent = 5,firstDueDate = LocalDate.now().plusDays(1).toString())
@@ -135,7 +140,7 @@ class StorePersistenceTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             viewModel = ir.siamak.fintrack.store.presentation.sales.create.CreateSaleViewModel(
                 androidx.lifecycle.SavedStateHandle(mapOf("draft" to kotlinx.serialization.json.Json.encodeToString(draft))),
-                observe,ir.siamak.fintrack.store.domain.usecase.sale.CreateSaleUseCase(CheckoutSaleUseCase(repository)))
+                observe,ir.siamak.fintrack.store.domain.usecase.sale.CreateSaleUseCase(CheckoutSaleUseCase(repository)),ProductRepositoryImpl(db.productDao()))
             owner.put("draft",viewModel)
         }
         try {
@@ -150,7 +155,7 @@ class StorePersistenceTest {
         context.deleteDatabase(name)
         try {
             Room.databaseBuilder(context,StoreDatabase::class.java,name).build().useDatabase { disk ->
-                val store = StoreRepositoryImpl(disk)
+                val store = StoreRepositoryImpl(disk,ledger = StorePersonalLedger(personal))
                 store.save(Store(1,"فروشگاه پایدار"))
                 disk.productDao().upsert(ProductEntity(1,"ماگ",null,null,null,5,100_000,null))
                 CheckoutSaleUseCase(store)(request("disk"),workspace)
@@ -183,6 +188,21 @@ class StorePersistenceTest {
         }
         assertTrue(file.delete())
     }
+    @Test fun saleCreditsChosenWalletOnlyOnce() = runBlocking {
+        val usecase = CheckoutSaleUseCase(repository)
+        val id = usecase(request(),workspace)
+        assertEquals(id,usecase(request(),workspace))
+        assertEquals(100_000.0,personal.walletDao().getWalletById(1)!!.balance,0.0)
+        assertEquals(1,personal.transactionDao().getAllTransactionsSync().size)
+        assertEquals(100_000L,InvoiceRepositoryImpl(db.invoiceDao()).observeAll().first().single().walletPostedAmount)
+    }
+    @Test fun duplicateProductNamesAreRejectedAndColorPersists() = runBlocking {
+        val products = ProductRepositoryImpl(db.productDao())
+        assertTrue(runCatching { products.save(Product(name = " ماگ ")) }.isFailure)
+        products.save(Product(name = "کالای جدید", stock = 2, price = 120000, color = "سبز"))
+        assertEquals("سبز",products.observeAll().first().first { it.name == "کالای جدید" }.color)
+    }
 }
+
 
 private inline fun <T : androidx.room.RoomDatabase, R> T.useDatabase(block: (T) -> R): R = try { block(this) } finally { close() }

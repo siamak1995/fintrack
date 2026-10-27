@@ -9,4 +9,4 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /** Room-backed implementation of [ProductRepository]. */
-class ProductRepositoryImpl(private val dao: ProductDao) : ProductRepository { override fun observeAll(): Flow<List<Product>> = dao.observeAll().map { it.map { entity -> entity.toDomain() } }; override suspend fun save(product: Product) = dao.upsert(product.toEntity()); override suspend fun delete(id: Long) = dao.delete(id) }
+class ProductRepositoryImpl(private val dao: ProductDao) : ProductRepository { override fun observeAll(): Flow<List<Product>> = dao.observeAll().map { it.map { entity -> entity.toDomain() } }; override suspend fun save(product: Product) = dao.saveUnique(product.toEntity()); override suspend fun delete(id: Long) = dao.delete(id) }

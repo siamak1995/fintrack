@@ -5,6 +5,10 @@ import ir.siamak.fintrack.personalaccountant.data.model.Wallet
 data class AddEditInstallmentState(
 
     val title: String = "",
+    val installmentCountRaw: String = "1",
+    val startDate: Long = System.currentTimeMillis(),
+    val automaticPayment: Boolean = false,
+    val isSaved: Boolean = false,
 
     val totalAmountFormatted: String = "",
     val totalAmountRaw: String = "",

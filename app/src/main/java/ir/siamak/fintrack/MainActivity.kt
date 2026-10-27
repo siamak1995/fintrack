@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
@@ -26,6 +27,9 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
+    private var financeDestination by androidx.compose.runtime.mutableStateOf<String?>(null)
+    override fun onNewIntent(intent: android.content.Intent) { super.onNewIntent(intent); setIntent(intent); financeDestination = intent.getStringExtra("finance_destination") }
+
 
     private val appSettingsViewModel: AppSettingsViewModel by viewModels()
     private val lockViewModel: LockViewModel by viewModels()
@@ -35,6 +39,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        financeDestination = intent.getStringExtra("finance_destination")
 
         setContent {
             val restore by FinTrackApplication.restoreState.collectAsStateWithLifecycle()
@@ -87,6 +92,13 @@ class MainActivity : FragmentActivity() {
                         } else {
                             val navController = rememberNavController()
                             AppNavGraph(navController = navController)
+                            androidx.compose.runtime.LaunchedEffect(financeDestination) {
+                                when(financeDestination) {
+                                    "loans" -> navController.navigate(ir.siamak.fintrack.personalaccountant.presentation.navigation.Screen.LoanReport)
+                                    "sms" -> navController.navigate(ir.siamak.fintrack.personalaccountant.presentation.navigation.Screen.BankSms)
+                                }
+                                financeDestination = null
+                            }
                         }
                     }
                 }

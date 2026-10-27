@@ -264,6 +264,18 @@ object DatabaseModule {
      * record to the default Personal context. Foreign keys are intentionally
      * deferred to a later table-rebuild migration.
      */
+    val MIGRATION_8_9 = object : Migration(8, 9) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE wallet ADD COLUMN cardNumber TEXT")
+            db.execSQL("ALTER TABLE wallet ADD COLUMN accountNumber TEXT")
+            db.execSQL("ALTER TABLE wallet ADD COLUMN isCash INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE installment ADD COLUMN installmentCount INTEGER NOT NULL DEFAULT 1")
+            db.execSQL("ALTER TABLE installment ADD COLUMN startDate INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE installment ADD COLUMN automaticPayment INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("UPDATE installment SET startDate=createdAt")
+        }
+    }
+
     val MIGRATION_7_8 = object : Migration(7, 8) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL(
@@ -328,7 +340,7 @@ object DatabaseModule {
                 MIGRATION_4_5,
                 MIGRATION_5_6,
                 MIGRATION_6_7,
-                MIGRATION_7_8
+                MIGRATION_7_8, MIGRATION_8_9
             )
             .build()
 

@@ -9,6 +9,10 @@ import kotlinx.serialization.json.Json
 
 /** Retains the original v1 sales tables as audit copies, including legacy wallet references. */
 object StoreMigrations {
+    val FROM_2_TO_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) { db.execSQL("ALTER TABLE products ADD COLUMN color TEXT") }
+    }
+
     val FROM_1_TO_2 = object : Migration(1, 2) {
         override fun migrate(db: SupportSQLiteDatabase) {
             val legacy = db.query("PRAGMA table_info(sales)").use { cursor ->

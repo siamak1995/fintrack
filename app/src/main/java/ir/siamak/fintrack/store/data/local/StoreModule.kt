@@ -13,7 +13,7 @@ import ir.siamak.fintrack.store.domain.repository.*
 @Module @InstallIn(SingletonComponent::class)
 object StoreModule {
     @Provides @Singleton fun database(@ApplicationContext context: Context): StoreDatabase =
-        Room.databaseBuilder(context, StoreDatabase::class.java, "store_fintrack_db").addMigrations(StoreMigrations.FROM_1_TO_2).build()
+        Room.databaseBuilder(context, StoreDatabase::class.java, "store_fintrack_db").addMigrations(StoreMigrations.FROM_1_TO_2, StoreMigrations.FROM_2_TO_3).build()
     @Provides @Singleton fun store(db: StoreDatabase, profiles: StoreProfilesDataSource, ledger: StorePersonalLedger): StoreRepository = StoreRepositoryImpl(db, profiles, ledger)
     @Provides @Singleton fun seller(db: StoreDatabase, profiles: StoreProfilesDataSource): SellerRepository = SellerRepositoryImpl(db.sellerDao(), profiles)
     @Provides @Singleton fun product(db: StoreDatabase): ProductRepository = ProductRepositoryImpl(db.productDao())

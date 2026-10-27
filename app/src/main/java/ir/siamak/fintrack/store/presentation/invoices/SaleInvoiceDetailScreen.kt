@@ -84,7 +84,7 @@ import java.io.File
             }
             val cancelled = state.data.orders.firstOrNull { order -> order.id == it.preOrderId }?.status == PreOrderStatus.CANCELLED
             if(it.paymentStatus != PaymentStatus.SETTLED && !cancelled && !it.cancelled) Button(enabled = !state.busy, onClick = { receiving = true }) { Text("ثبت دریافت وجه") }
-            FormSection("خروجی فاکتور") { InvoiceActions(it, state.data.invoices, state.data.sellers) }
+            FormSection("خروجی فاکتور") { InvoiceActions(it, state.data.invoices, state.data.sellers, state.data.brands) }
         }
     }
     if(receiving && invoice != null) AlertDialog(onDismissRequest = { if(!state.busy) receiving = false },

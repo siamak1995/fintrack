@@ -53,11 +53,15 @@ fun BaseInfoScreen(
     onWalletClick: () -> Unit,
     onMemberClick: () -> Unit,
     onTagClick: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onInstallmentClick: () -> Unit = {},
+    onBankSmsClick: () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
     val items = listOf(
+        BaseInfoMenuItem("وام و اقساط", "برنامه بازپرداخت و سررسیدها", Icons.Default.AccountBalanceWallet, colorScheme.tertiaryContainer, colorScheme.onTertiaryContainer, onInstallmentClick),
+        BaseInfoMenuItem("پیامک بانکی", "بررسی و ورود تراکنش با تأیید شما", Icons.Default.Label, colorScheme.secondaryContainer, colorScheme.onSecondaryContainer, onBankSmsClick),
         BaseInfoMenuItem(
             title = "حساب‌ها",
             subtitle = "مدیریت کیف پول‌ها و حساب‌های مالی",

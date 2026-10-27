@@ -3,8 +3,6 @@ package ir.siamak.fintrack.personalaccountant.presentation.baseinfo.wallet.add_e
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ir.siamak.fintrack.common.core.extensions.formatAmount
-import ir.siamak.fintrack.common.core.extensions.persianToEnglishDigits
 import ir.siamak.fintrack.personalaccountant.data.model.Wallet
 import ir.siamak.fintrack.personalaccountant.domain.usecase.wallet.GetWalletByIdUseCase
 import ir.siamak.fintrack.personalaccountant.domain.usecase.wallet.InsertWalletUseCase
@@ -40,16 +38,15 @@ class AddEditWalletViewModel @Inject constructor(
      */
     fun onEvent(event: AddEditWalletEvent) {
         when (event) {
+            is AddEditWalletEvent.CardChanged -> _state.update { it.copy(cardNumber = ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter.normalize(event.value).filter(Char::isDigit).take(16)) }
+            is AddEditWalletEvent.AccountChanged -> _state.update { it.copy(accountNumber = ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter.normalize(event.value).filter { it.isDigit() || it in "-." }.take(40)) }
             is AddEditWalletEvent.EnteredName -> {
                 _state.update { it.copy(name = event.value) }
             }
 
             is AddEditWalletEvent.EnteredBalance -> {
-                val clean = event.value.persianToEnglishDigits().replace(",", "").filter { it.isDigit() }
-                _state.value = _state.value.copy(
-                    balanceRaw = clean,
-                    balance = formatAmount(clean)
-                )
+                val clean = ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter.normalize(event.value).replace(",", "")
+                if(Regex("-?[0-9]*(?:\\.[0-9]*)?").matches(clean)) _state.update { it.copy(balanceRaw = clean, balance = clean) }
             }
 
             is AddEditWalletEvent.LoadWallet -> {
@@ -80,6 +77,8 @@ class AddEditWalletViewModel @Inject constructor(
             val color = _state.value.color
 
             if (name.isBlank()) return@launch
+            if(!balance.isFinite()) { _state.update { it.copy(error = "موجودی معتبر نیست") }; return@launch }
+            if(_state.value.cardNumber.isNotBlank() && _state.value.cardNumber.length != 16) { _state.update { it.copy(error = "شماره کارت باید ۱۶ رقم باشد") }; return@launch }
 
             _state.update { it.copy(isLoading = true) }
 
@@ -87,9 +86,10 @@ class AddEditWalletViewModel @Inject constructor(
                 id = currentWalletId ?: 0L,
                 name = name,
                 balance = balance,
-                color = color
+                color = color, cardNumber = _state.value.cardNumber.ifBlank { null }, accountNumber = _state.value.accountNumber.ifBlank { null }, isCash = _state.value.isCash
             )
 
+            try {
             if (currentWalletId == null) {
                 insertWalletUseCase(wallet)
             } else {
@@ -97,6 +97,7 @@ class AddEditWalletViewModel @Inject constructor(
             }
 
             _state.update { it.copy(isLoading = false, isSaved = true) }
+            } catch(e: Exception) { _state.update { it.copy(isLoading = false, error = e.message ?: "ذخیره ناموفق بود") } }
         }
     }
 
@@ -110,8 +111,9 @@ class AddEditWalletViewModel @Inject constructor(
             wallet?.let {
                 _state.update { state ->
                     state.copy(
-                        name = it.name,
-                        balance = it.balance.toString(),
+                        name = it.name, cardNumber = it.cardNumber.orEmpty(), accountNumber = it.accountNumber.orEmpty(), isCash = it.isCash,
+                        balance = java.math.BigDecimal.valueOf(it.balance).stripTrailingZeros().toPlainString(),
+                        balanceRaw = java.math.BigDecimal.valueOf(it.balance).stripTrailingZeros().toPlainString(),
                         color = it.color
                     )
                 }

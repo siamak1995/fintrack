@@ -52,8 +52,8 @@ class BackupArchive @Inject constructor(
         val stage = File(context.noBackupFilesDir,"restore-validation-" + java.util.UUID.randomUUID()).apply { mkdirs() }
         try {
             readArchive(input, stage)
-            validateDatabase(File(stage,"databases/fintrack_db"), 8, "wallet")
-            validateDatabase(File(stage,"databases/store_fintrack_db"), 2, "invoices")
+            validateDatabase(File(stage,"databases/fintrack_db"), 9, "wallet")
+            validateDatabase(File(stage,"databases/store_fintrack_db"), 3, "invoices")
             PREFERENCE_PATHS.forEach { path ->
                 val preferences = File(stage,"files/$path")
                 if(preferences.exists()) validatePreferences(preferences)
@@ -166,10 +166,12 @@ class BackupArchive @Inject constructor(
 
         private fun validateDatabase(file: File, version: Int, table: String) {
             SQLiteDatabase.openDatabase(file.path,null,SQLiteDatabase.OPEN_READONLY).use { db ->
-                require(db.version == version) { "نسخهٔ پشتیبان با این برنامه سازگار نیست؛ از نسخهٔ سازگار برای بازیابی استفاده کنید" }
+                val compatible = if(table == "wallet") mapOf(8 to "f1622432820d3af5b3b49ac7aac91386",9 to "f63433f6486906e3c2faa45513d5372b")
+                    else mapOf(2 to "9652f179120c420dd68f28fecf641d87",3 to "33e40defe1866926bd96227f1f6a5b86")
+                require(db.version <= version && db.version in compatible) { "نسخهٔ پشتیبان با این برنامه سازگار نیست؛ از نسخهٔ سازگار برای بازیابی استفاده کنید" }
                 db.rawQuery("PRAGMA integrity_check",null).use { require(it.moveToFirst() && it.getString(0) == "ok") { "صحت پایگاه داده تأیید نشد" } }
                 db.rawQuery("SELECT COUNT(*) FROM " + quoted(table),null).use { require(it.moveToFirst()) }
-                val expected = if(version == 8) "f1622432820d3af5b3b49ac7aac91386" else "9652f179120c420dd68f28fecf641d87"
+                val expected = compatible.getValue(db.version)
                 db.rawQuery("SELECT identity_hash FROM room_master_table WHERE id=42",null).use {
                     require(it.moveToFirst() && it.getString(0) == expected) { "Schema پشتیبان با نسخهٔ نصب‌شده سازگار نیست" }
                 }
@@ -206,8 +208,8 @@ class BackupArchive @Inject constructor(
             if(!pending.exists()) return
             // Validate again before touching any active file; interrupted/corrupt staging is never installed.
             verifyStaged(pending)
-            validateDatabase(File(pending,DATABASE_PATHS[0]),8,"wallet")
-            validateDatabase(File(pending,DATABASE_PATHS[1]),2,"invoices")
+            validateDatabase(File(pending,DATABASE_PATHS[0]),9,"wallet")
+            validateDatabase(File(pending,DATABASE_PATHS[1]),3,"invoices")
             recovery.mkdirs()
             val originals = paths.filter { target(it).exists() }
             originals.forEach { path -> File(recovery,path).parentFile?.mkdirs(); target(path).copyTo(File(recovery,path),overwrite=true) }

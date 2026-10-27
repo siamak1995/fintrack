@@ -7,6 +7,7 @@ import ir.siamak.fintrack.personalaccountant.domain.usecase.installments.Install
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,6 +37,7 @@ class InstallmentViewModel @Inject constructor(
     private fun observeInstallments() {
         viewModelScope.launch {
             installmentUseCases.getAllInstallments()
+                .catch { e -> _state.value = _state.value.copy(isLoading = false, error = e.message) }
                 .collect { list ->
                     _state.value = _state.value.copy(
                         installments = list,

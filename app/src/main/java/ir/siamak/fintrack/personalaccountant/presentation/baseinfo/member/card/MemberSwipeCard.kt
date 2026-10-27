@@ -120,7 +120,7 @@ private fun MemberCard(member: Member) {
 private fun MemberSwipeBackground(
     dismissState: SwipeToDismissBoxState
 ) {
-    val direction = dismissState.dismissDirection
+    val direction = ir.siamak.fintrack.common.core.formatter.swipeActionDirection(dismissState.dismissDirection)
     val isEdit = direction == SwipeToDismissBoxValue.StartToEnd
     val isDelete = direction == SwipeToDismissBoxValue.EndToStart
 

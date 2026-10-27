@@ -1,5 +1,7 @@
 package ir.siamak.fintrack.personalaccountant.presentation.baseinfo.wallet.add_edit_wallet
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -76,11 +78,11 @@ fun AddEditWalletScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(24.dp)
+                    .padding(24.dp).verticalScroll(rememberScrollState())
             ) {
                 OutlinedTextField(
                     visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
-                    value = state.name,
+                    value = state.name, readOnly = state.isCash,
                     onValueChange = {
                         viewModel.onEvent(AddEditWalletEvent.EnteredName(it))
                     },
@@ -93,19 +95,26 @@ fun AddEditWalletScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
-                    visualTransformation = ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
-                    value = state.balance,
+                    visualTransformation = ir.siamak.fintrack.common.core.formatter.GroupedNumberTransformation,
+                    value = state.balanceRaw,
                     onValueChange = {
                         viewModel.onEvent(AddEditWalletEvent.EnteredBalance(it))
                     },
                     label = { Text("موجودی فعلی (تومان)") },
                     modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     shape = MaterialTheme.shapes.medium,
                     placeholder = { Text("0") }
                 )
 
+                if(!state.isCash) {
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(value = state.cardNumber, onValueChange = { viewModel.onEvent(AddEditWalletEvent.CardChanged(it)) }, label = { Text("شماره کارت (اختیاری)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(value = state.accountNumber, onValueChange = { viewModel.onEvent(AddEditWalletEvent.AccountChanged(it)) }, label = { Text("شماره حساب (اختیاری)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                }
+                state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(

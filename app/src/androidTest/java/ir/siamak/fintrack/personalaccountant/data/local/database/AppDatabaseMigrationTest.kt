@@ -20,6 +20,20 @@ class AppDatabaseMigrationTest {
         AppDatabase::class.java.canonicalName
     )
 
+    @Test fun migratesVersion8To9PreservingBalancesAndLegacyLoanDates() {
+        val name = "personal-v9-migration"
+        helper.createDatabase(name,8).use { db ->
+            db.execSQL("INSERT INTO wallet(id,name,balance,color,createdAt,updatedAt,isDeleted,version,syncState,serverId,contextId) VALUES(1,'Bank',123456,'#008577',12,12,0,1,'LOCAL_ONLY',NULL,1)")
+            db.execSQL("INSERT INTO installment(id,title,totalAmount,paidAmount,dueDate,note,walletId,isPaid,createdAt,updatedAt,isDeleted,version,syncState,serverId,contextId) VALUES(1,'Loan',100000,20000,1793000000000,NULL,1,0,123,123,0,1,'LOCAL_ONLY',NULL,1)")
+        }
+        helper.runMigrationsAndValidate(name,9,true,DatabaseModule.MIGRATION_8_9).use { db ->
+            assertEquals(123456L,db.query("SELECT CAST(balance AS INTEGER) FROM wallet WHERE id=1").singleLong())
+            assertEquals(123L,db.query("SELECT startDate FROM installment WHERE id=1").singleLong())
+            assertEquals(1L,db.query("SELECT installmentCount FROM installment WHERE id=1").singleLong())
+            assertEquals(0L,db.query("SELECT automaticPayment FROM installment WHERE id=1").singleLong())
+        }
+    }
+
     @Test
     fun migratesVersion6ToVersion7WithoutLosingInstallments() {
         helper.createDatabase(TEST_DATABASE_NAME, VERSION_6).use { database ->

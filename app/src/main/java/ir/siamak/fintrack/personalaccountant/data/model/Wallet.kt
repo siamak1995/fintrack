@@ -17,6 +17,9 @@ data class Wallet(
     val balance: Double,
     val color: String,
     val iconRes: String? = null,
-    val currency: Currency = Currency.TOMAN
+    val currency: Currency = Currency.TOMAN,
+    val cardNumber: String? = null,
+    val accountNumber: String? = null,
+    val isCash: Boolean = false
 )
 

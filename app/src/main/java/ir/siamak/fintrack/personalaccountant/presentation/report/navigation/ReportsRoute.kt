@@ -14,6 +14,7 @@ fun ReportsRoute(
     onHistoryReportClick: () -> Unit,
     onFilteredReportClick: () -> Unit,
     onVisualReportClick: () -> Unit,
+    onLoanReportClick: () -> Unit = {},
     viewModel: ReportViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -24,7 +25,7 @@ fun ReportsRoute(
         onWalletReportClick = onWalletReportClick,
         onHistoryReportClick = onHistoryReportClick,
         onFilteredReportClick = onFilteredReportClick,
-        onVisualReportClick = onVisualReportClick
+        onVisualReportClick = onVisualReportClick, onLoanReportClick = onLoanReportClick
     )
 }
 

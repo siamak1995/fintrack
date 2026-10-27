@@ -24,6 +24,7 @@ class FinTrackApplication : Application() {
             try {
                 ir.siamak.fintrack.common.core.backup.BackupArchive.applyPendingAtStartup(this@FinTrackApplication)
                 mutableRestoreState.value = RestoreStartupState(checking = false)
+                runCatching { ir.siamak.fintrack.personalaccountant.notifications.InstallmentReminders(this@FinTrackApplication).schedule() }.onFailure { android.util.Log.e("FinTrackReminder","Scheduling failed",it) }
             } catch(error: Exception) {
                 android.util.Log.e("FinTrackBackup", "Restore failed; original data retained for recovery", error)
                 mutableRestoreState.value = RestoreStartupState(false,

@@ -140,15 +140,16 @@ fun TagCard(
 private fun TagSwipeBackground(
     dismissValue: SwipeToDismissBoxValue
 ) {
-    val isEdit = dismissValue == SwipeToDismissBoxValue.StartToEnd
+    val direction = ir.siamak.fintrack.common.core.formatter.swipeActionDirection(dismissValue)
+    val isEdit = direction == SwipeToDismissBoxValue.StartToEnd
 
-    val backgroundColor = when (dismissValue) {
+    val backgroundColor = when (direction) {
         SwipeToDismissBoxValue.StartToEnd -> PrimaryBlue.copy(alpha = 0.12f)
         SwipeToDismissBoxValue.EndToStart -> ErrorRed.copy(alpha = 0.12f)
         SwipeToDismissBoxValue.Settled -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
     }
 
-    val contentColor = when (dismissValue) {
+    val contentColor = when (direction) {
         SwipeToDismissBoxValue.StartToEnd -> PrimaryBlue
         SwipeToDismissBoxValue.EndToStart -> ErrorRed
         SwipeToDismissBoxValue.Settled -> MaterialTheme.colorScheme.onSurfaceVariant

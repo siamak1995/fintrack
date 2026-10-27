@@ -24,7 +24,8 @@ data class SaleRequest(
     val installmentMonths: Int = 0,
     val monthlyPercent: Int = 0,
     val firstDueDate: String = "",
-    val requestId: String
+    val requestId: String,
+    val settlement: StoreSettlementAccount? = null
 )
 
 /** Custom order request; material costs are resolved from inventory. */

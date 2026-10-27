@@ -7,6 +7,7 @@ import ir.siamak.fintrack.personalaccountant.data.model.TransactionType
 import ir.siamak.fintrack.store.domain.model.*
 import ir.siamak.fintrack.store.core.formatter.InvoiceTrackingCode
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 import javax.inject.Singleton
 import java.math.BigDecimal
@@ -15,7 +16,7 @@ import java.math.BigDecimal
  * StoreDatabase is the durable source/outbox: failed posting remains visible and can be retried.
  * Replaying a cumulative receipt never credits the same amount twice. */
 @Singleton class StorePersonalLedger @Inject constructor(@ir.siamak.fintrack.di.PersonalAccountingDatabase private val db: AppDatabase) {
-    val directory = combine(db.walletDao().getAllWallets(), db.memberDao().getAllMembers(), db.transactionDao().getAllTransactions()) { wallets, members, rows ->
+    val directory = combine(db.walletDao().getAllWallets().onStart { db.walletDao().ensureCash() }, db.memberDao().getAllMembers(), db.transactionDao().getAllTransactions()) { wallets, members, rows ->
         val receiptGroups = rows.filter { !it.isDeleted && it.note.startsWith("[FinTrackStore:") }.groupBy { it.note.substringAfter("[FinTrackStore:").substringBefore(']') }
         val amounts = receiptGroups.mapValues { (_, all) -> runCatching {
             all.fold(0L) { a,b -> require(b.type == TransactionType.INCOME && b.amount >= 0); Math.addExact(a,BigDecimal.valueOf(b.amount).longValueExact()) }

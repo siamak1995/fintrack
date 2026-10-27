@@ -19,7 +19,8 @@ class StoreWizardUiTest {
         compose.setContent { MaterialTheme { CreateSaleContent(state) { event ->
             if(event is CreateSaleEvent.Edit) state = state.copy(draft = event.change(state.draft))
         } } }
-        compose.onNodeWithText("+").performClick()
+        compose.onNodeWithText("انتخاب محصول").performScrollTo().performClick()
+        compose.onNodeWithText("ماگ").performClick()
         compose.onNodeWithText("+").assertIsNotEnabled()
         compose.runOnIdle { assertEquals(1,state.draft.quantities[1L]) }
         compose.onNodeWithText("−").performClick()
@@ -35,9 +36,10 @@ class StoreWizardUiTest {
                 else -> Unit
             }
         } } }
+        compose.onNodeWithText("مرحله‌ای").performClick()
         compose.onNodeWithText("نام مشتری *").performTextInput("مشتری تست")
         compose.onNodeWithText("تلفن *").performTextInput("09123456789")
-        compose.onNodeWithText("مرحله بعد").performScrollTo().performClick()
+        compose.onNodeWithText("ادامه").performClick()
         compose.runOnIdle {
             assertEquals("مشتری تست",state.draft.name)
             assertEquals("09123456789",state.draft.phone)
@@ -47,6 +49,6 @@ class StoreWizardUiTest {
     @Test fun invalidPreorderCannotBeSubmitted() {
         val state = CreatePreOrderUiState(draft = PreOrderDraft(step = 5),loading = false)
         compose.setContent { MaterialTheme { CreatePreOrderContent(state,{}) } }
-        compose.onNodeWithText("ثبت سفارش و فاکتور").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithText("ثبت سفارش و فاکتور").assertIsNotEnabled()
     }
 }

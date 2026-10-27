@@ -17,11 +17,11 @@ class StoreReportPrintLayout {
             elements += InvoicePrintElement("text",x,top,width,text = PersianNumberFormatter.display(value),size = size,bold = bold,color = color,align = align)
         }
         fun fill(x: Float,top: Float,width: Float,height: Float,color: Int) { elements += InvoicePrintElement("fill",x,top,width,height,color = color) }
-        fun line(top: Float) { elements += InvoicePrintElement("line",32f,top,531f) }
+        fun line(top: Float) { elements += InvoicePrintElement("line",54f,top,487f) }
         fun amount(value: Long) = PersianNumberFormatter.format(value)
         fun money(value: Long) = amount(value) + " تومان"
         fun wrap(value: String,width: Float,size: Float): List<String> {
-            if(Regex("[0-9۰-۹]{4}/[0-9۰-۹]{2}/[0-9۰-۹]{2}").matches(value)) return listOf(value)
+            if(Regex("(?:[0-9۰-۹]{4}/[0-9۰-۹]{2}/[0-9۰-۹]{2}|[SP]-[0-9۰-۹]{8}-[0-9۰-۹]+|[+-]?[0-9۰-۹,٬]+(?:[.٫][0-9۰-۹]+)?)").matches(value)) return listOf(value)
             val count = (width/(size*.65f)).toInt().coerceAtLeast(4)
             return value.split('\n').flatMap { paragraph ->
                 val result = mutableListOf<String>(); var current = ""
@@ -35,41 +35,43 @@ class StoreReportPrintLayout {
         }
         val storeName = report.stores.firstOrNull { it.id == report.filter.storeId }?.name ?: "همه فروشگاه‌ها و نمایشگاه‌ها"
         fun header() {
-            fill(0f,0f,595f,102f,ink)
-            text(if(report.filter.document == ReportDocument.SALE) "گزارش فروش" else "گزارش پیش‌سفارش",32f,23f,531f,20f,true,-1)
-            text(storeName,32f,54f,531f,11f,false,-1)
-            text(DateFormatter.formatJalali(report.filter.from) + if(report.filter.from == report.filter.to) " · گزارش روزانه" else " تا " + DateFormatter.formatJalali(report.filter.to),32f,77f,531f,9f,false,-1)
-            y = 122f
+            fill(0f,0f,595f,116f,ink)
+            text(if(report.filter.document == ReportDocument.SALE) "گزارش فروش" else "گزارش پیش‌سفارش",54f,23f,487f,20f,true,-1)
+            val titleLines = wrap(storeName,487f,11f)
+            titleLines.take(2).forEachIndexed { index, value -> text(value,54f,51f+index*15f,487f,11f,false,-1) }
+            text(DateFormatter.formatJalali(report.filter.from) + if(report.filter.from == report.filter.to) " · گزارش روزانه" else " تا " + DateFormatter.formatJalali(report.filter.to),54f,92f,487f,9f,false,-1)
+            y = 136f
         }
         fun finish() {
             line(803f)
-            text("حسابدار · گزارش عملکرد",32f,813f,400f,8f,color = ink)
-            text("صفحه " + (pages.size+1),32f,813f,531f,8f,align = "left")
+            text("حسابدار · گزارش عملکرد",54f,813f,400f,8f,color = ink)
+            text("صفحه " + (pages.size+1),54f,813f,487f,8f,align = "left")
             pages += elements.toList(); elements = mutableListOf()
         }
         fun next() { finish(); header() }
         fun paragraph(value: String,size: Float = 9f,bold: Boolean = false) {
-            wrap(value,531f,size).forEach { row ->
+            wrap(value,487f,size).forEach { row ->
                 if(y+size+8 > 786f) next()
-                text(row,32f,y,531f,size,bold); y += size+7f
+                text(row,54f,y,487f,size,bold); y += size+7f
             }; y += 8f
         }
-        fun heading(value: String) { if(y+132 > 786f) next(); y += 9f; text(value,32f,y,531f,13f,true,ink); y += 28f }
+        fun heading(value: String) { if(y+132 > 786f) next(); y += 9f; text(value,54f,y,487f,13f,true,ink); y += 28f }
         fun table(headers: List<String>,widths: List<Float>,rows: List<List<String>>) {
+            val columns = widths.map { it / widths.sum() * 487f }
             fun row(cells: List<String>,heading: Boolean,index: Int) {
-                val lines = cells.mapIndexed { i,s -> wrap(s,widths[i]-14f,if(heading) 8.5f else 8f) }
+                val lines = cells.mapIndexed { i,s -> wrap(s,columns[i]-14f,9f) }
                 var offset = 0
                 val max = lines.maxOf { it.size }
                 while(offset < max) {
-                    val available = ((786f-y-14)/14).toInt().coerceAtLeast(0)
+                    val available = ((786f-y-16)/16).toInt().coerceAtLeast(0)
                     if(available < 1) { next(); if(!heading) row(headers,true,0); continue }
                     val count = minOf(max-offset,available)
-                    val height = count*14f+14f
-                    fill(32f,y,531f,height,if(heading) ink else if(index%2 == 0) light else -1)
-                    var right = 563f
+                    val height = count*16f+16f
+                    fill(54f,y,487f,height,if(heading) ink else if(index%2 == 0) light else -1)
+                    var right = 541f
                     lines.forEachIndexed { i,values ->
-                        val left = right-widths[i]
-                        values.drop(offset).take(count).forEachIndexed { n,value -> text(value,left+7,y+7+n*14,widths[i]-14,if(heading) 8.5f else 8f,heading,if(heading) -1 else -16777216) }
+                        val left = right-columns[i]
+                        values.drop(offset).take(count).forEachIndexed { n,value -> text(value,left+7,y+8+n*16,columns[i]-14,9f,heading,if(heading) -1 else -16777216) }
                         right = left
                     }
                     y += height; line(y); offset += count
@@ -89,11 +91,12 @@ class StoreReportPrintLayout {
         val settlement = when(report.filter.settlement) { ReportSettlement.ALL -> "همه"; ReportSettlement.SETTLED -> "تسویه‌شده"; ReportSettlement.OUTSTANDING -> "دارای مانده"; ReportSettlement.INSTALLMENT -> "اقساطی" }
         val customer = report.allRows.firstOrNull { it.customer.id == report.filter.customerId }?.customer?.name
         val product = report.allRows.flatMap { it.items }.firstOrNull { it.productId == report.filter.productId }?.productName
-        paragraph("فیلترها · تسویه: " + settlement + " · مشتری: " + (customer ?: if(report.filter.customerId == null) "همه" else "انتخاب‌شده") + " · کالا: " + (product ?: if(report.filter.productId == null) "همه" else "انتخاب‌شده") + if(report.filter.search.isBlank()) "" else " · جست‌وجو: " + report.filter.search)
+        val seller = report.allRows.firstOrNull { it.seller?.id == report.filter.sellerId }?.seller?.fullName
+        paragraph("فیلترها · فروشنده: " + (seller ?: if(report.filter.sellerId == null) "همه" else "انتخاب‌شده") + " · تسویه: " + settlement + " · مشتری: " + (customer ?: if(report.filter.customerId == null) "همه" else "انتخاب‌شده") + " · کالا: " + (product ?: if(report.filter.productId == null) "همه" else "انتخاب‌شده") + if(report.filter.search.isBlank()) "" else " · جست‌وجو: " + report.filter.search)
         heading("عملکرد فروشگاه / نمایشگاه")
         table(listOf("فروشگاه", "فروش · تومان", "دریافت · تومان", "مانده · تومان"),listOf(162f,123f,123f,123f),report.branches.map { listOf(it.name,amount(it.totals.payable),amount(it.totals.received),amount(it.totals.balance)) })
         heading("جزئیات فاکتورها")
-        table(listOf("کد رهگیری", "تاریخ", "نام مشتری", "فروش", "دریافت", "مانده"),listOf(103f,65f,117f,82f,82f,82f),report.allRows.map {
+        table(listOf("کد رهگیری", "تاریخ", "نام مشتری", "فروش", "دریافت", "مانده"),listOf(120f,65f,100f,82f,82f,82f),report.allRows.map {
             listOf(InvoiceTrackingCode.of(it),DateFormatter.formatJalali(LocalDate.parse(it.date.take(10))),it.customer.name,amount(it.finalAmount),amount(it.payment?.paidAmount ?: 0),amount(it.finalAmount-(it.payment?.paidAmount ?: 0)))
         })
         heading("مقایسه عملکرد")

@@ -18,6 +18,12 @@ import kotlinx.coroutines.flow.Flow
  */
 @Dao
 interface TransactionDao {
+    @Query("SELECT * FROM transactions WHERE contextId = 1 AND (walletId = :walletId OR toWalletId = :walletId) ORDER BY date DESC")
+    suspend fun smsWalletHistory(walletId: Long): List<TransactionEntity>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM transactions WHERE substr(note,1,length(:marker)) = :marker)")
+    suspend fun hasSmsMarker(marker: String): Boolean
+
     @Query("SELECT * FROM transactions WHERE contextId = :contextId AND isDeleted = 0 AND substr(note,1,length(:marker)) = :marker")
     suspend fun storeReceipts(contextId: Long, marker: String): List<TransactionEntity>
 

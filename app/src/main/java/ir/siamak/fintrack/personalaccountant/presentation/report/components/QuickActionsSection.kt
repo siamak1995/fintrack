@@ -36,7 +36,8 @@ fun QuickActionsSection(
     onWalletReportClick: () -> Unit,
     onHistoryReportClick: () -> Unit,
     onFilteredReportClick: () -> Unit,
-    onVisualReportClick: () -> Unit
+    onVisualReportClick: () -> Unit,
+    onLoanReportClick: () -> Unit = {}
 ) {
     Column {
         SectionHeader("دسترسی سریع")
@@ -66,6 +67,8 @@ fun QuickActionsSection(
                 Color(0xFFF59E0B),
                 onHistoryReportClick
             )
+
+            ActionItem("گزارش وام و اقساط", Icons.Default.Payments, Color(0xFF0891B2), onLoanReportClick)
 
             // در صورتی که این گزارش‌ها را مجزا طراحی کرده باشی:
             ActionItem(

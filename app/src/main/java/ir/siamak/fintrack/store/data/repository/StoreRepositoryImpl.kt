@@ -16,7 +16,7 @@ import kotlinx.serialization.json.Json
 class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: StoreProfilesDataSource? = null, private val ledger: StorePersonalLedger? = null) : StoreRepository {
     override fun observeStores() = combine(db.storeDao().observeAll(), observeProfiles()) { rows, settings -> rows.map { row ->
         val brand = settings.brands.firstOrNull { it.id == settings.storeBrands[row.id] }
-        row.toDomain().let { if(brand == null) it else it.copy(brand = brand.name, logoPath = brand.image, brandId = brand.id) }
+        row.toDomain().let { if(brand == null) it else it.copy(brand = brand.name, brandImagePath = brand.image, brandId = brand.id) }
             .copy(startsOn = settings.periods[row.id]?.start, endsOn = settings.periods[row.id]?.end, settlement = settings.settlements[row.id])
     } }
     override fun observeProfiles() = profiles?.profiles ?: kotlinx.coroutines.flow.flowOf(StoreProfiles())
@@ -69,7 +69,8 @@ class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: S
     }
 
     override suspend fun checkout(sale: Sale, invoice: Invoice, requestId: String): Long {
-      invoice.store.settlement?.let { requireNotNull(ledger).validate(it) }
+      val account = requireNotNull(invoice.settlement) { "حساب مقصد فروش انتخاب نشده است" }
+      requireNotNull(ledger).validate(account)
       val id = db.withTransaction {
         require(requestId.isNotBlank() && invoice.requestId == requestId && invoice.invoiceNumber == "S-" + requestId)
         db.invoiceDao().byNumber(invoice.invoiceNumber)?.let { return@withTransaction it.id }
@@ -84,7 +85,7 @@ class StoreRepositoryImpl(private val db: StoreDatabase, private val profiles: S
         db.saleDao().insertItems(sale.items.map { SaleItemEntity(saleId = saleId, productId = it.productId, productName = it.productName, quantity = it.quantity, unitPrice = it.unitPrice) })
         val paymentId = db.saleDao().insertPayment(PaymentEntity(saleId = saleId, preOrderId = null, type = sale.payment.type.name, paidAmount = sale.payment.paidAmount))
         db.saleDao().insertInstallments(sale.payment.installments.map { InstallmentEntity(paymentId = paymentId, monthNumber = it.monthNumber, percentage = it.percentage, amount = it.amount, dueDate = it.dueDate) })
-        db.invoiceDao().upsert(invoice.copy(displaySequence = nextSequence(false), settlement = invoice.store.settlement).entity(saleId = saleId, customerId = customerId))
+        db.invoiceDao().upsert(invoice.copy(displaySequence = nextSequence(false), settlement = account).entity(saleId = saleId, customerId = customerId))
       }
       postIfLinked(id)
       return id

@@ -17,7 +17,8 @@ fun ReportsScreen(
     onWalletReportClick: () -> Unit,
     onHistoryReportClick: () -> Unit,
     onFilteredReportClick: () -> Unit,
-    onVisualReportClick: () -> Unit
+    onVisualReportClick: () -> Unit,
+    onLoanReportClick: () -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -41,7 +42,7 @@ fun ReportsScreen(
                 onWalletReportClick = onWalletReportClick,
                 onHistoryReportClick = onHistoryReportClick,
                 onFilteredReportClick = onFilteredReportClick,
-                onVisualReportClick = onVisualReportClick
+                onVisualReportClick = onVisualReportClick, onLoanReportClick = onLoanReportClick
             )
         }
     }

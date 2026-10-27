@@ -74,6 +74,9 @@ sealed class Screen {
     @Serializable
     object Installments : Screen()
 
+    @Serializable object LoanReport : Screen()
+    @Serializable object BankSms : Screen()
+
     /**
      * صفحه افزودن یا ویرایش قسط
      */

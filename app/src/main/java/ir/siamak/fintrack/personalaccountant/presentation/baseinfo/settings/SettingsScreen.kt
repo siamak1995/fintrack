@@ -101,18 +101,18 @@ fun SettingsScreen(
                 )
             }
 
-//            item {
-//                NotificationSection(
-//                    notificationEnabled = state.notificationEnabled,
-//                    installmentReminder = state.installmentReminder,
-//                    dailyReminder = state.dailyReminder,
-//                    budgetReminder = state.budgetReminder,
-//                    onNotificationChanged = { onEvent(SettingsEvent.ToggleNotification(it)) },
-//                    onInstallmentChanged = { onEvent(SettingsEvent.ToggleInstallmentReminder(it)) },
-//                    onDailyChanged = { onEvent(SettingsEvent.ToggleDailyReminder(it)) },
-//                    onBudgetChanged = { onEvent(SettingsEvent.ToggleBudgetReminder(it)) }
-//                )
-//            }
+            item {
+                NotificationSection(
+                    notificationEnabled = state.notificationEnabled,
+                    installmentReminder = state.installmentReminder,
+                    dailyReminder = state.dailyReminder,
+                    budgetReminder = state.budgetReminder,
+                    onNotificationChanged = { onEvent(SettingsEvent.ToggleNotification(it)) },
+                    onInstallmentChanged = { onEvent(SettingsEvent.ToggleInstallmentReminder(it)) },
+                    onDailyChanged = { onEvent(SettingsEvent.ToggleDailyReminder(it)) },
+                    onBudgetChanged = { onEvent(SettingsEvent.ToggleBudgetReminder(it)) }
+                )
+            }
 
 //            item {
 //                GeneralSection(

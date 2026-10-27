@@ -24,7 +24,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -34,7 +34,6 @@ import ir.siamak.fintrack.personalaccountant.presentation.components.FTCard
 import ir.siamak.fintrack.personalaccountant.presentation.components.FTTopBar
 import ir.siamak.fintrack.personalaccountant.presentation.theme.ErrorRed
 import ir.siamak.fintrack.personalaccountant.presentation.theme.PrimaryBlue
-import ir.siamak.fintrack.personalaccountant.presentation.theme.Success
 
 /**
  * UI اصلي صفحه ليست حساب‌ها.
@@ -65,10 +64,18 @@ fun WalletScreen(
     onEditWalletClick: (Long) -> Unit,
     onDeleteWalletClick: (Wallet) -> Unit
 ) {
+    var deleting by remember { mutableStateOf<Wallet?>(null) }
+    deleting?.let { wallet ->
+        androidx.compose.material3.AlertDialog(onDismissRequest = { deleting = null },
+            title = { Text("حذف حساب «" + wallet.name + "»؟") },
+            text = { Text("حساب از فهرست فعال کنار گذاشته می‌شود و سابقه تراکنش‌های آن حفظ می‌شود.") },
+            confirmButton = { androidx.compose.material3.TextButton(onClick = { deleting = null; onDeleteWalletClick(wallet) }) { Text("تأیید حذف", color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { androidx.compose.material3.TextButton(onClick = { deleting = null }) { Text("انصراف") } })
+    }
     Scaffold(
         topBar = {
             FTTopBar(
-                title = "حساب‌های بانکی",
+                title = "حساب‌ها و پول نقد",
                 subtitle = "مدیریت و ویرایش حساب‌ها",
                 modifier = Modifier.padding(16.dp)
             )
@@ -125,7 +132,7 @@ fun WalletScreen(
                         WalletSwipeCard(
                             wallet = wallet,
                             onEditClick = { onEditWalletClick(wallet.id) },
-                            onDeleteClick = { onDeleteWalletClick(wallet) }
+                            onDeleteClick = { if(!wallet.isCash) deleting = wallet }
                         )
                     }
                 }
@@ -161,6 +168,7 @@ fun WalletSwipeCard(
 
     SwipeToDismissBox(
         state = dismissState,
+        enableDismissFromEndToStart = !wallet.isCash,
         backgroundContent = {
             WalletSwipeBackground(
                 dismissValue = dismissState.targetValue
@@ -179,8 +187,8 @@ fun WalletSwipeCard(
 private fun WalletSwipeBackground(
     dismissValue: SwipeToDismissBoxValue
 ) {
-    val isEdit = dismissValue == SwipeToDismissBoxValue.StartToEnd
-    val backgroundColor = if (isEdit) Success else ErrorRed
+    val isEdit = ir.siamak.fintrack.common.core.formatter.swipeActionDirection(dismissValue) == SwipeToDismissBoxValue.StartToEnd
+    val backgroundColor = if (isEdit) PrimaryBlue else ErrorRed
     val icon = if (isEdit) Icons.Default.Edit else Icons.Default.DeleteOutline
     val text = if (isEdit) "ویرایش" else "حذف"
     val alignment = if (isEdit) Alignment.CenterStart else Alignment.CenterEnd

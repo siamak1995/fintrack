@@ -202,10 +202,8 @@ fun AppNavGraph(navController: NavHostController) {
                         onMemberClick = {
                             navController.navigate(Screen.Members)
                         },
-                        //@TODO - phase-2
-//        onInstallmentClick = {
-//            navController.navigate(Screen.Installments)
-//        },
+                        onInstallmentClick = { navController.navigate(Screen.Installments) },
+                        onBankSmsClick = { navController.navigate(Screen.BankSms) },
                         onTagClick = {
                             navController.navigate(Screen.Tags)
                         },
@@ -246,8 +244,18 @@ fun AppNavGraph(navController: NavHostController) {
                 /**
                  * صفحه اقساط
                  */
+                composable<Screen.LoanReport> {
+                    InstallmentRoute(onAddInstallmentClick = { navController.navigate(Screen.AddEditInstallments()) },
+                        onEditInstallmentClick = { navController.navigate(Screen.AddEditInstallments(it)) }, reportOnly = true, onSettings = { navController.navigate(Screen.Settings) },
+                        onBack = { navController.popBackStack() })
+                }
+                composable<Screen.BankSms> {
+                    ir.siamak.fintrack.personalaccountant.presentation.banksms.BankSmsScreen(onBack = { navController.popBackStack() })
+                }
                 composable<Screen.Installments> {
                     InstallmentRoute(
+                        onSettings = { navController.navigate(Screen.Settings) },
+                        onBack = { navController.popBackStack() },
                         onAddInstallmentClick = {
                             navController.navigate(Screen.AddEditInstallments())
                         },
@@ -312,7 +320,8 @@ fun AppNavGraph(navController: NavHostController) {
                         onWalletReportClick = { navController.navigate(Screen.WalletReport) },
                         onHistoryReportClick = { navController.navigate(Screen.HistoryReport) },
                         onFilteredReportClick = { navController.navigate(Screen.FilteredReport) },
-                        onVisualReportClick = { navController.navigate(Screen.VisualReport) }
+                        onVisualReportClick = { navController.navigate(Screen.VisualReport) },
+                        onLoanReportClick = { navController.navigate(Screen.LoanReport) }
                     )
                 }
 

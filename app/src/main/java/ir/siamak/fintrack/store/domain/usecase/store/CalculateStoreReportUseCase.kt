@@ -29,6 +29,7 @@ class CalculateStoreReportUseCase @Inject constructor() {
                 (includeCancelled || !invoice.cancelled) &&
                 (invoice.preOrderId != null) == (filter.document == ReportDocument.PREORDER) &&
                 (filter.customerId == null || invoice.customer.id == filter.customerId) &&
+                (filter.sellerId == null || invoice.seller?.id == filter.sellerId) &&
                 (filter.productId == null || invoice.items.any { it.productId == filter.productId }) &&
                 when(filter.settlement) {
                     ReportSettlement.ALL -> true

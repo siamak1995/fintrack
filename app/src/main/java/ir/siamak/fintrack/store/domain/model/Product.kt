@@ -12,5 +12,6 @@ data class Product(
     val weight: String? = null,
     val stock: Int = 0,
     val price: Long = 0,
-    val image: String? = null
+    val image: String? = null,
+    val color: String? = null
 )

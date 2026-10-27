@@ -23,8 +23,9 @@ class StoreCheckoutTest {
     }
     private val workspace = StoreWorkspace(store = Store(1,"فروشگاه","برند"),
         products = listOf(Product(id = 1,name = "ماگ",stock = 5,price = 10_000_000)),
-        materials = listOf(RawMaterial(1,"خاک","کیلو",100_000,5.0)))
-    private fun sale() = SaleRequest(Customer(name = "مشتری",phone = "0912"),null,mapOf(1L to 1),requestId = "test")
+        materials = listOf(RawMaterial(1,"خاک","کیلو",100_000,5.0)),
+        finance = StoreFinanceDirectory(wallets = listOf(FinanceChoice(1,1,"نقد")), members = listOf(FinanceChoice(1,1,"خودم"))))
+    private fun sale() = SaleRequest(Customer(name = "مشتری",phone = "0912"),null,mapOf(1L to 1),requestId = "test",settlement = StoreSettlementAccount(1,1,1))
     private fun order() = PreOrderRequest(Customer(name = "مشتری",phone = "0912"),"سفارش اختصاصی",LocalDate.now().plusDays(1).toString(),
         mapOf(1L to 2.0),1_000_000,200_000,100_000,3_000_000,30,true,"test")
     private fun rejects(block: () -> Unit) { assertTrue(runCatching(block).isFailure) }
@@ -94,5 +95,12 @@ class StoreCheckoutTest {
         rejects { calculate(invoice,71) }
         rejects { calculate(invoice,-1) }
         rejects { calculate(invoice.copy(cancelled = true),1) }
+    }
+    @Test fun completedSaleRequiresAnActiveExplicitDestination() = runBlocking {
+        val usecase = CheckoutSaleUseCase(repository)
+        assertTrue(runCatching { usecase(sale().copy(settlement = null),workspace) }.isFailure)
+        assertTrue(runCatching { usecase(sale().copy(settlement = StoreSettlementAccount(1,99,1)),workspace) }.isFailure)
+        usecase(sale(),workspace)
+        assertEquals(StoreSettlementAccount(1,1,1),repository.captured!!.settlement)
     }
 }

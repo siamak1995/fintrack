@@ -19,7 +19,7 @@ class CheckoutSaleUseCase @Inject constructor(private val repository: StoreRepos
         val items = request.quantities.map { (id, count) ->
             val product = workspace.products.firstOrNull { it.id == id } ?: error("کالا یافت نشد")
             require(count > 0 && count <= product.stock) { "موجودی کافی نیست: " + product.name }
-            SaleItem(id, product.name, count, product.price)
+            SaleItem(id, product.name + product.color?.takeIf { it.isNotBlank() }?.let { " · رنگ: " + it }.orEmpty(), count, product.price)
         }
         val subtotal = items.fold(0L) { total, item -> Math.addExact(total, Math.multiplyExact(item.unitPrice, item.quantity.toLong())) }
         val discount = ApplyDiscountUseCase()(subtotal, request.discount)
@@ -39,10 +39,12 @@ class CheckoutSaleUseCase @Inject constructor(private val repository: StoreRepos
     }
     suspend operator fun invoke(request: SaleRequest, workspace: StoreWorkspace): Long {
         val sale = preview(request, workspace)
+        val account = requireNotNull(request.settlement) { "حساب دریافت وجه و شخص دریافت‌کننده را انتخاب کنید" }
+        require(workspace.finance.wallets.any { it.id == account.walletId && it.contextId == account.contextId } && workspace.finance.members.any { it.id == account.memberId && it.contextId == account.contextId }) { "حساب مقصد یا شخص دریافت‌کننده در دسترس نیست" }
         val invoice = Invoice(invoiceNumber = "S-" + request.requestId, date = sale.createdAt, store = requireNotNull(workspace.store),
             seller = workspace.sellers.firstOrNull { it.id == request.sellerId }, customer = request.customer, items = sale.items,
             discount = sale.discount, tax = sale.tax, discountAmount = sale.discountAmount, taxAmount = sale.taxAmount, payment = sale.payment, finalAmount = sale.finalAmount,
-            requestId = request.requestId, paymentStatus = if (sale.payment.paidAmount == sale.finalAmount) PaymentStatus.SETTLED else PaymentStatus.INSTALLMENT)
+            settlement = account, requestId = request.requestId, paymentStatus = if (sale.payment.paidAmount == sale.finalAmount) PaymentStatus.SETTLED else PaymentStatus.INSTALLMENT)
         return repository.checkout(sale, invoice, request.requestId)
     }
 }

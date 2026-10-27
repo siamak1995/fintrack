@@ -22,7 +22,8 @@ data class StoreReportFilter(
     val page: Int = 0,
     val pageSize: Int = 20,
     val storeId: Long? = null,
-    val comparisonStoreId: Long? = null
+    val comparisonStoreId: Long? = null,
+    val sellerId: Long? = null
 )
 
 data class StoreReportTotals(

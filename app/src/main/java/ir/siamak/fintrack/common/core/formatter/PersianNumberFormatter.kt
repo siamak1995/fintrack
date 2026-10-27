@@ -36,9 +36,10 @@ object PersianNumberFormatter {
     fun format(value: Long): String = toPersianDigits(java.text.NumberFormat.getIntegerInstance(java.util.Locale.US).format(value))
 
     /** Group quantities, not dates, telephone/account numbers or document identifiers. */
-    fun display(input: String): String = toPersianDigits(Regex("(?<![\\p{L}\\d/.:,٬-])[0-9۰-۹٠-٩]{4,}(?:[.٫][0-9۰-۹٠-٩]+)?(?![\\p{L}\\d/.:,٬-])").replace(input) {
+    fun display(input: String): String = toPersianDigits(Regex("(?<![\\p{L}\\d/.:,٬-])[+-]?[0-9۰-۹٠-٩]{4,}(?:[.٫][0-9۰-۹٠-٩]+)?(?![\\p{L}\\d/.:,٬-])").replace(input) {
         val raw = normalize(it.value)
-        val whole = raw.substringBefore('.')
-        if(whole.startsWith('0') && whole.length >= 8) it.value else whole.reversed().chunked(3).joinToString(",").reversed() + if('.' in raw) "." + raw.substringAfter('.') else ""
+        val sign = raw.takeWhile { it == '-' || it == '+' }
+        val whole = raw.removePrefix(sign).substringBefore('.')
+        if(whole.startsWith('0') && whole.length >= 8) it.value else sign + whole.reversed().chunked(3).joinToString(",").reversed() + if('.' in raw) "." + raw.substringAfter('.') else ""
     })
 }

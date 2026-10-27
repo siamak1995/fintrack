@@ -17,6 +17,16 @@ class StoreMigrationTest {
     private val context = instrumentation.targetContext
     @get:Rule val source = MigrationTestHelper(instrumentation, "ir.siamak.fintrack.storeaccountant.data.local.StoreDatabase")
     @get:Rule val target = MigrationTestHelper(instrumentation, StoreDatabase::class.java.canonicalName)
+    @Test fun productColorMigrationPreservesCatalog() {
+        val name = "store-color-migration"
+        target.createDatabase(name,2).use { db -> db.execSQL("INSERT INTO products(id,name,material,size,weight,stock,price,image) VALUES(1,'ماگ',NULL,NULL,NULL,20,150000,NULL)") }
+        target.runMigrationsAndValidate(name,3,true,StoreMigrations.FROM_2_TO_3).use { db ->
+            db.query("SELECT name,stock,price,color FROM products WHERE id=1").use { cursor ->
+                assertTrue(cursor.moveToFirst()); assertEquals("ماگ",cursor.getString(0)); assertEquals(20,cursor.getInt(1)); assertEquals(150000L,cursor.getLong(2)); assertTrue(cursor.isNull(3))
+            }
+        }
+        context.deleteDatabase(name)
+    }
     @Test fun activeLegacyDatabasePreservesSalesWalletReferenceCatalogAndCustomers(): Unit = runBlocking {
         val name = "store-legacy-migration-test"
         source.createDatabase(name,1).use { db ->
@@ -52,7 +62,7 @@ class StoreMigrationTest {
             db.execSQL("INSERT INTO installments(id,paymentId,monthNumber,percentage,amount,dueDate) VALUES(1,1,1,5,115000,'2026-11-23')")
             db.execSQL("INSERT INTO invoices(id,invoiceNumber,saleId,preOrderId,date,finalAmount,paymentStatus) VALUES(1,'OLD-1',1,NULL,'2026-10-23',115000,'INSTALLMENT')")
         }
-        target.runMigrationsAndValidate(name,2,true,StoreMigrations.FROM_1_TO_2).close()
+        target.runMigrationsAndValidate(name,3,true,StoreMigrations.FROM_1_TO_2,StoreMigrations.FROM_2_TO_3).close()
         Room.databaseBuilder(context,StoreDatabase::class.java,name).build().useDatabase { db ->
             val invoice = InvoiceRepositoryImpl(db.invoiceDao()).observeAll().first().single()
             assertEquals("OLD-1",invoice.invoiceNumber)
@@ -73,7 +83,7 @@ class StoreMigrationTest {
             db.execSQL("INSERT INTO payments(id,saleId,preOrderId,type,paidAmount) VALUES(1,NULL,1,'CASH',30000)")
             db.execSQL("INSERT INTO invoices(id,invoiceNumber,saleId,preOrderId,date,finalAmount,paymentStatus) VALUES(1,'LEGACY-P-1',NULL,NULL,'2026-10-23',1000,'UNSETTLED')")
         }
-        target.runMigrationsAndValidate(name,2,true,StoreMigrations.FROM_1_TO_2).close()
+        target.runMigrationsAndValidate(name,3,true,StoreMigrations.FROM_1_TO_2,StoreMigrations.FROM_2_TO_3).close()
         Room.databaseBuilder(context,StoreDatabase::class.java,name).build().useDatabase { db ->
             val invoices = InvoiceRepositoryImpl(db.invoiceDao()).observeAll().first()
             assertEquals(2,invoices.size)
@@ -90,9 +100,9 @@ class StoreMigrationTest {
     @Test fun emptyScaffoldV1MigratesAndReopens() {
         val name = "store-scaffold-migration-test"
         target.createDatabase(name,1).close()
-        target.runMigrationsAndValidate(name,2,true,StoreMigrations.FROM_1_TO_2).close()
+        target.runMigrationsAndValidate(name,3,true,StoreMigrations.FROM_1_TO_2,StoreMigrations.FROM_2_TO_3).close()
         Room.databaseBuilder(context,StoreDatabase::class.java,name).addMigrations(StoreMigrations.FROM_1_TO_2).build().useDatabase { db ->
-            assertEquals(2,db.openHelper.writableDatabase.version)
+            assertEquals(3,db.openHelper.writableDatabase.version)
         }
         context.deleteDatabase(name)
     }

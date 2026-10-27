@@ -18,5 +18,8 @@ data class Installment(
     val createdAt: Long,
     val note: String?,
     val walletId: Long,
-    val isPaid: Boolean = false
+    val isPaid: Boolean = false,
+    val installmentCount: Int = 1,
+    val startDate: Long = createdAt,
+    val automaticPayment: Boolean = false
 )

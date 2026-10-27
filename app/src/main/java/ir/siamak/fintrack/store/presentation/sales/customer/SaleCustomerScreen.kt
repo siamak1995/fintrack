@@ -14,11 +14,13 @@ import ir.siamak.fintrack.store.presentation.sales.create.SaleDraft
 @Composable fun SaleCustomerScreen(draft: SaleDraft, workspace: StoreWorkspace, preview: Sale?, onChange: ((SaleDraft) -> SaleDraft) -> Unit) {
 
             FormSection("مشخصات مشتری") {
+                /* Recent-customer suggestions disabled: use a searchable customer picker if restored.
                 if(workspace.invoices.isNotEmpty()) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     workspace.invoices.sortedByDescending { it.id }.map { it.customer }.distinctBy { it.phone }.take(6).forEach { customer ->
                         AssistChip(onClick = { onChange { it.copy(name = customer.name, phone = customer.phone, address = customer.address.orEmpty()) } }, label = { Text(customer.name) })
                     }
                 }
+                */
                 Entry("نام مشتری *", draft.name, { v -> onChange { it.copy(name = v) } })
                 Entry("تلفن *", draft.phone, { v -> onChange { it.copy(phone = v) } })
                 Entry("آدرس", draft.address, { v -> onChange { it.copy(address = v) } })

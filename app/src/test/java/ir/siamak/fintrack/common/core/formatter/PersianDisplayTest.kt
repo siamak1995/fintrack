@@ -20,4 +20,10 @@ class PersianDisplayTest {
             assertFalse(PersianCalendarFormatter.formatFullDate(PersianDate(1405,8,2)).any { it in '0'..'9' })
         } finally { java.util.Locale.setDefault(original) }
     }
+    @Test fun groupsSignedAmountsAndPreservesDatesAndTrackingCodes() {
+        assertEquals("مانده: -۱,۲۳۴,۵۶۷.۵ تومان", PersianNumberFormatter.display("مانده: -1234567.5 تومان"))
+        assertEquals("+۱,۲۳۴", PersianNumberFormatter.display("+1234"))
+        assertEquals("۱۴۰۵/۰۸/۰۴ · ۰۹۱۲۳۴۵۶۷۸۹ · S-۱۴۰۵۰۸۰۴-۰۰۰۱", PersianNumberFormatter.display("1405/08/04 · 09123456789 · S-14050804-0001"))
+        assertEquals("۱,۲۳۴,۵۶۷.۸۹", PersianNumberFormatter.display("۱۲۳۴۵۶۷٫۸۹"))
+    }
 }

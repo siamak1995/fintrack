@@ -11,8 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import ir.siamak.fintrack.common.core.formatter.PersianText as Text
@@ -25,7 +23,6 @@ fun StoreSwipeCard(title: String, details: String, edit: () -> Unit, delete: () 
     val currentEdit by rememberUpdatedState(edit)
     val currentDelete by rememberUpdatedState(delete)
     var menu by remember { mutableStateOf(false) }
-    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val swipe = rememberSwipeToDismissBoxState(confirmValueChange = { value ->
         when (value) {
             SwipeToDismissBoxValue.StartToEnd -> currentEdit()
@@ -36,11 +33,11 @@ fun StoreSwipeCard(title: String, details: String, edit: () -> Unit, delete: () 
     })
     SwipeToDismissBox(state = swipe, modifier = Modifier.fillMaxWidth(), backgroundContent = {
         // Material3 1.3 reports physical offset direction here, but anchors/confirmValue are RTL-aware.
-        val editing = swipe.dismissDirection == if(rtl) SwipeToDismissBoxValue.EndToStart else SwipeToDismissBoxValue.StartToEnd
+        val editing = ir.siamak.fintrack.common.core.formatter.swipeActionDirection(swipe.dismissDirection) == SwipeToDismissBoxValue.StartToEnd
         Box(Modifier.fillMaxSize().clip(MaterialTheme.shapes.large)
             .background(if(editing) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer)
             .padding(24.dp), contentAlignment = if(editing) Alignment.CenterStart else Alignment.CenterEnd) {
-            Icon(if(editing) Icons.Outlined.Edit else Icons.Outlined.DeleteOutline, if(editing) "ویرایش" else "حذف")
+            Icon(if(editing) Icons.Outlined.Edit else Icons.Outlined.DeleteOutline, if(editing) "ویرایش" else "حذف", tint = if(editing) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer)
         }
     }) {
         OutlinedCard(Modifier.fillMaxWidth().semantics {

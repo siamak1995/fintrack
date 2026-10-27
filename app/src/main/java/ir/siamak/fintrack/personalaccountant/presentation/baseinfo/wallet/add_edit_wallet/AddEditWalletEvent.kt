@@ -7,6 +7,8 @@ package ir.siamak.fintrack.personalaccountant.presentation.baseinfo.wallet.add_e
  * به صورت متمرکز در یک تابع مدیریت کند.
  */
 sealed class AddEditWalletEvent {
+    data class CardChanged(val value: String): AddEditWalletEvent()
+    data class AccountChanged(val value: String): AddEditWalletEvent()
     /**
      * تغییر در متن نام کیف ‌پول.
      * @param value مقدار جدید وارد شده توسط کاربر.

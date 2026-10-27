@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface InstallmentDao {
 
-    @Query("SELECT * FROM installment ORDER BY dueDate ASC")
+    @Query("SELECT * FROM installment WHERE isDeleted = 0 AND contextId = 1 ORDER BY dueDate ASC")
     fun getAllInstallments(): Flow<List<InstallmentEntity>>
 
     @Query("SELECT * FROM installment WHERE id=:id")

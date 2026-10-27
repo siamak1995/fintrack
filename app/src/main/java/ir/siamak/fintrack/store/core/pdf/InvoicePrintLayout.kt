@@ -68,20 +68,20 @@ class InvoicePrintLayout {
             val addressHeight = paragraph("آدرس: " + (invoice.seller?.address ?: invoice.store.address ?: "—"),75f,addressY,270f,9f,align = "center",maxLines = 2)
             val contact = invoice.seller?.phone?.takeIf(String::isNotBlank) ?: invoice.store.phone?.takeIf(String::isNotBlank)
             if(contact != null) text("تلفن: " + contact,75f,addressY+addressHeight,270f,7f,align = "center")
-            image("logo",365f,28f,34f,34f); image("qr",18f,18f,57f,57f)
+            image("qr",18f,18f,57f,57f)
             headerBottom = maxOf(118f,addressY+addressHeight+(if(contact == null) 3f else 12f))
             rule(15f,headerBottom,390f)
         }
         header()
         val shift = headerBottom-118f
-        text("شماره فاکتور: " + tracking,224f,129f+shift,170f,8f)
-        text("تاریخ فاکتور: " + date(invoice.date),224f,146f+shift,170f)
+        text("تاریخ فاکتور: " + date(invoice.date),224f,129f+shift,170f)
+        text("کد رهگیری: " + tracking,224f,146f+shift,170f,8f)
         val status = if(invoice.cancelled) "لغوشده" else when(invoice.paymentStatus) {
             Invoice.PaymentStatus.SETTLED -> "تسویه‌شده"; Invoice.PaymentStatus.UNSETTLED -> "تسویه‌نشده"; Invoice.PaymentStatus.INSTALLMENT -> "اقساطی"
         }
         text("وضعیت: " + status,224f,163f+shift,170f,9f,true)
         text("تاریخ تسویه: " + (invoice.payment?.installments?.firstOrNull()?.dueDate?.let(::date) ?: "ثبت نشده"),224f,180f+shift,170f)
-        val customerHeight = paragraph("طرف حساب: " + invoice.customer.name,15f,130f+shift,155f,10f,true,maxLines = 2)
+        val customerHeight = paragraph("نام مشتری: " + invoice.customer.name,15f,130f+shift,155f,10f,true,maxLines = 2)
         val customerAddressY = maxOf(153f+shift,136f+shift+customerHeight)
         val customerAddressHeight = paragraph("آدرس: " + (invoice.customer.address ?: "—"),15f,customerAddressY,155f,maxLines = 2)
         val phoneY = maxOf(180f+shift,customerAddressY+customerAddressHeight+6f)
@@ -118,12 +118,13 @@ class InvoicePrintLayout {
             }
         }
         if(invoice.items.isEmpty()) { box(15f,y,390f,20f); text("جزئیات اقلام در این سند ثبت نشده است",20f,y+3,380f); y += 20f }
-        if(y+268 > 565) next(false)
-        y += 5f
-        val summaryTop = y
         val gross = invoice.items.fold(0L) { sum,item -> Math.addExact(sum,Math.multiplyExact(item.unitPrice,item.quantity.toLong())) }
         val base = Math.addExact(Math.subtractExact(gross,invoice.discountAmount),invoice.taxAmount)
         val finance = if(invoice.payment?.type == Payment.PaymentType.INSTALLMENT && invoice.items.isNotEmpty() && invoice.finalAmount >= base && base >= 0) invoice.finalAmount-base else 0
+        // Summary + optional finance row + full signature image, without forcing short cash invoices onto another page.
+        if(y + 279f + (if(finance > 0) 21f else 0f) > 565f) next(false)
+        y += 5f
+        val summaryTop = y
         box(15f,y,156f,65f)
         fun total(label: String,value: String,top: Float,bold: Boolean = false) {
             text(label,96f,top,71f,9f,bold); text(value,20f,top,80f,8.2f,bold,"left")
@@ -151,8 +152,9 @@ class InvoicePrintLayout {
         val signY = maxOf(449f,summaryTop+190f+extra)
         text("امضای خریدار",322f,signY,75f,9f,true,"center"); text("امضای فروشنده",212f,signY,90f,9f,true,"center")
         text("با نهایت تشکر",20f,signY,105f,9f,align = "center")
-        image("signature",220f,signY+17f,90f,minOf(67f,565f-signY-17f))
-        image("logo",140f,signY+40f,40f,minOf(60f,565f-signY-40f).coerceAtLeast(1f))
+        image("signature",220f,signY+17f,90f,minOf(67f,565f-signY-17f).coerceAtLeast(1f))
+        if(invoice.store.brandImagePath != null) image("logo",20f,signY+20f,105f,minOf(64f,565f-signY-20f).coerceAtLeast(1f))
+        else if(invoice.store.brand.isNotBlank()) paragraph(invoice.store.brand,20f,signY+23f,105f,10f,true,"center",maxLines = 2)
         if(invoice.cancelled || invoice.description != null || invoice.pricing != null || overflowNotes.isNotEmpty() || invoice.materialItems.isNotEmpty() || invoice.payment?.installments.orEmpty().isNotEmpty()) {
             next(false)
             text("پیوست و جزئیات فاکتور " + tracking,15f,y,390f,10f,true); y += 24f

@@ -18,25 +18,26 @@ import androidx.compose.ui.unit.dp
 fun TransactionSwipeBackground(
     dismissValue: SwipeToDismissBoxValue
 ) {
-    val text = when (dismissValue) {
+    val direction = ir.siamak.fintrack.common.core.formatter.swipeActionDirection(dismissValue)
+    val text = when (direction) {
         SwipeToDismissBoxValue.StartToEnd -> "ویرایش"
         SwipeToDismissBoxValue.EndToStart -> "حذف"
         SwipeToDismissBoxValue.Settled -> ""
     }
 
-    val backgroundColor = when (dismissValue) {
+    val backgroundColor = when (direction) {
         SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.primaryContainer
         SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
         SwipeToDismissBoxValue.Settled -> MaterialTheme.colorScheme.surfaceVariant
     }
 
-    val contentColor = when (dismissValue) {
+    val contentColor = when (direction) {
         SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.onPrimaryContainer
         SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.onErrorContainer
         SwipeToDismissBoxValue.Settled -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    val alignment = when (dismissValue) {
+    val alignment = when (direction) {
         SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
         SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
         SwipeToDismissBoxValue.Settled -> Alignment.Center

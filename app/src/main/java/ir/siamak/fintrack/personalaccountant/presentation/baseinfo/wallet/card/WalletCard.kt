@@ -42,7 +42,7 @@ fun WalletCard(
 
     Surface(
         modifier = Modifier
-            .width(250.dp)
+            .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),
         shadowElevation = 4.dp
@@ -78,6 +78,9 @@ fun WalletCard(
                 color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.titleMedium
             )
+            wallet.cardNumber?.takeIf { it.isNotBlank() }?.let { androidx.compose.material3.Text(ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter.toPersianDigits("شماره کارت: " + it), color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.bodyMedium) }
+            wallet.accountNumber?.takeIf { it.isNotBlank() }?.let { androidx.compose.material3.Text(ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter.toPersianDigits("شماره حساب: " + it), color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.bodyMedium) }
+            if(wallet.isCash) Text("حساب نقدی پیش‌فرض", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.labelSmall)
             Spacer(modifier = Modifier.height(6.dp))
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(

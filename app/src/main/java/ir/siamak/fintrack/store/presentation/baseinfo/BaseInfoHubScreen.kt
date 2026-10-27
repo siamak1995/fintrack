@@ -64,7 +64,7 @@ import ir.siamak.fintrack.store.domain.model.*
                 "product" -> {
                     if(state.data.products.isEmpty()) Text("هنوز کالایی ثبت نشده است.")
                     state.data.products.forEach { value ->
-                        key(value.id) { StoreSwipeCard(value.name, "موجودی: " + value.stock + " | " + money(value.price), { editingId = value.id; adding = true }, { deleting = value.id to value.name }, value.image) }
+                        key(value.id) { StoreSwipeCard(value.name, "موجودی: " + value.stock + " | " + money(value.price) + value.color?.let { " · رنگ: " + it }.orEmpty(), { editingId = value.id; adding = true }, { deleting = value.id to value.name }, value.image) }
                     }
                 }
                 "material" -> {
@@ -95,9 +95,9 @@ import ir.siamak.fintrack.store.domain.model.*
     val seed = when(original) {
         is Store -> listOf(original.name, original.brand, original.phone.orEmpty(), original.address.orEmpty(), original.description.orEmpty(), original.logoPath.orEmpty())
         is Seller -> listOf(original.firstName, original.lastName, original.phone, original.address.orEmpty(), original.description.orEmpty(), original.signaturePath.orEmpty(), original.cardNumber.orEmpty(), original.accountNumber.orEmpty())
-        is Product -> listOf(original.name, original.material.orEmpty(), original.size.orEmpty(), original.weight.orEmpty(), original.stock.toString(), original.price.toString(), original.image.orEmpty())
+        is Product -> listOf(original.name, original.material.orEmpty(), original.size.orEmpty(), original.weight.orEmpty(), original.stock.toString(), original.price.toString(), original.image.orEmpty(), original.color.orEmpty())
         is RawMaterial -> listOf(original.name, original.unit, original.pricePerUnit.toString(), original.quantity.toString(), original.purchaseDate.orEmpty(), original.shippingCost?.toString().orEmpty())
-        else -> when(kind) { "store" -> List(6) { "" }; "seller" -> List(8) { "" }; "product" -> listOf("","","","","0","0",""); else -> listOf("","","","",java.time.LocalDate.now().toString(),"") }
+        else -> when(kind) { "store" -> List(6) { "" }; "seller" -> List(8) { "" }; "product" -> listOf("","","","","0","0","",""); else -> listOf("","","","",java.time.LocalDate.now().toString(),"") }
     }
     var fields by rememberSaveable { mutableStateOf(seed) }
     var selectedBrandId by rememberSaveable { mutableStateOf((original as? Store)?.brandId) }
@@ -137,6 +137,7 @@ import ir.siamak.fintrack.store.domain.model.*
                         if(wallet != null) ChoiceEntry("شخص دریافت‌کننده", finance.members.firstOrNull { it.id == memberId }?.name ?: "انتخاب شخص", finance.members.filter { it.contextId == wallet.contextId }.map { it.id to it.name }) { memberId = it }
                     }
                 }
+                if(kind == "product") Entry("رنگ (اختیاری)", fields[7], { update(7,it) })
                 if(kind == "store" || kind == "product") {
                     val index = if(kind == "store") 5 else 6
                     if(kind != "store" || selectedBrandId == null) ImageEntry(if(kind == "store") "انتخاب نشان فروشگاه" else "انتخاب تصویر کالا", fields[index].ifBlank { null }) { update(index,it.orEmpty()) }
@@ -161,7 +162,7 @@ import ir.siamak.fintrack.store.domain.model.*
                             "seller" -> Seller((original as? Seller)?.id ?: 0, fields[0].trim(), fields[1].trim(), fields[2].trim(), optional(3), optional(4), optional(5), optional(6), optional(7))
                             "product" -> {
                                 val count = whole(fields[4], true); require(count in 0..Int.MAX_VALUE.toLong())
-                                Product((original as? Product)?.id ?: 0, fields[0].trim(), optional(1), optional(2), optional(3), count.toInt(), whole(fields[5], true), optional(6))
+                                Product((original as? Product)?.id ?: 0, fields[0].trim(), optional(1), optional(2), optional(3), count.toInt(), whole(fields[5], true), optional(6), optional(7))
                             }
                             else -> RawMaterial((original as? RawMaterial)?.id ?: 0, fields[0].trim(), fields[1].trim(), whole(fields[2]), decimal(fields[3]), optional(4), optional(5)?.let { whole(it) })
                         }

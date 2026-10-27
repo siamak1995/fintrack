@@ -19,16 +19,17 @@ import java.util.UUID
     val discount: String = "0", val percentDiscount: Boolean = false, val tax: String = "0",
     val installments: Boolean = false, val months: String = "3", val monthlyPercent: String = "5",
     val firstDueDate: String = LocalDate.now().plusMonths(1).toString(), val step: Int = 0,
-    val requestId: String = UUID.randomUUID().toString()
+    val requestId: String = UUID.randomUUID().toString(),
+    val settlement: StoreSettlementAccount? = null
 ) {
     fun request() = SaleRequest(Customer(name = name.trim(), phone = phone.trim(), address = address.ifBlank { null }), sellerId,
         quantities, Discount(if(percentDiscount) Discount.DiscountType.PERCENT else Discount.DiscountType.FIXED, number(discount)),
-        number(tax).toIntChecked(), if(installments) number(months).toIntChecked() else 0, if(installments) number(monthlyPercent).toIntChecked() else 0, firstDueDate, requestId)
+        number(tax).toIntChecked(), if(installments) number(months).toIntChecked() else 0, if(installments) number(monthlyPercent).toIntChecked() else 0, firstDueDate, requestId, settlement)
 }
 internal fun number(text: String): Long = ir.siamak.fintrack.store.presentation.components.whole(text)
 internal fun Long.toIntChecked(): Int { require(this in 0..Int.MAX_VALUE.toLong()) { "عدد خارج از محدوده است" }; return toInt() }
 @HiltViewModel class CreateSaleViewModel @Inject constructor(
-    private val saved: SavedStateHandle, observe: ObserveStoreWorkspaceUseCase, private val checkout: CreateSaleUseCase
+    private val saved: SavedStateHandle, observe: ObserveStoreWorkspaceUseCase, private val checkout: CreateSaleUseCase, private val products: ir.siamak.fintrack.store.domain.repository.ProductRepository
 ) : ViewModel() {
     private val mutable = MutableStateFlow(CreateSaleUiState(draft = saved.get<String>("draft")?.let { runCatching { Json.decodeFromString<SaleDraft>(it) }.getOrNull() } ?: SaleDraft()))
     val state = mutable.asStateFlow()
@@ -36,6 +37,10 @@ internal fun Long.toIntChecked(): Int { require(this in 0..Int.MAX_VALUE.toLong(
         viewModelScope.launch {
             observe().catch { e -> mutable.update { it.copy(loading = false, error = e.message) } }.collect { workspace ->
                 mutable.update { it.copy(workspace = workspace, loading = false) }
+                if(saved.get<Boolean>("accountInitialized") != true && workspace.finance.wallets.isNotEmpty()) {
+                    saved["accountInitialized"] = true
+                    workspace.store?.settlement?.let { account -> if(mutable.value.draft.settlement == null) edit { it.copy(settlement = account) } }
+                }
                 if(saved.get<Boolean>("sellerInitialized") != true && workspace.sellers.isNotEmpty()) {
                     saved["sellerInitialized"] = true
                     if(mutable.value.draft.sellerId == null && saved.get<String>("draft") == null)
@@ -77,6 +82,16 @@ internal fun Long.toIntChecked(): Int { require(this in 0..Int.MAX_VALUE.toLong(
         val result = runCatching { checkout.preview(current.draft.request(), current.workspace) }
         mutable.update { it.copy(preview = result.getOrNull(), validationMessage = result.exceptionOrNull()?.message) }
     }
+    suspend fun addProduct(product: Product): Result<Unit> = runCatching {
+        check(!mutable.value.busy) { "ثبت فروش در حال انجام است" }
+        require(product.stock > 0) { "برای فروش، موجودی باید حداقل یک باشد" }
+        require(product.price >= 0) { "قیمت نامعتبر است" }
+        ir.siamak.fintrack.store.domain.usecase.product.CreateProductUseCase(products)(product)
+        val catalog = products.observeAll().first { rows -> rows.any { productNameKey(it.name) == productNameKey(product.name) } }
+        val created = catalog.first { productNameKey(it.name) == productNameKey(product.name) }
+        mutable.update { it.copy(workspace = it.workspace.copy(products = catalog)) }
+        edit { it.copy(quantities = it.quantities + (created.id to 1)) }
+    }.onFailure { if(it is CancellationException) throw it }
     fun submit() {
         if(mutable.value.busy || mutable.value.invoiceId != null) return
         viewModelScope.launch {

@@ -77,4 +77,29 @@ class StoreReportsTest {
         assertEquals(330,result.totals.payable); assertEquals(0,result.totals.financeCharge)
         assertEquals(1,result.totals.unreconciledInvoices); assertEquals(330,row.finalAmount)
     }
+    @Test fun dailyReportCombinesBranchesAndComparesSelectedStores() {
+        val a = Store(id = 1, name = "مرکزی")
+        val b = Store(id = 2, name = "نمایشگاه")
+        val rows = listOf(invoice(1).copy(store = a), invoice(2).copy(store = b), invoice(3, date = "2026-10-21").copy(store = b))
+        val day = filter.copy(from = LocalDate.parse("2026-10-20"), to = LocalDate.parse("2026-10-20"))
+        val combined = calculator(rows, day, stores = listOf(a,b))
+        assertEquals(2, combined.totals.count)
+        assertEquals(594L, combined.totals.payable)
+        assertEquals(setOf(1L,2L), combined.branches.map { it.id }.toSet())
+        val compared = calculator(rows, day.copy(storeId = 1, comparisonStoreId = 2), stores = listOf(a,b))
+        assertEquals(1, compared.totals.count)
+        assertEquals(1, compared.comparison.count)
+        assertEquals(day.from, compared.comparisonFrom)
+        assertEquals(day.to, compared.comparisonTo)
+        assertEquals(297L, compared.comparisonTrend.single().amount)
+    }
+    @Test fun sellerFilterAppliesToCurrentAndComparisonPeriods() {
+        val selected = Seller(1,"فروشنده","یک","0912")
+        val other = Seller(2,"فروشنده","دو","0913")
+        val rows = listOf(invoice(1).copy(seller = selected),invoice(2).copy(seller = other),
+            invoice(3,date = "2026-09-20").copy(seller = selected),invoice(4,date = "2026-09-20").copy(seller = other))
+        val result = calculator(rows,filter.copy(sellerId = 1))
+        assertEquals(1,result.totals.count); assertEquals(1,result.comparison.count)
+        assertEquals(1L,result.allRows.single().seller!!.id)
+    }
 }

@@ -58,6 +58,9 @@ data class WalletEntity(
      */
     val syncState: SyncState = SyncState.LOCAL_ONLY,
     val serverId: Long? = null,
-    val contextId: Long = AccountantContextIds.PERSONAL
+    val contextId: Long = AccountantContextIds.PERSONAL,
+    val cardNumber: String? = null,
+    val accountNumber: String? = null,
+    @androidx.room.ColumnInfo(defaultValue = "0") val isCash: Boolean = false
 )
 

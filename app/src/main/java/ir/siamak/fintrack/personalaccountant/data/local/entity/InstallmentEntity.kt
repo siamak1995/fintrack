@@ -54,6 +54,9 @@ data class InstallmentEntity(
      */
     val syncState: SyncState = SyncState.LOCAL_ONLY,
     val serverId: Long? = null,
-    val contextId: Long = AccountantContextIds.PERSONAL
+    val contextId: Long = AccountantContextIds.PERSONAL,
+    @androidx.room.ColumnInfo(defaultValue = "1") val installmentCount: Int = 1,
+    @androidx.room.ColumnInfo(defaultValue = "0") val startDate: Long = createdAt,
+    @androidx.room.ColumnInfo(defaultValue = "0") val automaticPayment: Boolean = false
 )
 

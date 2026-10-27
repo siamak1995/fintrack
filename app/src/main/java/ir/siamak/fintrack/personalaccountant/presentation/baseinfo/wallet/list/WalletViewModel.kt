@@ -79,7 +79,8 @@ class WalletViewModel @Inject constructor(
      */
     fun deleteWallet(wallet: Wallet) {
         viewModelScope.launch {
-            walletUseCases.deleteWallet(wallet)
+            try { walletUseCases.deleteWallet(wallet) }
+            catch(e: Exception) { _uiState.update { it.copy(error = e.message ?: "حذف حساب ناموفق بود") } }
         }
     }
 }

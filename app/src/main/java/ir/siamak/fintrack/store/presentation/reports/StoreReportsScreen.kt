@@ -30,7 +30,9 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
     var exporting by remember { mutableStateOf(false) }
     var exportMessage by remember { mutableStateOf<String?>(null) }
     var exportSnapshot by remember { mutableStateOf<StoreReport?>(null) }
-    var filtersOpen by rememberSaveable { mutableStateOf(false) }
+    var basis by rememberSaveable { mutableStateOf<String?>(null) }
+    var filtersOpen by rememberSaveable { mutableStateOf(true) }
+    var showResult by rememberSaveable { mutableStateOf(false) }
     var section by rememberSaveable { mutableIntStateOf(0) }
     val save = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
         val snapshot = exportSnapshot
@@ -49,40 +51,57 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
         }
     }
     StorePage("گزارش‌های فروشگاه", state.loading, state.error, vm::retry) {
-        report?.let { result ->
+        if(basis == null) {
+            Text("گزارش را بر چه اساسی می‌خواهید؟", style = MaterialTheme.typography.titleLarge)
+            listOf("day" to "گزارش یک روز", "store" to "فروشگاه / نمایشگاه", "seller" to "فروشنده", "customer" to "مشتری", "product" to "محصول", "settlement" to "وضعیت تسویه", "compare" to "مقایسه فروشگاه‌ها و روند فروش", "advanced" to "گزارش ترکیبی پیشرفته").forEach { (key,label) ->
+                OutlinedCard(onClick = {
+                    vm.reset(); basis = key; showResult = false; filtersOpen = true; section = if(key == "compare") 1 else 0
+                    if(key == "day") vm.change { it.copy(from = java.time.LocalDate.now(), to = java.time.LocalDate.now()) }
+                }, modifier = Modifier.fillMaxWidth()) {
+                    Text(label, Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 18.dp), style = MaterialTheme.typography.titleMedium)
+                }
+            }
+        } else report?.let { result ->
             val filter = result.filter
-            ChoiceEntry("فروشگاه / نمایشگاه", state.stores.firstOrNull { it.id == filter.storeId }?.name ?: "همهٔ فروشگاه‌ها", listOf(null to "همهٔ فروشگاه‌ها") + state.stores.map { it.id to it.name }, vm::selectStore)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(filter.document == ReportDocument.SALE, { vm.change { it.copy(document = ReportDocument.SALE, productId = null) } }, { Text("فروش") })
-                FilterChip(filter.document == ReportDocument.PREORDER, { vm.change { it.copy(document = ReportDocument.PREORDER, productId = null) } }, { Text("پیش‌سفارش") })
+            TextButton(onClick = { basis = null; showResult = false }) { Text("تغییر مبنای گزارش") }
+            if(!filtersOpen) {
+                DataRow("تاریخ", if(filter.from == filter.to) dateLabel(filter.from.toString()) else dateLabel(filter.from.toString()) + " تا " + dateLabel(filter.to.toString()))
+                FilledTonalButton(onClick = { filtersOpen = true }, modifier = Modifier.fillMaxWidth()) { Text("ویرایش انتخاب‌ها") }
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(dateLabel(filter.from.toString()) + " تا " + dateLabel(filter.to.toString()), style = MaterialTheme.typography.labelLarge)
-                TextButton(onClick = { filtersOpen = !filtersOpen }) { Text(if(filtersOpen) "بستن فیلترها" else "فیلتر و بازه زمانی") }
+            if(filtersOpen) FormSection("انتخاب گزارش") {
+                val advanced = basis == "advanced"
+                if(basis in listOf("store", "compare", "advanced")) ChoiceEntry("فروشگاه / نمایشگاه", state.stores.firstOrNull { it.id == filter.storeId }?.name ?: "همه فروشگاه‌ها",
+                    listOf(null to "همه فروشگاه‌ها") + state.stores.map { it.id to it.name }, vm::selectStore)
+                if(basis == "seller" || advanced) ChoiceEntry("فروشنده", state.invoices.mapNotNull { it.seller }.firstOrNull { it.id == filter.sellerId }?.fullName ?: "همه فروشندگان",
+                    listOf(null to "همه فروشندگان") + state.invoices.mapNotNull { it.seller }.distinctBy { it.id }.map { it.id to it.fullName }) { id -> vm.change { it.copy(sellerId = id) } }
+                if(basis == "customer" || advanced) ChoiceEntry("مشتری", state.invoices.firstOrNull { it.customer.id == filter.customerId }?.customer?.name ?: "همه مشتریان",
+                    listOf(null to "همه مشتریان") + state.invoices.map { it.customer }.distinctBy { it.id }.map { it.id to (it.name + " · " + it.phone) }) { id -> vm.change { it.copy(customerId = id) } }
+                if(basis == "product" || advanced) ChoiceEntry("محصول", state.invoices.flatMap { it.items }.firstOrNull { it.productId == filter.productId }?.productName ?: "همه محصولات",
+                    listOf(null to "همه محصولات") + state.invoices.flatMap { it.items }.distinctBy { it.productId }.map { it.productId to it.productName }) { id -> vm.change { it.copy(productId = id) } }
+                if(basis == "settlement" || advanced) ChoiceEntry("تسویه", settlement(filter.settlement), ReportSettlement.entries.map { it to settlement(it) }) { value -> vm.change { it.copy(settlement = value) } }
+                if(basis != "product") Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(filter.document == ReportDocument.SALE, { vm.change { it.copy(document = ReportDocument.SALE, productId = null) } }, { Text("فروش") })
+                    FilterChip(filter.document == ReportDocument.PREORDER, { vm.change { it.copy(document = ReportDocument.PREORDER, productId = null) } }, { Text("پیش‌سفارش") })
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(filter.from == filter.to, { vm.change { it.copy(from = it.to) } }, { Text("یک روز") })
+                    FilterChip(filter.from != filter.to, { vm.change { it.copy(from = it.to.minusDays(6)) } }, { Text("بازه زمانی") })
+                    TextButton(onClick = { vm.change { it.copy(from = java.time.LocalDate.now(), to = java.time.LocalDate.now()) } }) { Text("امروز") }
+                }
+                if(filter.from == filter.to) DateEntry("روز گزارش", filter.to.toString()) { date -> vm.change { it.copy(from = java.time.LocalDate.parse(date), to = java.time.LocalDate.parse(date)) } }
+                else {
+                    DateEntry("از تاریخ", filter.from.toString()) { date -> vm.change { it.copy(from = java.time.LocalDate.parse(date)) } }
+                    DateEntry("تا تاریخ", filter.to.toString()) { date -> vm.change { it.copy(to = java.time.LocalDate.parse(date)) } }
+                }
+                if(basis == "compare" || advanced) ChoiceEntry("مقایسه با", state.stores.firstOrNull { it.id == filter.comparisonStoreId }?.name ?: "دوره قبل",
+                    listOf(null to "دوره قبل") + state.stores.map { it.id to it.name }) { id -> vm.change { it.copy(comparisonStoreId = id, comparisonFrom = null, comparisonTo = null) } }
+                if(advanced) {
+                    Entry("جست‌وجوی شماره، مشتری یا کالا", filter.search, { query -> vm.change { it.copy(search = query) } })
+                    ChoiceEntry("ترتیب", order(filter.order), ReportOrder.entries.map { it to order(it) }) { value -> vm.change { it.copy(order = value) } }
+                }
+                Button(onClick = { showResult = true; filtersOpen = false }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("نمایش گزارش") }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(filter.from == filter.to, { vm.change { it.copy(from = it.to) } }, { Text("یک روز") })
-                FilterChip(filter.from != filter.to, { filtersOpen = true; vm.change { it.copy(from = it.to.minusDays(6)) } }, { Text("بازه زمانی") })
-                TextButton(onClick = { vm.change { it.copy(from = java.time.LocalDate.now(), to = java.time.LocalDate.now()) } }) { Text("امروز") }
-            }
-            if(filter.from == filter.to) DateEntry("روز گزارش", filter.to.toString()) { date -> vm.change { it.copy(from = java.time.LocalDate.parse(date), to = java.time.LocalDate.parse(date)) } }
-            if(filtersOpen) OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            DateEntry("از تاریخ", filter.from.toString()) { value -> vm.change { it.copy(from = java.time.LocalDate.parse(value)) } }
-            DateEntry("تا تاریخ", filter.to.toString()) { value -> vm.change { it.copy(to = java.time.LocalDate.parse(value)) } }
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = { vm.change { it.copy(from = java.time.LocalDate.now(), to = java.time.LocalDate.now()) } }) { Text("امروز") }
-                TextButton(onClick = { vm.change { it.copy(from = java.time.LocalDate.now().minusDays(6), to = java.time.LocalDate.now()) } }) { Text("هفت روز اخیر") }
-                TextButton(onClick = vm::reset) { Text("پاک‌کردن فیلترها") }
-            }
-            Entry("جست‌وجوی شماره، مشتری یا کالا", filter.search, { query -> vm.change { it.copy(search = query) } })
-            ReportChoice("مشتری", filter.customerId?.let { id -> state.invoices.firstOrNull { it.customer.id == id }?.customer?.name } ?: "همه",
-                listOf(null to "همه") + state.invoices.map { it.customer }.distinctBy { it.id }.map { it.id to (it.name + " — " + it.phone) }) { id -> vm.change { it.copy(customerId = id) } }
-            if(filter.document == ReportDocument.SALE) ReportChoice("کالا", filter.productId?.let { id -> state.invoices.flatMap { it.items }.firstOrNull { it.productId == id }?.productName } ?: "همه",
-                listOf(null to "همه") + state.invoices.flatMap { it.items }.distinctBy { it.productId }.map { it.productId to it.productName }) { id -> vm.change { it.copy(productId = id) } }
-            ReportChoice("تسویه", settlement(filter.settlement), ReportSettlement.entries.map { it to settlement(it) }) { value -> vm.change { it.copy(settlement = value) } }
-            ReportChoice("ترتیب", order(filter.order), ReportOrder.entries.map { it to order(it) }) { value -> vm.change { it.copy(order = value) } }
-            TextButton(onClick = { filtersOpen = false }) { Text("مشاهدهٔ نتیجه") }
-            } }
+            if(showResult && !filtersOpen) {
             Summary(result.totals)
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("فاکتورها", "روند و مقایسه", "کالا و مشتری", "مبنای محاسبه").forEachIndexed { index, label ->
@@ -101,20 +120,19 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
             if(section == 1) {
             FormSection("عملکرد فروشگاه‌ها در بازه انتخاب‌شده") {
                 if(result.branches.isEmpty()) Text("فروشی ثبت نشده است.")
-                result.branches.forEach { branch ->
-                    Text(branch.name, style = MaterialTheme.typography.titleSmall)
-                    DataRow("مبلغ فروش", money(branch.totals.payable), true)
-                    DataRow("دریافت‌شده", money(branch.totals.received))
-                    DataRow("مانده", money(branch.totals.balance))
-                    HorizontalDivider()
-                }
+                StoreTable(listOf("فروشگاه / نمایشگاه", "فروش · تومان", "دریافت · تومان", "مانده · تومان"),
+                    result.branches.map { listOf(it.name, quantity(it.totals.payable), quantity(it.totals.received), quantity(it.totals.balance)) }, listOf(1.4f, 1f, 1f, 1f))
             }
             ChoiceEntry("مقایسه با", state.stores.firstOrNull { it.id == filter.comparisonStoreId }?.name ?: "دوره قبل · همین فروشگاه‌ها", listOf(null to "دوره قبل · همین فروشگاه‌ها") + state.stores.map { it.id to it.name }) { id -> vm.change { it.copy(comparisonStoreId = id, comparisonFrom = null, comparisonTo = null) } }
-            Text("مقایسهٔ دوره‌ها", style = MaterialTheme.typography.titleLarge)
+            Text(if(filter.comparisonStoreId == null) "مقایسهٔ دوره‌ها" else "مقایسهٔ فروشگاه‌ها", style = MaterialTheme.typography.titleLarge)
             DateEntry("شروع دورهٔ مقایسه", result.comparisonFrom.toString()) { date -> vm.change { it.copy(comparisonFrom = java.time.LocalDate.parse(date), comparisonTo = result.comparisonTo) } }
             DateEntry("پایان دورهٔ مقایسه", result.comparisonTo.toString()) { date -> vm.change { it.copy(comparisonFrom = result.comparisonFrom, comparisonTo = java.time.LocalDate.parse(date)) } }
             Text("دورهٔ مقایسه با همین فیلتر مشتری/کالا/تسویه: " + money(result.comparison.payable) + " — " + fa(result.comparison.count) + " فاکتور")
-            Text("اختلاف مبلغ قابل پرداخت: " + money(Math.subtractExact(result.totals.payable, result.comparison.payable)))
+            StoreTable(listOf("معیار", "انتخاب فعلی", "مقایسه"), listOf(
+                listOf("فروش · تومان", quantity(result.totals.payable), quantity(result.comparison.payable)),
+                listOf("دریافت · تومان", quantity(result.totals.received), quantity(result.comparison.received)),
+                listOf("تعداد فاکتور", quantity(result.totals.count), quantity(result.comparison.count))))
+            DataRow("اختلاف فروش", money(Math.subtractExact(result.totals.payable, result.comparison.payable)), true)
             ReportChoice("گروه‌بندی روند", period(filter.period), ReportPeriod.entries.map { it to period(it) }) { value -> vm.change { it.copy(period = value) } }
             Text("روند مبلغ قابل پرداخت — تومان", style = MaterialTheme.typography.titleLarge)
             if(result.trend.isEmpty()) Text("در این بازه داده‌ای برای نمودار وجود ندارد.")
@@ -166,9 +184,10 @@ fun StoreReportsScreen(onDetail: (Long) -> Unit, onBack: () -> Unit, vm: StoreRe
                 TextButton(enabled = filter.page + 1 < result.pages, onClick = { vm.page(filter.page + 1) }) { Text("بعدی") }
             }
             }
-            Button(enabled = !exporting, onClick = { exportSnapshot = result; save.launch("store-report.pdf") }) { Text("ذخیرهٔ PDF گزارش کامل") }
+            Button(modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = !exporting, onClick = { exportSnapshot = result; save.launch("store-report.pdf") }) { Text("ذخیرهٔ PDF گزارش کامل") }
             if(exporting) LinearProgressIndicator(Modifier.fillMaxWidth())
             exportMessage?.let { Text(it) }
+            }
         }
     }
 }

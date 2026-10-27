@@ -15,7 +15,8 @@ data class Store(
     val brandId: String? = null,
     val startsOn: String? = null,
     val endsOn: String? = null,
-    val settlement: StoreSettlementAccount? = null
+    val settlement: StoreSettlementAccount? = null,
+    val brandImagePath: String? = null
 )
 
 @Serializable data class StoreSettlementAccount(val contextId: Long, val walletId: Long, val memberId: Long)

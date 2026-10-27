@@ -14,7 +14,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun InstallmentRoute(
     onAddInstallmentClick: () -> Unit,
     onEditInstallmentClick: (Long) -> Unit,
-    viewModel: InstallmentViewModel = hiltViewModel()
+    viewModel: InstallmentViewModel = hiltViewModel(),
+    reportOnly: Boolean = false, onBack: () -> Unit = {}, onSettings: () -> Unit = {}
 ) {
 
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -22,7 +23,7 @@ fun InstallmentRoute(
     InstallmentScreen(
         state = state,
         onAddInstallmentClick = onAddInstallmentClick,
-        onEditInstallmentClick = onEditInstallmentClick
+        onEditInstallmentClick = onEditInstallmentClick, reportOnly = reportOnly, onBack = onBack, onSettings = onSettings
     )
 }
 
