@@ -31,6 +31,7 @@ class AddEditTransactionViewModel @Inject constructor(
     private val walletUseCases: WalletUseCases,
     private val memberUseCases: MemberUseCases,
     private val tagRepository: TagRepository,
+    private val installmentUseCases: ir.siamak.fintrack.personalaccountant.domain.usecase.installments.InstallmentUseCases,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -44,6 +45,7 @@ class AddEditTransactionViewModel @Inject constructor(
         loadWallets()
         loadMembers()
         loadTags()
+        viewModelScope.launch { installmentUseCases.getAllInstallments().collect { loans -> _state.value = _state.value.copy(loans = loans) } }
 
         val transactionId = savedStateHandle.get<Long>("transactionId")
         if (transactionId != null && transactionId != -1L) {
@@ -123,7 +125,7 @@ class AddEditTransactionViewModel @Inject constructor(
             selectedMemberId = transaction.memberId,
             selectedCategoryName = transaction.categoryName,
             note = transaction.note,
-            selectedTagIds = transaction.tags.map { it.id }
+            selectedTagIds = transaction.tags.map { it.id },selectedLoanId = transaction.loanId
         )
 
         // فیلتر کردن تگ‌ها بعد از بارگذاری اطلاعات تراکنش جهت همگام‌سازی تگ‌های انتخابی
@@ -157,9 +159,11 @@ class AddEditTransactionViewModel @Inject constructor(
 
     private fun handleAmountChange(value: String) {
         val clean = value
-            .persianToEnglishDigits()
+            .let(ir.siamak.fintrack.common.core.formatter.PersianNumberFormatter::normalize)
             .replace(",", "")
-            .filter { it.isDigit() }
+            .filter { it.isDigit() || it == '.' }
+            .take(24)
+        if(clean.count { it == '.' } > 1) return
 
         _state.value = _state.value.copy(
             amountRaw = clean,
@@ -173,7 +177,7 @@ class AddEditTransactionViewModel @Inject constructor(
         val validSelectedTagIds = _state.value.selectedTagIds.filter { it in allowedIds }
 
         _state.value = _state.value.copy(
-            type = type,
+            type = type,selectedLoanId = null,
             filteredTags = filteredTags,
             selectedTagIds = validSelectedTagIds,
             selectedToWalletId = if (type == TransactionType.TRANSFER) {
@@ -231,81 +235,90 @@ class AddEditTransactionViewModel @Inject constructor(
     }
 
     private fun saveTransaction() {
+        if(_state.value.isLoading) return
+        _state.value = _state.value.copy(isLoading = true)
         viewModelScope.launch {
-            val amount = _state.value.amountRaw.toDoubleOrNull() ?: 0.0
-            if (amount <= 0.0) {
-                _eventFlow.emit(UiEvent.ShowSnackbar("مبلغ وارد شده باید بیشتر از صفر باشد"))
-                return@launch
-            }
-
-            val walletId = _state.value.selectedWalletId
-            if (walletId == null) {
-                _eventFlow.emit(UiEvent.ShowSnackbar("حساب مبدا انتخاب نشده است"))
-                return@launch
-            }
-
-            val wallet = walletUseCases.getWalletById(walletId)
-            if (wallet == null) {
-                _eventFlow.emit(UiEvent.ShowSnackbar("حساب مبدا پیدا نشد"))
-                return@launch
-            }
-
-            if (_state.value.type == TransactionType.TRANSFER) {
-                val toWalletId = _state.value.selectedToWalletId
-                if (toWalletId == null) {
-                    _eventFlow.emit(UiEvent.ShowSnackbar("حساب مقصد انتخاب نشده است"))
-                    return@launch
-                }
-                if (toWalletId == walletId) {
-                    _eventFlow.emit(UiEvent.ShowSnackbar("حساب مبدا و مقصد نمی‌توانند یکسان باشند"))
-                    return@launch
-                }
-            }
-
-            val selectedTags = _state.value.tags.filter { tag ->
-                tag.id in _state.value.selectedTagIds
-            }
-
-            val resolvedCategoryName = when (_state.value.type) {
-                TransactionType.TRANSFER -> "انتقال"
-                else -> resolveCategoryFromSelectedTags()
-            }
-
-            val existingTransaction = _state.value.currentTransactionId?.let {
-                transactionUseCases.getTransactionById(it)
-            }
-
-            val transaction = Transaction(
-                id = _state.value.currentTransactionId ?: 0L,
-                amount = amount,
-                type = _state.value.type,
-                categoryName = resolvedCategoryName,
-                walletId = walletId,
-                toWalletId = if (_state.value.type == TransactionType.TRANSFER) {
-                    _state.value.selectedToWalletId
-                } else {
-                    null
-                },
-                memberId = _state.value.selectedMemberId ?: -1L,
-                date = existingTransaction?.date ?: System.currentTimeMillis(),
-                note = _state.value.note,
-                tags = selectedTags
-            )
-
             try {
+                val amount = _state.value.amountRaw.toDoubleOrNull() ?: 0.0
+                if (amount <= 0.0) {
+                    _eventFlow.emit(UiEvent.ShowSnackbar("مبلغ وارد شده باید بیشتر از صفر باشد"))
+                    return@launch
+                }
+
+                val walletId = _state.value.selectedWalletId
+                if (walletId == null) {
+                    _eventFlow.emit(UiEvent.ShowSnackbar("حساب مبدا انتخاب نشده است"))
+                    return@launch
+                }
+
+                val wallet = walletUseCases.getWalletById(walletId)
+                if (wallet == null) {
+                    _eventFlow.emit(UiEvent.ShowSnackbar("حساب مبدا پیدا نشد"))
+                    return@launch
+                }
+
+                if (_state.value.type == TransactionType.TRANSFER) {
+                    val toWalletId = _state.value.selectedToWalletId
+                    if (toWalletId == null) {
+                        _eventFlow.emit(UiEvent.ShowSnackbar("حساب مقصد انتخاب نشده است"))
+                        return@launch
+                    }
+                    if (toWalletId == walletId) {
+                        _eventFlow.emit(UiEvent.ShowSnackbar("حساب مبدا و مقصد نمی‌توانند یکسان باشند"))
+                        return@launch
+                    }
+                }
+
+                val selectedTags = _state.value.tags.filter { tag ->
+                    tag.id in _state.value.selectedTagIds
+                }
+
+                val resolvedCategoryName = when (_state.value.type) {
+                    TransactionType.TRANSFER -> "انتقال"
+                    else -> resolveCategoryFromSelectedTags().let { category ->
+                        if(category == "سایر" && _state.value.selectedLoanId != null)
+                            if(_state.value.type == TransactionType.EXPENSE) "پرداخت قسط وام" else "دریافت وام"
+                        else category
+                    }
+                }
+
+                val existingTransaction = _state.value.currentTransactionId?.let {
+                    transactionUseCases.getTransactionById(it)
+                }
+
+                val transaction = Transaction(
+                    id = _state.value.currentTransactionId ?: 0L,
+                    amount = amount,
+                    type = _state.value.type,
+                    categoryName = resolvedCategoryName,
+                    walletId = walletId,
+                    toWalletId = if (_state.value.type == TransactionType.TRANSFER) {
+                        _state.value.selectedToWalletId
+                    } else {
+                        null
+                    },
+                    memberId = _state.value.selectedMemberId ?: -1L,
+                    date = existingTransaction?.date ?: System.currentTimeMillis(),
+                    note = _state.value.note,
+                    tags = selectedTags,loanId = _state.value.selectedLoanId
+                )
+
                 if (_state.value.currentTransactionId == null) {
                     transactionUseCases.insertTransaction(transaction)
                 } else {
                     transactionUseCases.updateTransaction(transaction)
                 }
                 _eventFlow.emit(UiEvent.SaveSuccess)
-            } catch (e: Exception) {
+            } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+            catch (e: Exception) {
                 _eventFlow.emit(
                     UiEvent.ShowSnackbar("خطا در ذخیره تراکنش: ${e.message.orEmpty()}")
                 )
-            }
+            } finally { _state.value = _state.value.copy(isLoading = false) }
         }
     }
+
+    fun selectLoan(id: Long?) { _state.value = _state.value.copy(selectedLoanId = id) }
 
     private fun deleteTransaction() {
         viewModelScope.launch {

@@ -23,7 +23,9 @@ class StoreNavigationTest {
         enterStore()
         compose.onNodeWithText("گزارش‌ها").performClick()
         compose.onNodeWithText("گزارش‌های فروشگاه").assertIsDisplayed()
-        compose.waitUntil(15000) { compose.onAllNodesWithText("فیلتر و بازه زمانی").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("گزارش یک روز").performScrollTo().performClick()
+        compose.waitUntil(15000) { compose.onAllNodesWithText("انتخاب گزارش").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("انتخاب گزارش").assertIsDisplayed()
         screenshot("reports.png")
         compose.onNodeWithText("داشبورد").performClick()
         compose.onNodeWithText("نمای کلی کسب‌وکار").assertIsDisplayed()

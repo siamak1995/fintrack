@@ -19,6 +19,7 @@ fun FTTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(text = label) },
+        supportingText = if(label.contains("مبلغ") && value.isNotBlank()) ({ Text(ir.siamak.fintrack.common.core.formatter.PersianAmountWords.format(value,"تومان")) }) else null,
         modifier = modifier,
         keyboardOptions = keyboardOptions,
         singleLine = true

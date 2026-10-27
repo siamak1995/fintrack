@@ -15,15 +15,20 @@ import javax.inject.Inject
 import java.math.BigDecimal
 
 data class BankSmsUiState(val loading: Boolean = true, val inbox: BankSmsInboxState = BankSmsInboxState(),
-    val wallets: List<Wallet> = emptyList(), val members: List<Member> = emptyList(), val busy: Boolean = false, val error: String? = null)
+    val wallets: List<Wallet> = emptyList(), val members: List<Member> = emptyList(), val busy: Boolean = false, val error: String? = null, val tags: List<Tag> = emptyList(), val loans: List<Installment> = emptyList())
 private data class SmsActionState(val busy: Boolean = false, val error: String? = null)
 
 @HiltViewModel class BankSmsViewModel @Inject constructor(private val inbox: BankSmsInbox,
     @PersonalAccountingDatabase db: AppDatabase, private val importSms: ImportBankSms) : ViewModel() {
     private val action = MutableStateFlow(SmsActionState())
-    val state = combine(inbox.state,db.walletDao().getAllWallets().onStart { db.walletDao().ensureCash() },db.memberDao().getAllMembers(),action) { review,wallets,members,event ->
-        BankSmsUiState(false,review,wallets.filter { !it.isDeleted && it.contextId == 1L }.map { it.toModel() },
-            members.filter { !it.isDeleted && it.contextId == 1L }.map { it.toModel() },event.busy,event.error)
+    private val directory = combine(db.walletDao().getAllWallets().onStart { db.walletDao().ensureCash() },
+        db.memberDao().getAllMembers(),db.tagDao().getAllTags(),db.installmentDao().getAllInstallments()) { wallets,members,tags,loans ->
+        BankSmsUiState(wallets = wallets.filter { !it.isDeleted && it.contextId == 1L }.map { it.toModel() },
+            members = members.filter { !it.isDeleted && it.contextId == 1L }.map { it.toModel() },
+            tags = tags.filter { !it.isDeleted && it.contextId == 1L }.map { it.toModel() },loans = loans.map { it.toModel() })
+    }
+    val state = combine(inbox.state,directory,action) { review,rows,event ->
+        rows.copy(loading = false,inbox = review,busy = event.busy,error = event.error)
     }.catch { emit(BankSmsUiState(loading = false,error = it.message)) }
         .stateIn(viewModelScope,SharingStarted.WhileSubscribed(5000),BankSmsUiState())
     fun enable(value: Boolean) = execute { inbox.setEnabled(value) }
@@ -33,7 +38,7 @@ private data class SmsActionState(val busy: Boolean = false, val error: String? 
     }
     fun discard(id: String, blockSender: Boolean = false, done: () -> Unit = {}) = execute { inbox.discard(id,blockSender); done() }
     fun unblock(sender: String) = execute { inbox.unblock(sender) }
-    fun approve(candidate: BankSmsCandidate, amount: String, currency: SmsCurrency?, kind: BankSmsKind?, walletId: Long?, toWalletId: Long?, memberId: Long?, balance: String?, balanceCurrency: SmsCurrency?, newWalletName: String?, balanceOnTarget: Boolean, done: () -> Unit) = execute {
+    fun approve(candidate: BankSmsCandidate, amount: String, currency: SmsCurrency?, kind: BankSmsKind?, walletId: Long?, toWalletId: Long?, memberId: Long?, balance: String?, balanceCurrency: SmsCurrency?, newWalletName: String?, balanceOnTarget: Boolean, tagIds: List<Long>, loanId: Long?, done: () -> Unit) = execute {
         val operation = requireNotNull(kind) { "نوع تراکنش را انتخاب کنید" }
         val unit = requireNotNull(currency) { "واحد مبلغ پیامک را انتخاب کنید" }
         val raw = PersianNumberFormatter.normalize(amount).replace(",", "").toBigDecimalOrNull() ?: error("مبلغ نامعتبر است")
@@ -43,7 +48,7 @@ private data class SmsActionState(val busy: Boolean = false, val error: String? 
             val balanceUnit = requireNotNull(balanceCurrency) { "واحد مانده را انتخاب کنید" }
             if(balanceUnit == SmsCurrency.RIAL) rawBalance.divide(BigDecimal.TEN) else rawBalance
         }
-        importSms(candidate,toman,operation,requireNotNull(walletId) { "حساب را انتخاب کنید" },toWalletId,requireNotNull(memberId) { "شخص را انتخاب کنید" },snapshot,newWalletName,balanceOnTarget)
+        importSms(candidate,toman,operation,requireNotNull(walletId) { "حساب را انتخاب کنید" },toWalletId,requireNotNull(memberId) { "شخص را انتخاب کنید" },snapshot,newWalletName,balanceOnTarget,tagIds,loanId)
         done()
     }
     fun clearError() { action.update { it.copy(error = null) } }

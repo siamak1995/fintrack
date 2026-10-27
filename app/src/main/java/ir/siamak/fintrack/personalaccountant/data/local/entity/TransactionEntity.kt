@@ -82,6 +82,7 @@ data class TransactionEntity(
      */
     val syncState: SyncState = SyncState.LOCAL_ONLY,
     val serverId: Long? = null,
-    val contextId: Long = AccountantContextIds.PERSONAL
+    val contextId: Long = AccountantContextIds.PERSONAL,
+    @androidx.room.ColumnInfo(defaultValue = "NULL") val loanId: Long? = null
 )
 

@@ -102,4 +102,93 @@ class FinanceSafetyTest {
             categoryName = "آزمایش",walletId = 10,toWalletId = null,memberId = 1,date = timestamp,note = "روز")) }
         assertEquals(listOf(next-1,start),db.transactionDao().getTransactionsByDateRangeSync(start,next-1).map { it.date })
     }
+
+    @Test fun archivingMemberKeepsFinancialHistoryAndBalance() = runBlocking {
+        val row = candidate("بانک نمونه واریز 1000 ریال حساب 1234")
+        ImportBankSms(db,inbox)(row,BigDecimal("100"),BankSmsKind.INCOME,10,null,1)
+        db.memberDao().deleteMember(db.memberDao().getMemberById(1)!!)
+        assertTrue(db.memberDao().getMemberById(1)!!.isDeleted)
+        assertTrue(db.memberDao().getAllMembers().first().isEmpty())
+        assertEquals(1,db.transactionDao().getAllTransactionsSync().size)
+        assertEquals(500100.0,db.walletDao().getWalletById(10)!!.balance,0.0)
+    }
+    @Test fun editingHistoryCoveredByLaterStatementKeepsCurrentBankBalance() = runBlocking {
+        val ledger = ir.siamak.fintrack.personalaccountant.data.repository.PersonalLedger(db)
+        val expense = ir.siamak.fintrack.personalaccountant.data.model.Transaction(amount = 1000.0,type = TransactionType.EXPENSE,
+            categoryName = "خرید",walletId = 10,memberId = 1,date = 1792999999000,note = "هزینه قدیمی")
+        val id = ledger.save(expense)
+        val row = candidate("بانک نمونه واریز 1000 ریال حساب 1234 مانده: 900000 ریال")
+        ImportBankSms(db,inbox)(row,BigDecimal("100"),BankSmsKind.INCOME,10,null,1,BigDecimal("90000"))
+        ledger.save(expense.copy(id = id,amount = 2000.0))
+        ledger.delete(id)
+        assertEquals(90000.0,db.walletDao().getWalletById(10)!!.balance,0.0)
+    }
+    private suspend fun seedLoan() {
+        db.installmentDao().insertInstallment(InstallmentEntity(id = 7,title = "وام آزمایشی",totalAmount = 10000.0,paidAmount = 500.0,
+            dueDate = 1793000000000,note = null,walletId = 10,installmentCount = 10,openingPaidAmount = 500.0))
+        db.tagDao().insertTag(TagEntity(id = 9,name = "قسط وام",allowedType = TransactionType.EXPENSE))
+    }
+    @Test fun smsExpenseWithLoanTagUpdatesExpenseHistoryWalletAndLoanExactlyOnce() = runBlocking {
+        seedLoan()
+        val row = candidate("بانک نمونه برداشت 10000 ریال حساب 1234")
+        val approve = ImportBankSms(db,inbox)
+        repeat(2) { approve(row,BigDecimal("1000"),BankSmsKind.EXPENSE,10,null,1,tagIds = listOf(9),loanId = 7) }
+        val transaction = db.transactionDao().getAllTransactionsWithTagsSync().single()
+        assertEquals(TransactionType.EXPENSE,transaction.transaction.type)
+        assertEquals(1000.0,transaction.transaction.amount,0.0)
+        assertEquals(7L,transaction.transaction.loanId)
+        assertEquals(listOf(9L),transaction.tags.map { it.id })
+        assertEquals(499000.0,db.walletDao().getWalletById(10)!!.balance,0.0)
+        assertEquals(1500.0,db.installmentDao().getInstallmentById(7)!!.paidAmount,0.0)
+    }
+    @Test fun manualPaymentEditAndDeleteReverseLoanAndBalanceTogether() = runBlocking {
+        seedLoan()
+        val ledger = ir.siamak.fintrack.personalaccountant.data.repository.PersonalLedger(db)
+        val expense = ir.siamak.fintrack.personalaccountant.data.model.Transaction(amount = 1000.0,type = TransactionType.EXPENSE,
+            categoryName = "قسط",walletId = 10,memberId = 1,date = 1793000000000,note = "پرداخت",loanId = 7)
+        val id = ledger.save(expense)
+        ledger.save(expense.copy(id = id,amount = 2000.0))
+        assertEquals(2500.0,db.installmentDao().getInstallmentById(7)!!.paidAmount,0.0)
+        assertEquals(498000.0,db.walletDao().getWalletById(10)!!.balance,0.0)
+        ledger.delete(id)
+        assertEquals(500.0,db.installmentDao().getInstallmentById(7)!!.paidAmount,0.0)
+        assertEquals(500000.0,db.walletDao().getWalletById(10)!!.balance,0.0)
+        assertTrue(db.transactionDao().getAllTransactionsSync().isEmpty())
+        db.openHelper.readableDatabase.query("SELECT isDeleted FROM transactions WHERE id=$id").use { assertTrue(it.moveToFirst()); assertEquals(1,it.getInt(0)) }
+    }
+    @Test fun overpaymentOrInvalidTagRollsBackLoanWalletAndHistory() = runBlocking {
+        seedLoan()
+        val row = candidate("بانک نمونه برداشت 200000 ریال حساب 1234")
+        assertTrue(runCatching { ImportBankSms(db,inbox)(row,BigDecimal("20000"),BankSmsKind.EXPENSE,10,null,1,tagIds = listOf(9),loanId = 7) }.isFailure)
+        assertEquals(500.0,db.installmentDao().getInstallmentById(7)!!.paidAmount,0.0)
+        assertEquals(500000.0,db.walletDao().getWalletById(10)!!.balance,0.0)
+        assertTrue(db.transactionDao().getAllTransactionsSync().isEmpty())
+        assertEquals(1,inbox.state.first().pending.size)
+    }
+    @Test fun loanDepositIsIncomeAndTransferIsNeverARepayment() = runBlocking {
+        seedLoan()
+        val row = candidate("بانک نمونه واریز 100000 ریال حساب 1234")
+        ImportBankSms(db,inbox)(row,BigDecimal("10000"),BankSmsKind.INCOME,10,null,1,loanId = 7)
+        assertEquals(500.0,db.installmentDao().getInstallmentById(7)!!.paidAmount,0.0)
+        assertEquals(TransactionType.INCOME,db.transactionDao().getAllTransactionsSync().single().type)
+        val transfer = candidate("بانک نمونه انتقال وجه مبلغ 10000 ریال حساب 1234")
+        assertTrue(runCatching { ImportBankSms(db,inbox)(transfer,BigDecimal("1000"),BankSmsKind.TRANSFER,10,11,1,loanId = 7) }.isFailure)
+        assertEquals(510000.0,db.walletDao().getWalletById(10)!!.balance,0.0)
+        assertEquals(100000.0,db.walletDao().getWalletById(11)!!.balance,0.0)
+    }
+
+    @Test fun tagOnlyEditingAReconciledSmsDoesNotReapplyBalance() = runBlocking {
+        seedLoan()
+        val row = candidate("بانک نمونه برداشت 10000 ریال حساب 1234 مانده: 900000 ریال")
+        ImportBankSms(db,inbox)(row,BigDecimal("1000"),BankSmsKind.EXPENSE,10,null,1,BigDecimal("90000"))
+        val transaction = db.transactionDao().getAllTransactionsWithTagsSync().single()
+        val ledger = ir.siamak.fintrack.personalaccountant.data.repository.PersonalLedger(db)
+        val model = ir.siamak.fintrack.personalaccountant.data.model.Transaction(id = transaction.transaction.id,amount = 1000.0,
+            type = TransactionType.EXPENSE,categoryName = "قسط",walletId = 10,memberId = 1,date = row.receivedAt,note = transaction.transaction.note,
+            loanId = 7,tags = listOf(ir.siamak.fintrack.personalaccountant.data.model.Tag(id = 9,name = "قسط وام",allowedType = TransactionType.EXPENSE)))
+        ledger.save(model)
+        ledger.save(model)
+        assertEquals(90000.0,db.walletDao().getWalletById(10)!!.balance,0.0)
+        assertEquals(1500.0,db.installmentDao().getInstallmentById(7)!!.paidAmount,0.0)
+    }
 }

@@ -26,7 +26,7 @@ class GetWalletReportUseCase @Inject constructor(
         val txGroupedByWallet = transactions.groupBy { it.walletId }
 
         return wallets.map { wallet ->
-            val walletTransactions = txGroupedByWallet[wallet.id] ?: emptyList()
+            val walletTransactions = transactions.filter { it.walletId == wallet.id || it.toWalletId == wallet.id }
 
             val income = walletTransactions
                 .filter { it.type == TransactionType.INCOME }

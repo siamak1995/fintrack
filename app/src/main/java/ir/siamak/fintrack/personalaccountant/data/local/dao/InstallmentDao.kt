@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface InstallmentDao {
+    @Query("SELECT amount FROM transactions WHERE loanId = :loanId AND type = 'EXPENSE' AND isDeleted = 0 AND contextId = 1")
+    suspend fun linkedPaymentAmounts(loanId: Long): List<Double>
 
     @Query("SELECT * FROM installment WHERE isDeleted = 0 AND contextId = 1 ORDER BY dueDate ASC")
     fun getAllInstallments(): Flow<List<InstallmentEntity>>
@@ -29,10 +31,9 @@ interface InstallmentDao {
         installment: InstallmentEntity
     )
 
-    @Delete
-    suspend fun deleteInstallment(
-        installment: InstallmentEntity
-    )
+    suspend fun deleteInstallment(installment: InstallmentEntity) {
+        updateInstallment(installment.copy(isDeleted = true,updatedAt = System.currentTimeMillis()))
+    }
 
 
     @Query("SELECT * FROM transactions WHERE date BETWEEN :start AND :end")

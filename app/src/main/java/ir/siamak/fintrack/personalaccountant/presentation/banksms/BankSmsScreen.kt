@@ -112,6 +112,19 @@ import java.time.*
     var amount by rememberSaveable { mutableStateOf(candidate.parsed.amount.orEmpty()) }
     var currency by rememberSaveable { mutableStateOf(candidate.parsed.currency) }
     var kind by rememberSaveable { mutableStateOf(candidate.parsed.kind) }
+    var selectedTags by rememberSaveable { mutableStateOf(listOf<Long>()) }
+    var loanId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val transactionType = when(kind) {
+        BankSmsKind.INCOME -> ir.siamak.fintrack.personalaccountant.data.model.TransactionType.INCOME
+        BankSmsKind.EXPENSE -> ir.siamak.fintrack.personalaccountant.data.model.TransactionType.EXPENSE
+        BankSmsKind.TRANSFER -> ir.siamak.fintrack.personalaccountant.data.model.TransactionType.TRANSFER
+        null -> null
+    }
+    val allowedTags = state.tags.filter { it.allowedType == transactionType }
+    LaunchedEffect(kind) {
+        selectedTags = selectedTags.filter { id -> allowedTags.any { it.id == id } }
+        loanId = null
+    }
     val matching = state.wallets.filter { !it.isCash && BankSmsAccounts.matches(candidate.parsed,it.name,it.cardNumber,it.accountNumber) }
     var newWalletName by rememberSaveable { mutableStateOf(BankSmsAccounts.suggestedName(candidate.parsed)) }
     var balanceOnTarget by rememberSaveable { mutableStateOf(candidate.parsed.incoming == true) }
@@ -129,7 +142,7 @@ import java.time.*
                 Button(onClick = {
                     val originalDay = Instant.ofEpochMilli(statementTime).atZone(ZoneId.systemDefault()).toLocalDate().toString()
                     val time = if(date == originalDay) statementTime else LocalDate.parse(date).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                    vm.approve(candidate.copy(receivedAt = time),amount,currency,kind,walletId,toWalletId,memberId,if(syncBalance) balance else null,if(syncBalance) balanceCurrency ?: currency else null,newWalletName,balanceOnTarget,dismiss)
+                    vm.approve(candidate.copy(receivedAt = time),amount,currency,kind,walletId,toWalletId,memberId,if(syncBalance) balance else null,if(syncBalance) balanceCurrency ?: currency else null,newWalletName,balanceOnTarget,selectedTags,loanId,dismiss)
                 },enabled = !state.busy && amount.isNotBlank() && currency != null && kind != null && walletId != null && memberId != null && (walletId != 0L || (newWalletName.isNotBlank())) && (!syncBalance || balance.isNotBlank()) && (kind != BankSmsKind.TRANSFER || (toWalletId != null && !(walletId == 0L && toWalletId == 0L) && (toWalletId != 0L || newWalletName.isNotBlank()))),modifier = Modifier.fillMaxWidth()) { Text("تأیید و ثبت در حسابدار") }
                 FilledTonalButton(onClick = dismiss,enabled = !state.busy,modifier = Modifier.fillMaxWidth()) { Text("فعلاً نه") }
             }) {
@@ -137,6 +150,17 @@ import java.time.*
                 Entry("مبلغ پیامک *",amount,{ amount = it },number = true)
                 ChoiceEntry("واحد مبلغ *",when(currency) { SmsCurrency.RIAL -> "ریال"; SmsCurrency.TOMAN -> "تومان"; null -> "انتخاب واحد" },listOf(SmsCurrency.RIAL to "ریال",SmsCurrency.TOMAN to "تومان")) { currency = it }
                 ChoiceEntry("نوع تراکنش",kindLabel(kind),BankSmsKind.entries.map { it to kindLabel(it) }) { kind = it }
+                if(transactionType != null) {
+                    DataRow("نوع ثبت در درآمد و هزینه",transactionType.toPersianLabel())
+                    Text("تگ‌های تراکنش")
+                    allowedTags.forEach { tag ->
+                        FilterChip(selected = tag.id in selectedTags,onClick = {
+                            selectedTags = if(tag.id in selectedTags) selectedTags - tag.id else selectedTags + tag.id
+                        },label = { Text(tag.name) })
+                    }
+                    ir.siamak.fintrack.personalaccountant.presentation.components.LoanTransactionFields(
+                        state.loans,transactionType,loanId,allowedTags.filter { it.id in selectedTags }.map { it.name }) { loanId = it }
+                }
                 if(kind == BankSmsKind.TRANSFER) Text("انتقال بین دو حساب خودتان است؛ برای واریز یا برداشت از شخص دیگر، نوع مربوط را انتخاب کنید. پیامک طرف دیگر همین انتقال را دوباره ثبت نکنید.",style = MaterialTheme.typography.bodySmall)
                 ChoiceEntry(if(kind == BankSmsKind.TRANSFER) "حساب مبدأ *" else "حساب *",if(walletId == 0L) "ساخت خودکار حساب جدید" else state.wallets.firstOrNull { it.id == walletId }?.name ?: "انتخاب حساب",state.wallets.map { it.id to it.name } + if(toWalletId != 0L || kind != BankSmsKind.TRANSFER) listOf(0L to "ساخت خودکار حساب جدید") else emptyList()) { walletId = it }
                 if(walletId == 0L || (kind == BankSmsKind.TRANSFER && toWalletId == 0L)) Entry("نام حساب جدید *",newWalletName,{ newWalletName = it })
@@ -160,3 +184,9 @@ import java.time.*
     }
 }
 private fun kindLabel(kind: BankSmsKind?) = when(kind) { null -> "انتخاب نوع تراکنش"; BankSmsKind.INCOME -> "واریز / درآمد"; BankSmsKind.EXPENSE -> "برداشت / هزینه"; BankSmsKind.TRANSFER -> "انتقال بین حساب‌های من" }
+
+private fun ir.siamak.fintrack.personalaccountant.data.model.TransactionType.toPersianLabel() = when(this) {
+    ir.siamak.fintrack.personalaccountant.data.model.TransactionType.INCOME -> "درآمد"
+    ir.siamak.fintrack.personalaccountant.data.model.TransactionType.EXPENSE -> "هزینه"
+    ir.siamak.fintrack.personalaccountant.data.model.TransactionType.TRANSFER -> "انتقال داخلی (خارج از جمع درآمد و هزینه)"
+}

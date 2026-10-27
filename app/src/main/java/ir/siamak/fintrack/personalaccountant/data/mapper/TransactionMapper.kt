@@ -20,7 +20,7 @@ fun TransactionEntity.toModel(): Transaction {
         toWalletId = toWalletId,
         memberId = memberId,
         date = date,
-        note = note
+        note = note, loanId = loanId
     )
 }
 
@@ -38,7 +38,7 @@ fun TransactionWithTags.toModel(): Transaction {
         toWalletId = transaction.toWalletId,
         memberId = transaction.memberId,
         date = transaction.date,
-        note = transaction.note,
+        note = transaction.note, loanId = transaction.loanId,
         tags = tags.map { it.toModel() }
     )
 }
@@ -71,7 +71,7 @@ fun Transaction.toEntity(): TransactionEntity {
         toWalletId = toWalletId,
         memberId = memberId,
         date = date,
-        note = note
+        note = note, loanId = loanId
     )
 }
 

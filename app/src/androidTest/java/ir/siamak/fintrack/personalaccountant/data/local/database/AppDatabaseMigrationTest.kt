@@ -14,6 +14,35 @@ import org.junit.runner.RunWith
 /** Verifies that personal-database migrations preserve legacy data. */
 @RunWith(AndroidJUnit4::class)
 class AppDatabaseMigrationTest {
+    @Test fun migrates9To10WithoutReinterpretingOrDeletingFinancialHistory() {
+        val name = "personal-v10-preservation"
+        helper.createDatabase(name,9).use { db ->
+            db.execSQL("INSERT INTO wallet(id,name,balance,color,createdAt,updatedAt,isDeleted,version,syncState,serverId,contextId,isCash) VALUES(1,'Bank',123456.7,'#008577',12,12,0,1,'LOCAL_ONLY',NULL,1,0)")
+            db.execSQL("INSERT INTO members(id,name,relation,color,icon,createdAt,updatedAt,isDeleted,version,syncState,contextId) VALUES(1,'Person','self','#000000','person',12,12,0,1,'LOCAL_ONLY',1)")
+            db.execSQL("INSERT INTO installment(id,title,totalAmount,paidAmount,dueDate,note,walletId,isPaid,createdAt,updatedAt,isDeleted,version,syncState,contextId,installmentCount,startDate,automaticPayment) VALUES(1,'Contract',12345.67,2345.67,1793000000000,'keep',1,0,123,123,0,1,'LOCAL_ONLY',1,12,123,1)")
+            db.execSQL("INSERT INTO transactions(id,amount,type,categoryName,walletId,memberId,date,note,createdAt,updatedAt,isDeleted,version,syncState,contextId) VALUES(1,2345.67,'EXPENSE','Legacy',1,1,1793000000000,'keep receipt',123,123,0,1,'LOCAL_ONLY',1)")
+            db.execSQL("INSERT INTO tags(id,name,allowedType,createdAt,updatedAt,isDeleted,version,syncState,contextId) VALUES(1,'قسط','EXPENSE',123,123,0,1,'LOCAL_ONLY',1)")
+            db.execSQL("INSERT INTO transaction_tags(transactionId,tagId) VALUES(1,1)")
+        }
+        helper.runMigrationsAndValidate(name,10,true,DatabaseModule.MIGRATION_9_10).use { db ->
+            assertEquals(123456.7,db.query("SELECT balance FROM wallet WHERE id=1").singleDouble(),0.0)
+            assertEquals(12345.67,db.query("SELECT totalAmount FROM installment WHERE id=1").singleDouble(),0.0)
+            assertEquals(2345.67,db.query("SELECT paidAmount FROM installment WHERE id=1").singleDouble(),0.0)
+            assertEquals(2345.67,db.query("SELECT openingPaidAmount FROM installment WHERE id=1").singleDouble(),0.0)
+            assertEquals(1L,db.query("SELECT COUNT(*) FROM installment WHERE principalAmount IS NULL AND annualInterestRate IS NULL AND installmentCount=12 AND automaticPayment=1 AND note='keep'").singleLong())
+            assertEquals(1L,db.query("SELECT COUNT(*) FROM transactions WHERE loanId IS NULL AND note='keep receipt'").singleLong())
+            assertEquals(1L,db.query("SELECT COUNT(*) FROM transaction_tags").singleLong())
+        }
+    }
+    @Test fun complete6To10MigrationChainRetainsOriginalLoan() {
+        val name = "personal-v6-v10-preservation"
+        helper.createDatabase(name,6).use { db ->
+            db.execSQL("INSERT INTO installment(id,title,totalAmount,paidAmount,dueDate,note,walletId,isPaid,createdAt,updatedAt,isDeleted,version,syncState,serverId) VALUES(1,'Old loan',1000000,100000,1790000000000,'original',1,0,123,123,0,1,'LOCAL_ONLY',NULL)")
+        }
+        helper.runMigrationsAndValidate(name,10,true,DatabaseModule.MIGRATION_6_7,DatabaseModule.MIGRATION_7_8,DatabaseModule.MIGRATION_8_9,DatabaseModule.MIGRATION_9_10).use { db ->
+            assertEquals(1L,db.query("SELECT COUNT(*) FROM installment WHERE totalAmount=1000000 AND paidAmount=100000 AND openingPaidAmount=100000 AND startDate=123 AND contextId=1 AND note='original'").singleLong())
+        }
+    }
     @get:Rule
     val helper = MigrationTestHelper(
         InstrumentationRegistry.getInstrumentation(),

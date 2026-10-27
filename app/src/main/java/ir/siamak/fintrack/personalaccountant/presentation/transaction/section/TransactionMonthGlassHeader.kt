@@ -82,7 +82,7 @@ fun TransactionMonthGlassHeader(
                     verticalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
                     Text(
-                        text = monthKey.displayName(),
+                        text = monthKey.displayName(),groupNumbers = false,
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold
                         ),

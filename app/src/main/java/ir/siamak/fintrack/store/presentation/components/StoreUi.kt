@@ -62,9 +62,11 @@ fun decimal(value: String): Double = numeric(value).replace('٫','.').toDoubleOr
         }
     }
 }
-@Composable fun Entry(label: String, value: String, change: (String) -> Unit, number: Boolean = false, lines: Int = 1) =
+@Composable fun Entry(label: String, value: String, change: (String) -> Unit, number: Boolean = false, lines: Int = 1,
+    amount: Boolean = number && !label.contains("درصد") && Regex("مبلغ|قیمت|مانده|بازپرداخت|پرداخت|سرمایه|هزینه|درآمد|بیعانه|سود|تخفیف").containsMatchIn(label)) =
     OutlinedTextField(value = value, onValueChange = { change(if(number) numeric(it) else it) }, label = { Text(label) }, modifier = Modifier.fillMaxWidth(),
         visualTransformation = if(number) ir.siamak.fintrack.common.core.formatter.GroupedNumberTransformation else ir.siamak.fintrack.common.core.formatter.PersianVisualTransformation,
+        supportingText = if(amount && value.isNotBlank()) ({ Text(ir.siamak.fintrack.common.core.formatter.PersianAmountWords.format(value),style = MaterialTheme.typography.bodySmall) }) else null,
         singleLine = lines == 1, minLines = lines, keyboardOptions = KeyboardOptions(keyboardType = if(number) KeyboardType.Decimal else KeyboardType.Text))
 
 
@@ -76,7 +78,7 @@ fun decimal(value: String): Double = numeric(value).replace('٫','.').toDoubleOr
         val state = ir.siamak.fintrack.common.core.datepicker.state.rememberPersianDatePickerState(initialSelectedDate = initial)
         ir.siamak.fintrack.common.core.datepicker.components.PersianDatePickerDialog(
             visible = true, displayedMonth = state.displayedMonth, selectedDate = state.selectedDate,
-            onDateSelected = state::onDateSelected, onPreviousMonthClick = state::showPreviousMonth, onNextMonthClick = state::showNextMonth,
+            onDateSelected = state::onDateSelected, onPreviousMonthClick = state::showPreviousMonth, onNextMonthClick = state::showNextMonth,onMonthSelected = state::updateDisplayedMonth,
             onDismissRequest = { open = false }, onConfirmClick = {
                 state.selectedDate?.let { change(ir.siamak.fintrack.common.core.datepicker.calendar.JalaliDateConverter.toGregorian(it).toString()) }
                 open = false

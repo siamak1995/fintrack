@@ -18,7 +18,8 @@ fun PersianDatePickerDialog(
     onNextMonthClick: () -> Unit,
     onDismissRequest: () -> Unit,
     onConfirmClick: () -> Unit,
-    title: String = "انتخاب تاریخ"
+    title: String = "انتخاب تاریخ",
+    onMonthSelected: ((PersianMonth) -> Unit)? = null
 ) {
     if (!visible) return
 
@@ -36,7 +37,8 @@ fun PersianDatePickerDialog(
                 selectedDate = selectedDate,
                 onDateSelected = onDateSelected,
                 onPreviousMonthClick = onPreviousMonthClick,
-                onNextMonthClick = onNextMonthClick
+                onNextMonthClick = onNextMonthClick,
+                onMonthSelected = onMonthSelected
             )
         },
         confirmButton = {

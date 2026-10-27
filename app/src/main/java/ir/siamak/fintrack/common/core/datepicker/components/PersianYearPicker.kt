@@ -33,7 +33,7 @@ fun PersianYearPicker(
                 onClick = { onYearSelected(year) },
                 label = {
                     Text(
-                        text = year.toString(),
+                        text = year.toString(),groupNumbers = false,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

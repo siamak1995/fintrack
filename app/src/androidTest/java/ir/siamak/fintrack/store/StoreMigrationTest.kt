@@ -41,7 +41,7 @@ class StoreMigrationTest {
             db.query("SELECT walletId FROM legacy_sales_v1 WHERE id=1").use { it.moveToFirst(); assertEquals(77,it.getInt(0)) }
             db.query("SELECT subtotal,discountAmount,finalAmount FROM sales WHERE id=1").use { it.moveToFirst(); assertEquals(200000,it.getInt(0)); assertEquals(20000,it.getInt(1)); assertEquals(180000,it.getInt(2)) }
         }
-        Room.databaseBuilder(context,StoreDatabase::class.java,name).addMigrations(StoreMigrations.FROM_1_TO_2).build().useDatabase { db ->
+        Room.databaseBuilder(context,StoreDatabase::class.java,name).addMigrations(StoreMigrations.FROM_1_TO_2,StoreMigrations.FROM_2_TO_3).build().useDatabase { db ->
             val invoice = InvoiceRepositoryImpl(db.invoiceDao()).observeAll().first().single()
             assertEquals("مشتری",invoice.customer.name)
             assertEquals(180000L,invoice.finalAmount)
@@ -101,7 +101,7 @@ class StoreMigrationTest {
         val name = "store-scaffold-migration-test"
         target.createDatabase(name,1).close()
         target.runMigrationsAndValidate(name,3,true,StoreMigrations.FROM_1_TO_2,StoreMigrations.FROM_2_TO_3).close()
-        Room.databaseBuilder(context,StoreDatabase::class.java,name).addMigrations(StoreMigrations.FROM_1_TO_2).build().useDatabase { db ->
+        Room.databaseBuilder(context,StoreDatabase::class.java,name).addMigrations(StoreMigrations.FROM_1_TO_2,StoreMigrations.FROM_2_TO_3).build().useDatabase { db ->
             assertEquals(3,db.openHelper.writableDatabase.version)
         }
         context.deleteDatabase(name)

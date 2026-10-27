@@ -36,7 +36,8 @@ fun PersianDateRangePickerDialog(
                 selectedRange = state.selectedRange,
                 onDayClick = { if(singleDay) state.setSelection(PersianDateRange(it,it)) else state.onDateSelected(it) },
                 onPreviousMonthClick = { state.showPreviousMonth() },
-                onNextMonthClick = { state.showNextMonth() }
+                onNextMonthClick = { state.showNextMonth() },
+                onMonthSelected = state::updateDisplayedMonth
             )
             }
         },

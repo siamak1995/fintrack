@@ -89,7 +89,7 @@ class BackupArchiveTest {
             BackupArchive.snapshot(db,file)
             SQLiteDatabase.openDatabase(file.path,null,SQLiteDatabase.OPEN_READONLY).use { copy ->
                 copy.rawQuery("SELECT name FROM stores WHERE id=1",null).use { assertTrue(it.moveToFirst()); assertEquals("حفظ داده",it.getString(0)) }
-                assertEquals(2,copy.version)
+                assertEquals(3,copy.version)
                 copy.rawQuery("SELECT payload FROM legacy_probe WHERE id=77",null).use { assertTrue(it.moveToFirst()); assertArrayEquals(byteArrayOf(0,1,-1),it.getBlob(0)) }
                 copy.rawQuery("SELECT seq FROM sqlite_sequence WHERE name='legacy_probe'",null).use { assertTrue(it.moveToFirst()); assertEquals(99,it.getInt(0)) }
             }
@@ -138,7 +138,7 @@ class BackupArchiveTest {
         val db = DatabaseModule.provideAppDatabase(providerContext)
         try {
             db.openHelper.writableDatabase.execSQL("INSERT INTO accountant_contexts (id,ownerUserId,type,name,description,isActive,createdAt,updatedAt) VALUES (1,0,'PERSONAL','محفوظ',NULL,1,0,0)")
-            db.openHelper.writableDatabase.version = 9
+            db.openHelper.writableDatabase.version = 11
             db.close()
             val lower = DatabaseModule.provideAppDatabase(providerContext)
             try { lower.openHelper.writableDatabase; fail("Downgrade must not silently delete data") } catch(expected: IllegalStateException) { } finally { lower.close() }

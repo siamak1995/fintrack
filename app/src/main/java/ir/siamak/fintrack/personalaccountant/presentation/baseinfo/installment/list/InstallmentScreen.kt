@@ -53,6 +53,9 @@ import java.time.*
     val schedule = loanSchedule(loan)
     fun date(value: Long) = dateLabel(Instant.ofEpochMilli(value).atZone(ZoneId.systemDefault()).toLocalDate().toString())
     FormSection(loan.title) {
+        loan.principalAmount?.let { DataRow("اصل وام",quantity(it) + " تومان") }
+        loan.annualInterestRate?.let { DataRow("سود سالانه",quantity(it) + " درصد") }
+        loan.installmentAmount?.let { DataRow("مبلغ هر قسط",quantity(it) + " تومان") }
         DataRow("کل بازپرداخت",quantity(loan.totalAmount) + " تومان")
         DataRow("پرداخت‌شده",quantity(loan.paidAmount) + " تومان")
         DataRow("مانده",quantity(schedule.remainingAmount) + " تومان",true)

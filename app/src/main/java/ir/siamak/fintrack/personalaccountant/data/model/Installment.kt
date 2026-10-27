@@ -21,5 +21,11 @@ data class Installment(
     val isPaid: Boolean = false,
     val installmentCount: Int = 1,
     val startDate: Long = createdAt,
-    val automaticPayment: Boolean = false
+    val automaticPayment: Boolean = false,
+    val principalAmount: Double? = null,
+    val annualInterestRate: Double? = null,
+    val installmentAmount: Double? = null,
+    val openingPaidAmount: Double = paidAmount,
+    val endDate: Long? = null,
+    val interestMethod: String? = null
 )

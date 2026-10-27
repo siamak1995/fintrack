@@ -7,11 +7,15 @@ import ir.siamak.fintrack.personalaccountant.data.local.entity.TransactionEntity
 import ir.siamak.fintrack.personalaccountant.data.model.TransactionType
 import java.math.BigDecimal
 import ir.siamak.fintrack.personalaccountant.data.local.entity.WalletEntity
+import ir.siamak.fintrack.personalaccountant.data.local.entity.TransactionTagCrossRef
+import ir.siamak.fintrack.personalaccountant.data.repository.PersonalLedger
+import ir.siamak.fintrack.personalaccountant.domain.analytics.isLoanTag
 import javax.inject.Inject
 
 /** The only path from a reviewed SMS into the ledger. No receiver can call this implicitly. */
 class ImportBankSms @Inject constructor(@PersonalAccountingDatabase private val db: AppDatabase, private val inbox: BankSmsInbox) {
-    suspend operator fun invoke(candidate: BankSmsCandidate, amount: BigDecimal, kind: BankSmsKind, walletId: Long, toWalletId: Long?, memberId: Long, reportedBalance: BigDecimal? = null, newWalletName: String? = null, balanceOnTarget: Boolean = candidate.parsed.incoming == true) {
+    suspend operator fun invoke(candidate: BankSmsCandidate, amount: BigDecimal, kind: BankSmsKind, walletId: Long, toWalletId: Long?, memberId: Long, reportedBalance: BigDecimal? = null, newWalletName: String? = null, balanceOnTarget: Boolean = candidate.parsed.incoming == true,
+        tagIds: List<Long> = emptyList(),loanId: Long? = null) {
         val marker = "[FinTrackSms:${candidate.id}]"
         db.withTransaction {
             if(db.transactionDao().hasSmsMarker(marker)) return@withTransaction
@@ -58,9 +62,20 @@ class ImportBankSms @Inject constructor(@PersonalAccountingDatabase private val 
             val sourceBalance = resulting(wallet,delta)
             val targetBalance = target?.let { resulting(it,amount) }
             val type = when(kind) { BankSmsKind.INCOME -> TransactionType.INCOME; BankSmsKind.EXPENSE -> TransactionType.EXPENSE; BankSmsKind.TRANSFER -> TransactionType.TRANSFER }
-            db.transactionDao().insertTransaction(TransactionEntity(amount = value, type = type, categoryName = "پیامک بانکی تأییدشده",
+            val tags = tagIds.distinct().map { id -> requireNotNull(db.tagDao().getTagById(id)) { "تگ پیدا نشد" }.also {
+                require(!it.isDeleted && it.contextId == wallet.contextId && it.allowedType == type) { "تگ با نوع تراکنش سازگار نیست" }
+            } }
+            require(type == TransactionType.TRANSFER || tags.none { isLoanTag(it.name) } || loanId != null) { "وام مربوط به تگ قسط یا وام را انتخاب کنید" }
+            val row = TransactionEntity(amount = value, type = type, categoryName = tags.firstOrNull()?.name ?: when {
+                loanId != null && type == TransactionType.EXPENSE -> "پرداخت قسط وام"
+                loanId != null -> "دریافت وام"
+                else -> "پیامک بانکی تأییدشده"
+            },
                 walletId = wallet.id, toWalletId = target?.id, memberId = member.id, date = candidate.receivedAt,
-                note = marker + "\n" + (snapshotId?.let { "[FinTrackSmsBalance:$it]" } ?: "[FinTrackSmsTransaction]") + "\n" + candidate.body, contextId = wallet.contextId))
+                note = marker + "\n" + (snapshotId?.let { "[FinTrackSmsBalance:$it]" } ?: "[FinTrackSmsTransaction]") + "\n" + candidate.body, contextId = wallet.contextId,loanId = loanId)
+            PersonalLedger(db).applyLoan(null,row)
+            val transactionId = db.transactionDao().insertTransaction(row)
+            db.transactionDao().insertTransactionTagCrossRefs(tags.map { TransactionTagCrossRef(transactionId,it.id) })
             db.walletDao().updateWallet(wallet.copy(balance = sourceBalance, updatedAt = System.currentTimeMillis()))
             if(target != null) db.walletDao().updateWallet(target.copy(balance = requireNotNull(targetBalance), updatedAt = System.currentTimeMillis()))
         }

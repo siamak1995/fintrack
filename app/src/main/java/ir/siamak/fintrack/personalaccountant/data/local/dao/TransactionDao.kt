@@ -82,32 +82,32 @@ interface TransactionDao {
     /**
      * همه تراکنش‌ها را به صورت جریان برمی‌گرداند.
      */
-    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    @Query("SELECT * FROM transactions WHERE isDeleted = 0 AND contextId = 1 ORDER BY date DESC")
     fun getAllTransactions(): Flow<List<TransactionEntity>>
 
     /**
      * تراکنش‌های یک حساب را به صورت جریان برمی‌گرداند.
      */
-    @Query("SELECT * FROM transactions WHERE walletId = :walletId ORDER BY date DESC")
+    @Query("SELECT * FROM transactions WHERE (walletId = :walletId OR toWalletId = :walletId) AND isDeleted = 0 AND contextId = 1 ORDER BY date DESC")
     fun getTransactionsByWallet(walletId: Long): Flow<List<TransactionEntity>>
 
     /**
      * یک تراکنش را بر اساس شناسه به صورت suspend برمی‌گرداند.
      */
     @Transaction
-    @Query("SELECT * FROM transactions WHERE id = :transactionId LIMIT 1")
+    @Query("SELECT * FROM transactions WHERE id = :transactionId AND isDeleted = 0 AND contextId = 1 LIMIT 1")
     suspend fun getTransactionById(transactionId: Long): TransactionWithTags?
 
     /**
      * اگر جایی جریان تک‌تراکنش لازم باشد این متد قابل استفاده است.
      */
-    @Query("SELECT * FROM transactions WHERE id = :transactionId LIMIT 1")
+    @Query("SELECT * FROM transactions WHERE id = :transactionId AND isDeleted = 0 AND contextId = 1 LIMIT 1")
     fun observeTransactionById(transactionId: Long): Flow<TransactionEntity?>
 
     /**
      * همه تراکنش‌ها را به صورت لیست همگام برمی‌گرداند.
      */
-    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    @Query("SELECT * FROM transactions WHERE isDeleted = 0 AND contextId = 1 ORDER BY date DESC")
     suspend fun getAllTransactionsSync(): List<TransactionEntity>
 
     /**
@@ -116,7 +116,7 @@ interface TransactionDao {
     @Query(
         """
         SELECT * FROM transactions
-        WHERE date >= :startTimestamp AND date <= :endTimestamp
+        WHERE isDeleted = 0 AND contextId = 1 AND date >= :startTimestamp AND date <= :endTimestamp
         ORDER BY date DESC
         """
     )
@@ -129,7 +129,7 @@ interface TransactionDao {
      * آخرین تراکنش‌ها را همراه با تگ‌ها برمی‌گرداند.
      */
     @Transaction
-    @Query("SELECT * FROM transactions ORDER BY date DESC LIMIT :limit")
+    @Query("SELECT * FROM transactions WHERE isDeleted = 0 AND contextId = 1 ORDER BY date DESC LIMIT :limit")
     fun getRecentTransactionsWithTags(limit: Int): Flow<List<TransactionWithTags>>
 
 
@@ -140,11 +140,11 @@ interface TransactionDao {
      * requires full transaction-tag relations to be loaded.
      */
     @Transaction
-    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    @Query("SELECT * FROM transactions WHERE isDeleted = 0 AND contextId = 1 ORDER BY date DESC")
     fun getAllTransactionsWithTags(): Flow<List<TransactionWithTags>>
 
     @Transaction
-    @Query("SELECT * FROM transactions WHERE walletId = :walletId ORDER BY date DESC")
+    @Query("SELECT * FROM transactions WHERE (walletId = :walletId OR toWalletId = :walletId) AND isDeleted = 0 AND contextId = 1 ORDER BY date DESC")
     fun getTransactionsByWalletWithTags(walletId: Long): Flow<List<TransactionWithTags>>
 
 
@@ -152,7 +152,7 @@ interface TransactionDao {
     @Query(
         """
     SELECT * FROM transactions
-    WHERE date >= :startTimestamp AND date <= :endTimestamp
+    WHERE isDeleted = 0 AND contextId = 1 AND date >= :startTimestamp AND date <= :endTimestamp
     ORDER BY date DESC
     """
     )
@@ -162,7 +162,7 @@ interface TransactionDao {
     ): List<TransactionWithTags>
 
     @Transaction
-    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    @Query("SELECT * FROM transactions WHERE isDeleted = 0 AND contextId = 1 ORDER BY date DESC")
     suspend fun getAllTransactionsWithTagsSync(): List<TransactionWithTags>
 
 }

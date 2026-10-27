@@ -81,15 +81,15 @@ object UseCaseModule {
     @Provides
     fun provideTransactionUseCases(
         transactionRepository: TransactionRepository,
-        walletRepository: WalletRepository
+        ledger: ir.siamak.fintrack.personalaccountant.data.repository.PersonalLedger
     ): TransactionUseCases {
         return TransactionUseCases(
             getAllTransactions = GetAllTransactionsUseCase(transactionRepository),
             getTransactionsByWallet = GetTransactionsByWalletUseCase(transactionRepository),
             getTransactionById = GetTransactionByIdUseCase(transactionRepository),
-            insertTransaction = InsertTransactionUseCase(transactionRepository, walletRepository),
-            updateTransaction = UpdateTransactionUseCase(transactionRepository,walletRepository),
-            deleteTransaction = DeleteTransactionUseCase(transactionRepository,walletRepository),
+            insertTransaction = InsertTransactionUseCase(ledger),
+            updateTransaction = UpdateTransactionUseCase(ledger),
+            deleteTransaction = DeleteTransactionUseCase(ledger),
         )
     }
 

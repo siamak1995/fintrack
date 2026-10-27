@@ -1,188 +1,41 @@
 package ir.siamak.fintrack.personalaccountant.presentation.transaction.section
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import ir.siamak.fintrack.common.core.formatter.PersianText as Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import ir.siamak.fintrack.common.core.datepicker.calendar.PersianCalendarFormatter
-import ir.siamak.fintrack.common.core.extensions.timestampToPersianDate
-import ir.siamak.fintrack.common.core.extensions.toPersianDigits
+import ir.siamak.fintrack.common.core.formatter.PersianText as Text
 import ir.siamak.fintrack.personalaccountant.data.model.Transaction
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.Locale
-import kotlin.math.roundToLong
+import ir.siamak.fintrack.personalaccountant.data.model.TransactionType
+import ir.siamak.fintrack.personalaccountant.data.model.toPersian
+import ir.siamak.fintrack.store.presentation.components.quantity
 
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun TransactionItemCard(
-    transaction: Transaction,
-    memberName: String,
-    walletName: String,
-    onClick: () -> Unit
-) {
-    val title = transaction.note.takeIf { it.isNotBlank() } ?: transaction.categoryName
-    val tagsText = transaction.tags
-        .map { it.name }
-        .filter { it.isNotBlank() }
-
-    val typeName = transaction.type.name
-
-    val typeLabel = when (typeName) {
-        "EXPENSE" -> "هزینه"
-        "INCOME" -> "درآمد"
-        "TRANSFER" -> "انتقال"
-        else -> "تراکنش"
+@Suppress("UNUSED_PARAMETER")
+@Composable fun TransactionItemCard(transaction: Transaction, memberName: String, walletName: String, onClick: () -> Unit) {
+    val title = transactionTitle(transaction)
+    val color = when(transaction.type) {
+        TransactionType.INCOME -> MaterialTheme.colorScheme.primary
+        TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
+        TransactionType.TRANSFER -> MaterialTheme.colorScheme.tertiary
     }
-
-    val amountColor = when (typeName) {
-        "EXPENSE" -> MaterialTheme.colorScheme.error
-        "INCOME" -> Color(0xFF2E7D32)
-        "TRANSFER" -> MaterialTheme.colorScheme.tertiary
-        else -> MaterialTheme.colorScheme.primary
-    }
-
-    val badgeContainerColor = when (typeName) {
-        "EXPENSE" -> MaterialTheme.colorScheme.errorContainer
-        "INCOME" -> MaterialTheme.colorScheme.primaryContainer
-        "TRANSFER" -> MaterialTheme.colorScheme.tertiaryContainer
-        else -> MaterialTheme.colorScheme.surfaceVariant
-    }
-
-    val badgeContentColor = when (typeName) {
-        "EXPENSE" -> MaterialTheme.colorScheme.onErrorContainer
-        "INCOME" -> MaterialTheme.colorScheme.onPrimaryContainer
-        "TRANSFER" -> MaterialTheme.colorScheme.onTertiaryContainer
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Text(
-                        text = "${formatTransactionDate(transaction.date)}  •  $memberName",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = formatAmount(transaction.amount),
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = amountColor
-                    )
-
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = badgeContainerColor
-                    ) {
-                        Text(
-                            text = typeLabel,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = badgeContentColor
-                        )
-                    }
-                }
+    Card(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+        Column(Modifier.padding(14.dp),verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(title,modifier = Modifier.weight(1f),style = MaterialTheme.typography.titleMedium,maxLines = 1,overflow = TextOverflow.Ellipsis)
+                Text(quantity(transaction.amount) + " تومان",color = color,style = MaterialTheme.typography.titleMedium)
             }
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-            ) {
-                Text(
-                    text = "حساب: $walletName",
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            if (tagsText.isNotEmpty()) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(7.dp),
-                    verticalArrangement = Arrangement.spacedBy(7.dp)
-                ) {
-                    tagsText.forEach { tag ->
-                        Surface(
-                            shape = RoundedCornerShape(999.dp),
-                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.70f)
-                        ) {
-                            Text(
-                                text = "#$tag",
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        }
-                    }
-                }
+            Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(transaction.tags.joinToString("، ") { "#" + it.name }.ifBlank { "بدون تگ" },modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodySmall,maxLines = 1,overflow = TextOverflow.Ellipsis)
+                Text(transaction.type.toPersian(),color = color,style = MaterialTheme.typography.labelMedium)
             }
         }
     }
 }
 
-private fun formatTransactionDate(timestamp: Long): String {
-    val date = timestampToPersianDate(timestamp) ?: return "-"
-    return PersianCalendarFormatter.formatDate(date)
-}
-
-private fun formatAmount(amount: Double): String {
-    val formatter = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US))
-    val rounded = amount.roundToLong()
-    return "${formatter.format(rounded).toPersianDigits()} تومان"
-}
-
+internal fun transactionTitle(transaction: Transaction): String =
+    if(transaction.note.startsWith("[FinTrackSms:") || transaction.note.startsWith("[FinTrackStore:")) transaction.categoryName
+    else transaction.note.lineSequence().firstOrNull { it.isNotBlank() } ?: transaction.categoryName

@@ -25,7 +25,8 @@ fun PersianDateRangePicker(
     modifier: Modifier = Modifier,
     minDate: PersianDate? = null,
     maxDate: PersianDate? = null,
-    today: PersianDate = JalaliCalendarEngine.today()
+    today: PersianDate = JalaliCalendarEngine.today(),
+    onMonthSelected: ((PersianMonth) -> Unit)? = null
 ) {
     val days = JalaliMonthCalculator.getMonthDays(displayedMonth)
     val dayItems = PersianCalendarUiMapper.mapMonthDays(
@@ -45,7 +46,8 @@ fun PersianDateRangePicker(
         PersianCalendarHeader(
             month = displayedMonth,
             onPreviousMonthClick = onPreviousMonthClick,
-            onNextMonthClick = onNextMonthClick
+            onNextMonthClick = onNextMonthClick,
+            onMonthSelected = onMonthSelected
         )
 
         PersianWeekHeader()

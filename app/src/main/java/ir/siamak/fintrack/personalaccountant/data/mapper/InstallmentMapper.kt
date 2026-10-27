@@ -14,7 +14,9 @@ fun InstallmentEntity.toModel(): Installment {
         createdAt = createdAt,
         note = note,
         walletId = walletId,
-        isPaid = isPaid, installmentCount = installmentCount, startDate = startDate, automaticPayment = automaticPayment
+        isPaid = isPaid, installmentCount = installmentCount, startDate = startDate, automaticPayment = automaticPayment,
+        principalAmount = principalAmount, annualInterestRate = annualInterestRate, installmentAmount = installmentAmount,
+        openingPaidAmount = openingPaidAmount, endDate = endDate, interestMethod = interestMethod
 
     )
 }
@@ -30,7 +32,9 @@ fun Installment.toEntity(): InstallmentEntity {
         createdAt = createdAt,
         note = note,
         walletId = walletId,
-        isPaid = isPaid, installmentCount = installmentCount, startDate = startDate, automaticPayment = automaticPayment
+        isPaid = isPaid, installmentCount = installmentCount, startDate = startDate, automaticPayment = automaticPayment,
+        principalAmount = principalAmount, annualInterestRate = annualInterestRate, installmentAmount = installmentAmount,
+        openingPaidAmount = openingPaidAmount, endDate = endDate, interestMethod = interestMethod
     )
 }
 

@@ -10,7 +10,7 @@ object BankSmsBalances {
         val marker = "[FinTrackSmsBalance:$walletId]"
         val rows = history.filter { it.walletId == walletId || it.toWalletId == walletId }
         // The second note line is metadata; never interpret the original SMS text as metadata.
-        if(rows.any { it.date > timestamp && it.note.lineSequence().drop(1).firstOrNull() == marker }) return current
+        if(rows.any { !it.isDeleted && it.date > timestamp && it.note.lineSequence().drop(1).firstOrNull() == marker }) return current
         if(reported == null) return current.add(change)
         require(reported.signum() >= 0) { "مانده نامعتبر است" }
         return rows.filter { !it.isDeleted && it.date > timestamp }.fold(reported) { total,row ->

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MemberDao {
 
-    @Query("SELECT * FROM members ORDER BY id DESC")
+    @Query("SELECT * FROM members WHERE isDeleted=0 AND contextId=1 ORDER BY id DESC")
     fun getAllMembers(): Flow<List<MemberEntity>>
 
     @Query("SELECT * FROM members WHERE id = :memberId LIMIT 1")
@@ -24,7 +24,8 @@ interface MemberDao {
     @Update
     suspend fun updateMember(member: MemberEntity)
 
-    @Delete
-    suspend fun deleteMember(member: MemberEntity)
+    suspend fun deleteMember(member: MemberEntity) {
+        updateMember(member.copy(isDeleted = true,updatedAt = System.currentTimeMillis()))
+    }
 }
 

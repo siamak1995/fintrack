@@ -103,6 +103,7 @@ fun AddEditWalletScreen(
                     label = { Text("موجودی فعلی (تومان)") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    supportingText = { Text(ir.siamak.fintrack.common.core.formatter.PersianAmountWords.format(state.balanceRaw,"تومان")) },
                     singleLine = true,
                     shape = MaterialTheme.shapes.medium,
                     placeholder = { Text("0") }

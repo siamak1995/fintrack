@@ -15,7 +15,8 @@ data class Transaction(
     val memberId: Long,
     val date: Long,
     val note: String,
-    val tags: List<Tag> = emptyList()
+    val tags: List<Tag> = emptyList(),
+    val loanId: Long? = null
 )
 
 fun TransactionType.toPersian(): String = when(this) {

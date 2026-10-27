@@ -13,10 +13,14 @@ fun loanSchedule(loan: Installment, zone: ZoneId = ZoneId.systemDefault()): Loan
     val count = loan.installmentCount.coerceIn(1,600)
     val total = BigDecimal.valueOf(loan.totalAmount.coerceAtLeast(0.0))
     val paid = BigDecimal.valueOf(loan.paidAmount.coerceIn(0.0,loan.totalAmount.coerceAtLeast(0.0)))
-    fun cumulative(index: Int) = total.multiply(BigDecimal(index)).divide(BigDecimal(count), 2, RoundingMode.HALF_UP)
+    val payment = loan.installmentAmount?.takeIf { it.isFinite() && it > 0 }?.let(BigDecimal::valueOf)
+    fun cumulative(index: Int) = if(index == count) total else if(payment != null)
+        payment.multiply(BigDecimal(index)).min(total) else total.multiply(BigDecimal(index)).divide(BigDecimal(count), 2, RoundingMode.HALF_UP)
     val completed = (1..count).count { cumulative(it) <= paid }
     val first = Instant.ofEpochMilli(loan.dueDate).atZone(zone).toLocalDate()
+    fun due(index: Int) = if(loan.installmentAmount == null && loan.endDate == null) first.plusMonths(index.toLong()) else loanDueDate(first,index)
     return LoanSchedule(completed, count-completed, total.subtract(paid).toDouble(),
-        if(completed == count) null else first.plusMonths(completed.toLong()), first.plusMonths(count-1L),
+        if(completed == count) null else due(completed),
+        loan.endDate?.let { Instant.ofEpochMilli(it).atZone(zone).toLocalDate() } ?: due(count-1),
         if(completed == count) 0.0 else cumulative(completed+1).subtract(paid).toDouble())
 }

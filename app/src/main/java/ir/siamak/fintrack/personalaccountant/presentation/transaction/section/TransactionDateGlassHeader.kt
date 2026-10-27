@@ -63,7 +63,7 @@ fun TransactionDateGlassHeader(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = date,
+                    text = date,groupNumbers = false,
                     style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.SemiBold
                     ),

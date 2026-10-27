@@ -29,9 +29,10 @@ fun PersianText(
     maxLines: Int = Int.MAX_VALUE,
     minLines: Int = 1,
     onTextLayout: ((TextLayoutResult) -> Unit)? = null,
-    style: TextStyle = LocalTextStyle.current
+    style: TextStyle = LocalTextStyle.current,
+    groupNumbers: Boolean = true
 ) = androidx.compose.material3.Text(
-    text = PersianNumberFormatter.display(text), modifier = modifier, color = color,
+    text = if(groupNumbers) PersianNumberFormatter.display(text) else PersianNumberFormatter.toPersianDigits(text), modifier = modifier, color = color,
     fontSize = fontSize, fontStyle = fontStyle, fontWeight = fontWeight, fontFamily = fontFamily,
     letterSpacing = letterSpacing, textDecoration = textDecoration, textAlign = textAlign,
     lineHeight = lineHeight, overflow = overflow, softWrap = softWrap, maxLines = maxLines,

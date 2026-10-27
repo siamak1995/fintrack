@@ -40,6 +40,24 @@ class StorePersistenceTest {
         db.rawMaterialDao().upsert(RawMaterialEntity(1,"خاک","کیلو",10_000,5.0,null,null))
     }
     @After fun close() { db.close(); personal.close() }
+    @Test fun cashAndInstallmentReceiptsAppearInPersonalIncomeExactlyOnce() = runBlocking {
+        val checkout = CheckoutSaleUseCase(repository)
+        val cash = checkout(request("cash-link"),workspace)
+        repository.syncInvoice(cash)
+        repository.syncInvoice(cash)
+        assertEquals(100000.0,personal.walletDao().getWalletById(1)!!.balance,0.0)
+        assertEquals(100000.0,personal.transactionDao().getAllTransactionsSync().sumOf { it.amount },0.0)
+        val installment = checkout(request("inst-link").copy(installmentMonths = 2,firstDueDate = LocalDate.now().plusDays(1).toString()),workspace)
+        assertEquals(1,personal.transactionDao().getAllTransactionsSync().size)
+        repository.receivePayment(installment,25000)
+        repository.syncInvoice(installment)
+        repository.syncInvoice(installment)
+        assertEquals(125000.0,personal.walletDao().getWalletById(1)!!.balance,0.0)
+        val history = personal.transactionDao().getAllTransactionsWithTagsSync()
+        assertEquals(2,history.size)
+        assertTrue(history.all { it.transaction.type == ir.siamak.fintrack.personalaccountant.data.model.TransactionType.INCOME })
+        assertEquals(125000.0,history.sumOf { it.transaction.amount },0.0)
+    }
     private fun request(id: String = "test", count: Int = 1) = SaleRequest(Customer(name = "مشتری",phone = "0912"),null,mapOf(1L to count),requestId = id,settlement = StoreSettlementAccount(1,1,1))
     @Test fun salePersistsItemsPaymentScheduleAndSnapshotExactlyOnce() = runBlocking {
         val checkout = CheckoutSaleUseCase(repository)

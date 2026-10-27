@@ -11,6 +11,8 @@ import ir.siamak.fintrack.personalaccountant.data.model.Wallet
 data class AddEditTransactionState(
 
     val filteredTags: List<Tag> = emptyList(),
+    val loans: List<ir.siamak.fintrack.personalaccountant.data.model.Installment> = emptyList(),
+    val selectedLoanId: Long? = null,
     /**
      * اگر null باشد یعنی در حالت ثبت جدید هستیم.
      * اگر مقدار داشته باشد یعنی صفحه در حالت ویرایش است.

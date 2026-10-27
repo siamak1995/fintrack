@@ -285,6 +285,9 @@ fun AddEditTransactionScreen(
                 )
             }
 
+            ir.siamak.fintrack.personalaccountant.presentation.components.LoanTransactionFields(
+                state.loans,state.type,state.selectedLoanId,state.tags.filter { it.id in state.selectedTagIds }.map { it.name },viewModel::selectLoan)
+
             // ۴. فیلد یادداشت تراکنش
             FTTextField(
                 value = state.note,

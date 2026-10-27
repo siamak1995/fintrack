@@ -57,6 +57,12 @@ data class InstallmentEntity(
     val contextId: Long = AccountantContextIds.PERSONAL,
     @androidx.room.ColumnInfo(defaultValue = "1") val installmentCount: Int = 1,
     @androidx.room.ColumnInfo(defaultValue = "0") val startDate: Long = createdAt,
-    @androidx.room.ColumnInfo(defaultValue = "0") val automaticPayment: Boolean = false
+    @androidx.room.ColumnInfo(defaultValue = "0") val automaticPayment: Boolean = false,
+    @androidx.room.ColumnInfo(defaultValue = "NULL") val principalAmount: Double? = null,
+    @androidx.room.ColumnInfo(defaultValue = "NULL") val annualInterestRate: Double? = null,
+    @androidx.room.ColumnInfo(defaultValue = "NULL") val installmentAmount: Double? = null,
+    @androidx.room.ColumnInfo(defaultValue = "0") val openingPaidAmount: Double = paidAmount,
+    @androidx.room.ColumnInfo(defaultValue = "NULL") val endDate: Long? = null,
+    @androidx.room.ColumnInfo(defaultValue = "NULL") val interestMethod: String? = null
 )
 

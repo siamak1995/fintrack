@@ -30,7 +30,7 @@ class GetFilteredTransactionsUseCase @Inject constructor(
             val matchesStart = startTimestamp == null || tx.date >= startTimestamp
             val matchesEnd = endTimestamp == null || tx.date <= endTimestamp
             val matchesMember = memberId == null || tx.memberId == memberId
-            val matchesWallet = walletId == null || tx.walletId == walletId
+            val matchesWallet = walletId == null || (tx.walletId == walletId || tx.toWalletId == walletId)
             val matchesType = transactionType == null || tx.type == transactionType
 
             matchesStart && matchesEnd && matchesMember && matchesWallet && matchesType

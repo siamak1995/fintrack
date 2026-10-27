@@ -32,7 +32,11 @@ class AddEditInstallmentsViewModel @Inject constructor(private val installmentUs
             try {
                 val row = requireNotNull(installmentUseCases.getInstallmentById(id)) { "وام پیدا نشد" }
                 original = row
-                mutable.update { it.copy(title = row.title, totalAmountRaw = amount(row.totalAmount), paidAmountRaw = amount(row.paidAmount),
+                mutable.update { it.copy(title = row.title, totalAmountRaw = amount(row.totalAmount), paidAmountRaw = amount(row.openingPaidAmount),
+                    principalRaw = row.principalAmount?.let(::amount).orEmpty(),annualRateRaw = row.annualInterestRate?.let(::amount).orEmpty(),
+                    installmentAmountRaw = row.installmentAmount?.let(::amount) ?: amount(row.totalAmount / row.installmentCount),
+                    interestMethod = ir.siamak.fintrack.personalaccountant.domain.analytics.LoanInterestMethod.entries.firstOrNull { method -> method.name == row.interestMethod }
+                        ?: ir.siamak.fintrack.personalaccountant.domain.analytics.LoanInterestMethod.CONTRACT,linkedPaidAmount = row.paidAmount - row.openingPaidAmount,
                     dueDate = row.dueDate, startDate = row.startDate, walletId = row.walletId, note = row.note.orEmpty(),
                     installmentCountRaw = row.installmentCount.toString(), automaticPayment = row.automaticPayment, isLoading = false) }
             } catch(e: Exception) { mutable.update { it.copy(isLoading = false, error = e.message) } }
@@ -54,9 +58,18 @@ class AddEditInstallmentsViewModel @Inject constructor(private val installmentUs
             try {
                 val s = mutable.value
                 require(s.title.isNotBlank()) { "عنوان وام یا قسط را وارد کنید" }
-                val total = s.totalAmountRaw.toDoubleOrNull() ?: error("مبلغ کل نامعتبر است")
-                val paid = s.paidAmountRaw.ifBlank { "0" }.toDoubleOrNull() ?: error("مبلغ پرداختی نامعتبر است")
                 val count = s.installmentCountRaw.toIntOrNull() ?: error("تعداد اقساط نامعتبر است")
+                require(count in 1..600) { "تعداد اقساط باید بین یک و ۶۰۰ باشد" }
+                require(s.principalRaw.isBlank() || s.principalRaw.toDoubleOrNull() != null) { "اصل وام نامعتبر است" }
+                require(s.annualRateRaw.isBlank() || s.annualRateRaw.toDoubleOrNull() != null) { "درصد نامعتبر است" }
+                val calculation = if(s.manualContract) null else ir.siamak.fintrack.personalaccountant.domain.analytics.LoanCalculator.calculate(
+                    s.principalRaw.toBigDecimalOrNull() ?: error("اصل وام را وارد کنید"),
+                    s.annualRateRaw.toBigDecimalOrNull() ?: error("درصد سالانه را وارد کنید"),count,s.interestMethod)
+                val total = calculation?.total?.toDouble() ?: s.totalAmountRaw.toDoubleOrNull() ?: error("مبلغ کل نامعتبر است")
+                val payment = calculation?.payment?.toDouble() ?: s.installmentAmountRaw.toDoubleOrNull() ?: (total / count)
+                require(payment.isFinite() && payment > 0 && payment * (count-1) < total && payment * count + 0.02 * count >= total) { "مبلغ قسط، تعداد اقساط و کل بازپرداخت با هم سازگار نیستند" }
+                val opening = s.paidAmountRaw.ifBlank { "0" }.toDoubleOrNull() ?: error("مبلغ پرداختی نامعتبر است")
+                val paid = java.math.BigDecimal.valueOf(opening).add(java.math.BigDecimal.valueOf(s.linkedPaidAmount)).toDouble()
                 require(total.isFinite() && total > 0 && total <= 9007199254740991.0 && paid.isFinite() && paid in 0.0..total) { "مبلغ کل و پرداخت‌شده را بررسی کنید" }
                 require(count in 1..600 && total >= count) { "تعداد اقساط باید بین یک و ۶۰۰ و متناسب با مبلغ باشد" }
                 val zone = java.time.ZoneId.systemDefault()
@@ -67,7 +80,10 @@ class AddEditInstallmentsViewModel @Inject constructor(private val installmentUs
                 val row = Installment(id = original?.id ?: 0, contextId = original?.contextId ?: 1,
                     title = s.title.trim(), totalAmount = total, paidAmount = paid, dueDate = dueDay.atStartOfDay(zone).toInstant().toEpochMilli(),
                     createdAt = original?.createdAt ?: System.currentTimeMillis(), note = s.note.ifBlank { null },
-                    walletId = s.walletId, isPaid = paid >= total, installmentCount = count, startDate = startDay.atStartOfDay(zone).toInstant().toEpochMilli(), automaticPayment = s.automaticPayment)
+                    walletId = s.walletId, isPaid = paid >= total, installmentCount = count, startDate = startDay.atStartOfDay(zone).toInstant().toEpochMilli(), automaticPayment = s.automaticPayment,
+                    principalAmount = s.principalRaw.takeIf { it.isNotBlank() }?.toDoubleOrNull(),annualInterestRate = s.annualRateRaw.takeIf { it.isNotBlank() }?.toDoubleOrNull(),
+                    installmentAmount = payment,openingPaidAmount = opening,interestMethod = s.interestMethod.name,
+                    endDate = ir.siamak.fintrack.personalaccountant.domain.analytics.loanDueDate(dueDay,count-1).atStartOfDay(zone).toInstant().toEpochMilli())
                 if(original == null) installmentUseCases.insertInstallment(row) else installmentUseCases.updateInstallment(row)
                 mutable.update { it.copy(isLoading = false, isSaved = true) }
             } catch(cancel: kotlinx.coroutines.CancellationException) { throw cancel }

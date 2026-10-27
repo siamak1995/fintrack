@@ -11,7 +11,7 @@ import ir.siamak.fintrack.personalaccountant.domain.dashboard.DashboardMoney
 import ir.siamak.fintrack.personalaccountant.domain.dashboard.DashboardStatistics
 import ir.siamak.fintrack.personalaccountant.presentation.dashboard.FinancialHealth
 import java.time.Instant
-import java.time.YearMonth
+import ir.siamak.fintrack.common.core.datepicker.calendar.JalaliDateConverter
 import java.time.ZoneId
 import javax.inject.Inject
 
@@ -249,6 +249,12 @@ class DashboardCalculator @Inject constructor() {
             .atZone(ZoneId.systemDefault())
             .toLocalDate()
 
-        return YearMonth.from(localDate) == YearMonth.now()
+        return samePersianMonth(localDate,java.time.LocalDate.now())
     }
+}
+
+internal fun samePersianMonth(day: java.time.LocalDate, today: java.time.LocalDate): Boolean {
+    val first = JalaliDateConverter.fromGregorian(day)
+    val second = JalaliDateConverter.fromGregorian(today)
+    return first.year == second.year && first.month == second.month
 }

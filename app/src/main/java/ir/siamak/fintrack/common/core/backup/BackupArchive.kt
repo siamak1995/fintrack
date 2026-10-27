@@ -52,7 +52,7 @@ class BackupArchive @Inject constructor(
         val stage = File(context.noBackupFilesDir,"restore-validation-" + java.util.UUID.randomUUID()).apply { mkdirs() }
         try {
             readArchive(input, stage)
-            validateDatabase(File(stage,"databases/fintrack_db"), 9, "wallet")
+            validateDatabase(File(stage,"databases/fintrack_db"), 10, "wallet")
             validateDatabase(File(stage,"databases/store_fintrack_db"), 3, "invoices")
             PREFERENCE_PATHS.forEach { path ->
                 val preferences = File(stage,"files/$path")
@@ -166,7 +166,7 @@ class BackupArchive @Inject constructor(
 
         private fun validateDatabase(file: File, version: Int, table: String) {
             SQLiteDatabase.openDatabase(file.path,null,SQLiteDatabase.OPEN_READONLY).use { db ->
-                val compatible = if(table == "wallet") mapOf(8 to "f1622432820d3af5b3b49ac7aac91386",9 to "f63433f6486906e3c2faa45513d5372b")
+                val compatible = if(table == "wallet") mapOf(6 to "36ee83269bb119978882bd02ca69c492",7 to "36ee83269bb119978882bd02ca69c492",8 to "f1622432820d3af5b3b49ac7aac91386",9 to "f63433f6486906e3c2faa45513d5372b",10 to "cf9fab7362b010a36c34c58ba6898dff")
                     else mapOf(2 to "9652f179120c420dd68f28fecf641d87",3 to "33e40defe1866926bd96227f1f6a5b86")
                 require(db.version <= version && db.version in compatible) { "نسخهٔ پشتیبان با این برنامه سازگار نیست؛ از نسخهٔ سازگار برای بازیابی استفاده کنید" }
                 db.rawQuery("PRAGMA integrity_check",null).use { require(it.moveToFirst() && it.getString(0) == "ok") { "صحت پایگاه داده تأیید نشد" } }
@@ -208,7 +208,7 @@ class BackupArchive @Inject constructor(
             if(!pending.exists()) return
             // Validate again before touching any active file; interrupted/corrupt staging is never installed.
             verifyStaged(pending)
-            validateDatabase(File(pending,DATABASE_PATHS[0]),9,"wallet")
+            validateDatabase(File(pending,DATABASE_PATHS[0]),10,"wallet")
             validateDatabase(File(pending,DATABASE_PATHS[1]),3,"invoices")
             recovery.mkdirs()
             val originals = paths.filter { target(it).exists() }
